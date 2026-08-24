@@ -1,3 +1,6 @@
+<!-- tech-stack-badges -->
+![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white) ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black) ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+
 # Takumi's Portfolio
 
 赤堀匠海(Akahori Takumi)のポートフォリオサイトです。WordPressのカスタムテーマとして構築されており、Three.jsによる3Dスクロール演出とGSAPのアニメーションを組み合わせています。
