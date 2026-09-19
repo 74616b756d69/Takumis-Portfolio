@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flow Lines</title>
+<style>
+  /* ===== デモページ用（組み込み時は不要） ===== */
+  html, body { margin: 0; }
+  body {
+    background: #faf9f6; color: #15161a;
+    font-family: system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    padding: 8vh 6vw;
+  }
+  .demo { max-width: 900px; margin: 0 auto; }
+  .demo h2 { font-size: clamp(22px, 3.6vw, 34px); margin: 0 0 .1em; letter-spacing: -.02em; }
+  .demo p  { color: #6b6b72; line-height: 1.9; margin: 0 0 4.5rem; font-size: 14px; }
+  .label   { font-size: 11px; letter-spacing: .14em; color: #a3a3ab; margin: 0 0 .8rem; }
+
+  /* ========================================================================
+     ここから下が本体。3つの型を用意しています。
+       .flow-line            … セクションの区切り線（うねる3本）
+       .flow-line--underline … 見出しの下線（1本・細い）
+       .flow-line--dash      … 破線が流れる型（マスク不使用・最も軽い）
+     ======================================================================== */
+  .flow-line {
+    display: block;
+    width: 100%;
+    height: auto;
+
+    /* ---- グラデーションの色（差し替えはここだけ） ---- */
+    --g1: #7c5cff;
+    --g2: #ff3d7f;
+    --g3: #ffcf2d;
+    --g4: #0ae4a1;
+
+    /* ---- 線の太さ ---- */
+    --w1: 6;      /* 主線 */
+    --w2: 4;      /* 副線 */
+    --w3: 2.5;    /* 細線 */
+
+    /* ---- 速度（大きいほどゆっくり） ---- */
+    --flow: 14s;
+
+    /* ---- 上下の余白 ---- */
+    margin-block: var(--flow-margin, 0px);
+  }
+
+  /* グラデーションの色（属性では var() が効かないので CSS で指定） */
+  .flow-line .s-g1 { stop-color: var(--g1); }
+  .flow-line .s-g2 { stop-color: var(--g2); }
+  .flow-line .s-g3 { stop-color: var(--g3); }
+  .flow-line .s-g4 { stop-color: var(--g4); }
+
+  /* 線の見た目 */
+  .flow-line .wave { fill: none; stroke-linecap: round; }
+  .flow-line .w1 { stroke-width: var(--w1); }
+  .flow-line .w2 { stroke-width: var(--w2); }
+  .flow-line .w3 { stroke-width: var(--w3); }
+
+  /* ---- 色が流れる仕組み ----
+     線そのものをマスクにして、その内側で「繰り返しグラデーションを塗った面」を
+     横に流しています。グラデーションの1周期ぶん（600）ちょうど動かして最初に戻すので、
+     つなぎ目が出ずにシームレスにループします。 */
+  .flow { animation: flow var(--flow) linear infinite; }
+  .flow--slow { animation-duration: calc(var(--flow) * 1.9); }
+  .flow--rev  { animation-duration: calc(var(--flow) * 1.35); animation-direction: reverse; }
+
+  @keyframes flow {
+    from { transform: translateX(0); }
+    to   { transform: translateX(600px); }   /* = グラデーションの1周期 */
+  }
+
+  /* ---- 破線が流れる型：dasharray のパターン1つぶんだけ dashoffset を動かす ---- */
+  .dash {
+    stroke-dasharray: 2 16;          /* 点の長さ と 間隔 */
+    stroke-linecap: round;
+    animation: dash calc(var(--flow) * 0.9) linear infinite;
+  }
+  @keyframes dash {
+    from { stroke-dashoffset: 0; }
+    to   { stroke-dashoffset: -18; }  /* = 2 + 16（パターン1つぶん）*/
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .flow, .dash { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="demo">
+
+  <p class="label">01 — SECTION DIVIDER</p>
+  <!-- ============ セクションの区切り線 ここから ============ -->
+  <svg class="flow-line" viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg"
+       role="presentation" aria-hidden="true">
+    <defs>
+      <!-- 端の色を始点と同じにすると、繰り返しても色の段差が出ない -->
+      <linearGradient id="fa-grad" gradientUnits="userSpaceOnUse"
+                      x1="0" y1="0" x2="600" y2="0" spreadMethod="repeat">
+        <stop offset="0"    class="s-g1"/>
+        <stop offset="0.33" class="s-g2"/>
+        <stop offset="0.66" class="s-g3"/>
+        <stop offset="1"    class="s-g1"/>
+      </linearGradient>
+      <linearGradient id="fa-grad2" gradientUnits="userSpaceOnUse"
+                      x1="0" y1="0" x2="600" y2="0" spreadMethod="repeat">
+        <stop offset="0"    class="s-g4"/>
+        <stop offset="0.5"  class="s-g1"/>
+        <stop offset="1"    class="s-g4"/>
+      </linearGradient>
+
+      <!-- 線そのものをマスクに（白＝見える） -->
+      <mask id="fa-m1">
+        <path class="wave w1" stroke="#fff"
+              d="M0,60 q75,-34 150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0"/>
+      </mask>
+      <mask id="fa-m2">
+        <path class="wave w2" stroke="#fff"
+              d="M0,66 q100,30 200,0 t200,0 t200,0 t200,0 t200,0 t200,0"/>
+      </mask>
+      <mask id="fa-m3">
+        <path class="wave w3" stroke="#fff"
+              d="M0,52 q60,-16 120,0 t120,0 t120,0 t120,0 t120,0 t120,0 t120,0 t120,0 t120,0 t120,0"/>
+      </mask>
+    </defs>
+
+    <g mask="url(#fa-m1)">
+      <g class="flow"><rect x="-600" y="0" width="2400" height="120" fill="url(#fa-grad)"/></g>
+    </g>
+    <g mask="url(#fa-m2)" opacity="0.75">
+      <g class="flow flow--rev"><rect x="-600" y="0" width="2400" height="120" fill="url(#fa-grad2)"/></g>
+    </g>
+    <g mask="url(#fa-m3)" opacity="0.55">
+      <g class="flow flow--slow"><rect x="-600" y="0" width="2400" height="120" fill="url(#fa-grad)"/></g>
+    </g>
+  </svg>
+  <!-- ============ ここまで ============ -->
+
+  <h2>Selected Works</h2>
+  <p class="label" style="margin-top:.6rem">02 — HEADING UNDERLINE</p>
+  <!-- ============ 見出しの下線 ここから ============ -->
+  <svg class="flow-line flow-line--underline" viewBox="0 0 400 24"
+       xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true"
+       style="max-width: 320px; --w1: 5;">
+    <defs>
+      <linearGradient id="fb-grad" gradientUnits="userSpaceOnUse"
+                      x1="0" y1="0" x2="600" y2="0" spreadMethod="repeat">
+        <stop offset="0"    class="s-g1"/>
+        <stop offset="0.33" class="s-g2"/>
+        <stop offset="0.66" class="s-g4"/>
+        <stop offset="1"    class="s-g1"/>
+      </linearGradient>
+      <mask id="fb-m">
+        <path class="wave w1" stroke="#fff"
+              d="M4,12 q50,-9 100,0 t100,0 t100,0 t92,0"/>
+      </mask>
+    </defs>
+    <g mask="url(#fb-m)">
+      <g class="flow"><rect x="-600" y="0" width="2400" height="24" fill="url(#fb-grad)"/></g>
+    </g>
+  </svg>
+  <!-- ============ ここまで ============ -->
+
+  <p>マスクを使わず、線に直接グラデーションを塗って破線を流す型もあります。<br>
+     要素数が少ないので、たくさん並べるときはこちらが軽量です。</p>
+
+  <p class="label">03 — DASHED</p>
+  <!-- ============ 破線が流れる型 ここから ============ -->
+  <svg class="flow-line flow-line--dash" viewBox="0 0 1200 60"
+       xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true">
+    <defs>
+      <linearGradient id="fc-grad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0"    class="s-g1"/>
+        <stop offset="0.5"  class="s-g2"/>
+        <stop offset="1"    class="s-g4"/>
+      </linearGradient>
+    </defs>
+    <path class="wave w1 dash" stroke="url(#fc-grad)"
+          d="M0,30 q75,-18 150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0"/>
+  </svg>
+  <!-- ============ ここまで ============ -->
+
+</div>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scroll Ring Arcs</title>
+<style>
+  /* ===== デモページ用（組み込み時は不要） ===== */
+  html, body { height: 100%; margin: 0; }
+  body { display: grid; place-items: center; background: #faf9f6; }
+  .stage { width: min(68vw, 330px); }
+
+  /* ===== ここから下がイラスト本体 ===== */
+  .arcs {
+    display: block; width: 100%; height: auto; overflow: visible;
+
+    /* ---- グラデーションの色（グリーン → ブルー） ---- */
+    --c1: #0ae4a1;   /* ビビッドグリーン */
+    --c2: #22d3ee;   /* シアン */
+    --c3: #3d7bff;   /* ビビッドブルー */
+    --c4: #a8f5dc;   /* パステルミント */
+
+    /* ---- 回転周期（数値が大きいほどゆっくり） ---- */
+    --spin-1: 56s;   /* 外側・細め */
+    --spin-2: 44s;   /* 中間・いちばん細い（逆回転） */
+    --spin-3: 72s;   /* 内側・太め */
+
+    /* ---- 線の太さ ---- */
+    --w1: 16;
+    --w2: 10;
+    --w3: 20;
+
+    /* ノイズの強さはフィルタ内の数値（feColorMatrix 最終列の -0.35）で調整します。
+       フィルタの属性値は CSS 変数を参照できないためです。 */
+  }
+
+  /* 回転はすべて中心(150,150)まわり。
+     fill-box だと弧ごとに基準がずれるので view-box 基準で揃える */
+  .rot { transform-box: view-box; transform-origin: 150px 150px; }
+
+  /* 同方向で速度差のある1と3が追いかけっこし、2だけが逆に横切る */
+  .rot--1 { animation: spin var(--spin-1) linear infinite; }
+  .rot--2 { animation: spin var(--spin-2) linear infinite reverse; }
+  .rot--3 { animation: spin var(--spin-3) linear infinite; }
+
+  /* 0度と360度は同じ状態なので、つなぎ目なくループする */
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .arc {
+    fill: none;
+    stroke-linecap: round;   /* 端を丸めて柔らかい印象に */
+  }
+  .arc--1 { stroke-width: var(--w1); stroke: url(#ar-a); }
+  .arc--2 { stroke-width: var(--w2); stroke: url(#ar-b); }
+  .arc--3 { stroke-width: var(--w3); stroke: url(#ar-c); }
+
+  /* グラデーションの色（属性では var() が効かないため CSS で指定） */
+  .arcs .s1 { stop-color: var(--c1); }
+  .arcs .s2 { stop-color: var(--c2); }
+  .arcs .s3 { stop-color: var(--c3); }
+  .arcs .s4 { stop-color: var(--c4); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .arcs * { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <!-- ===================== ここから下をコピーして使えます ===================== -->
+  <svg class="arcs" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"
+       role="img" aria-label="回り続ける円弧のイラスト">
+    <defs>
+      <!-- 弧ごとに色の起点をずらす。3本が重なることで、
+           全体としては緑から青がぐるりと巡っているように見える -->
+      <linearGradient id="ar-a" gradientUnits="userSpaceOnUse" x1="38" y1="40" x2="262" y2="250">
+        <stop offset="0"   class="s1"/>
+        <stop offset="0.5" class="s2"/>
+        <stop offset="1"   class="s3"/>
+      </linearGradient>
+      <linearGradient id="ar-b" gradientUnits="userSpaceOnUse" x1="240" y1="70" x2="60" y2="230">
+        <stop offset="0"   class="s3"/>
+        <stop offset="0.5" class="s2"/>
+        <stop offset="1"   class="s4"/>
+      </linearGradient>
+      <linearGradient id="ar-c" gradientUnits="userSpaceOnUse" x1="90" y1="220" x2="215" y2="85">
+        <stop offset="0"   class="s2"/>
+        <stop offset="0.5" class="s1"/>
+        <stop offset="1"   class="s2"/>
+      </linearGradient>
+
+      <!-- グレイン：乱流を黒のアルファに変換 → 図形の中だけに限定 → 乗算で重ねる。
+           3段目の feComposite がないと、図形の外にも黒い粒が散る -->
+      <filter id="ar-grain" x="-20%" y="-20%" width="140%" height="140%"
+              color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3"
+                      stitchTiles="stitch" result="noise"/>
+        <!-- 最終列の -0.35 が効き具合の調整点。これがないと、乱流の平均値のぶんだけ
+             全体が一様に暗くなり、ビビッドな色がくすんでしまう。
+             引き算することで「暗い粒だけが乗る」状態になる -->
+        <feColorMatrix in="noise" type="matrix" result="grain"
+                       values="0 0 0 0 0
+                               0 0 0 0 0
+                               0 0 0 0 0
+                               0.3 0.3 0.3 0 -0.35"/>
+        <feComposite in="grain" in2="SourceGraphic" operator="in" result="grainClipped"/>
+        <feBlend in="grainClipped" in2="SourceGraphic" mode="multiply"/>
+      </filter>
+    </defs>
+
+    <!-- 外側・細め（285度） -->
+    <g class="rot rot--1">
+      <path class="arc arc--1" filter="url(#ar-grain)"
+            d="M130.55,39.70 A112,112 0 1 1 38.43,140.24"/>
+    </g>
+
+    <!-- 中間・いちばん細い（250度・逆回転） -->
+    <g class="rot rot--2">
+      <path class="arc arc--2" filter="url(#ar-grain)"
+            d="M192.00,222.75 A84,84 0 1 1 203.99,85.65"/>
+    </g>
+
+    <!-- 内側・太め（220度） -->
+    <g class="rot rot--3">
+      <path class="arc arc--3" filter="url(#ar-grain)"
+            d="M92.88,160.07 A58,58 0 1 1 200.23,179.00"/>
+    </g>
+
+  </svg>
+  <!-- ===================== ここまで ===================== -->
+</div>
+
+</body>
+</html>

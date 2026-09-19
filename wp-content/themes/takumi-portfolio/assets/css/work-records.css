@@ -1,0 +1,247 @@
+@charset "UTF-8";
+/* ============================================================
+   WORK RECORDS
+   実績を「カード」ではなく「記録の行」として並べるセクション。
+   ============================================================ */
+
+.work-records-section{
+  background:var(--paper);
+  color:var(--ink);
+  padding:clamp(80px,10vw,145px) 4vw clamp(72px,9vw,130px);
+}
+
+/* --- kicker（通し番号レンジ + ラベル）--- */
+.records-kicker{
+  display:grid;
+  grid-template-columns:120px 1fr;
+  align-items:baseline;
+  padding-bottom:18px;
+  border-bottom:1px solid var(--ink);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.14em;
+}
+.records-kicker span{font-family:var(--font-display);font-size:11px}
+.records-kicker p{margin:0}
+
+/* --- 見出し --- */
+.records-heading{
+  display:grid;
+  grid-template-columns:1.15fr .55fr;
+  align-items:end;
+  gap:clamp(40px,8vw,10vw);
+  padding:clamp(56px,8vw,100px) 0 clamp(48px,7vw,95px);
+}
+.records-heading h2{
+  margin:0;
+  font-family:var(--font-editorial);
+  font-weight:600;
+  /* 和文は字幅が詰まらないので欧文見出しより一段小さく取る。
+     改行位置は <br> だけで決めたいので nowrap で折り返しを止める */
+  font-size:clamp(2rem,5.2vw,5rem);
+  line-height:1.15;
+  letter-spacing:-.04em;
+  white-space:nowrap;
+}
+.records-heading p{
+  margin:0;
+  font-size:.92rem;
+  line-height:2;
+  color:var(--muted);
+}
+
+/* --- 行リスト --- */
+.records-list{border-top:2px solid var(--ink)}
+
+.record{
+  position:relative;
+  display:grid;
+  grid-template-columns:74px 1fr 230px 50px;
+  align-items:center;
+  gap:22px;
+  width:100%;
+  min-height:146px;
+  padding:20px 0;
+  border-bottom:1px solid var(--line);
+  color:inherit;
+  text-decoration:none;
+  overflow:hidden;
+  /* 面より一拍遅らせて文字色を反転させると、読み手が置いていかれない */
+  transition:color .28s var(--ease) .04s;
+}
+
+/* せり上がる面。transform だけを動かすので再描画が起きない */
+.record::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  background:var(--accent);
+  transform:scaleY(0);
+  transform-origin:center bottom;
+  transition:transform .28s var(--ease);
+}
+.record:hover::before,
+.record:focus-visible::before{transform:scaleY(1)}
+
+.record > *{position:relative;z-index:1}
+
+.record:hover,
+.record:focus-visible{color:#fff}
+.record:hover .record-cat,
+.record:focus-visible .record-cat,
+.record:hover .record-sub,
+.record:focus-visible .record-sub,
+.record:hover .record-metric,
+.record:focus-visible .record-metric{color:rgba(255,255,255,.82)}
+
+.record:focus-visible{outline:none}
+.record:focus-visible .record-arrow{box-shadow:0 0 0 2px #fff}
+
+.record-index{
+  align-self:start;
+  padding-top:8px;
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:18px;
+  line-height:1;
+}
+
+.record-body{display:flex;flex-direction:column;gap:7px}
+.record-cat{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--muted)}
+.record-name{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:clamp(2rem,4.6vw,4.6rem);
+  line-height:.88;
+  letter-spacing:-.02em;
+}
+.record-sub{font-size:.77rem;letter-spacing:.06em;color:var(--muted);font-style:normal}
+
+.record-metric{
+  text-align:right;
+  font-size:10px;font-weight:700;letter-spacing:.11em;color:var(--muted);
+}
+
+.record-arrow{
+  display:grid;place-items:center;
+  width:43px;height:43px;
+  border:1px solid currentColor;
+  transition:transform .28s var(--ease);
+}
+.record:hover .record-arrow,
+.record:focus-visible .record-arrow{transform:translate(4px,-4px)}
+
+/* JS が動いているときだけモーダルを開く。OFF なら単体ページへのリンクとして機能する */
+.record-detail{display:none}
+
+/* ============================================================
+   詳細ビュー（モーダル）
+   ============================================================ */
+.record-dialog{
+  position:fixed;inset:0;z-index:100;
+  display:none;
+  /* UA スタイルの width/height:fit-content と margin:auto を打ち消して全面に広げる */
+  width:100%;max-width:none;
+  height:100%;max-height:none;
+  margin:0;padding:0;border:0;
+  background:rgba(8,10,12,.72);
+  backdrop-filter:blur(3px);
+}
+.record-dialog[open]{display:grid;place-items:center}
+.record-dialog::backdrop{background:transparent}
+
+.record-visual{
+  position:relative;
+  width:min(920px,92vw);
+  max-height:88vh;
+  overflow:auto;
+  padding:clamp(24px,4vw,56px);
+  color:var(--paper);
+  background:repeating-linear-gradient(135deg,#1d2225 0 2px,#15191c 2px 20px);
+  border:1px solid rgba(255,255,255,.12);
+  display:flex;flex-direction:column;gap:clamp(20px,3vw,34px);
+}
+.record-visual .rv-cat{
+  width:max-content;padding-bottom:6px;
+  border-bottom:2px solid var(--accent);
+  font-size:10px;font-weight:800;letter-spacing:.12em;
+}
+.record-visual h3{
+  margin:0;
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:clamp(2.6rem,7vw,6rem);
+  line-height:.84;
+  letter-spacing:-.03em;
+  color:var(--accent);
+}
+.record-visual .rv-sub{
+  margin:0;
+  font-family:var(--font-editorial);
+  font-size:clamp(1.1rem,2.6vw,1.9rem);
+  line-height:1.4;
+}
+.record-visual .rv-desc{margin:0;font-size:.9rem;line-height:2;color:#c6cbd0;max-width:60ch}
+.record-visual .rv-desc p{margin:0 0 1em}
+.record-visual .rv-desc p:last-child{margin-bottom:0}
+
+.rv-thumb{margin:0;border:1px solid rgba(255,255,255,.12)}
+.rv-thumb img{display:block;width:100%}
+
+.rv-meta{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:18px;padding-top:20px;border-top:1px solid rgba(255,255,255,.14);
+}
+.rv-meta dt{font-size:9px;font-weight:700;letter-spacing:.14em;color:#8b9198;margin-bottom:6px}
+.rv-meta dd{margin:0;font-size:.82rem;line-height:1.7}
+
+.rv-links{display:flex;flex-wrap:wrap;gap:12px}
+.rv-links a{
+  padding:11px 20px;
+  border:1px solid rgba(255,255,255,.35);
+  color:var(--paper);text-decoration:none;
+  font-size:11px;font-weight:700;letter-spacing:.1em;
+  transition:background .2s var(--ease),border-color .2s var(--ease);
+}
+.rv-links a:hover{background:var(--accent);border-color:var(--accent)}
+
+.rv-close{
+  position:absolute;top:14px;right:14px;
+  width:44px;height:44px;
+  display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.3);
+  background:transparent;color:var(--paper);
+  cursor:pointer;
+  transition:background .2s var(--ease);
+}
+.rv-close:hover{background:var(--accent-2)}
+
+/* モーダル表示中は背面をスクロールさせない */
+body.is-dialog-open{overflow:hidden}
+
+/* ============================================================
+   レスポンシブ
+   ============================================================ */
+@media (max-width:920px){
+  .record{grid-template-columns:58px 1fr 160px 45px}
+}
+@media (max-width:680px){
+  .records-kicker{grid-template-columns:58px 1fr}
+  .records-heading{grid-template-columns:1fr;gap:32px}
+  .records-heading h2{font-size:clamp(1.75rem,8.2vw,2.8rem);white-space:normal}
+  .record{grid-template-columns:34px 1fr 40px;gap:10px;min-height:126px}
+  .record-name{font-size:clamp(1.75rem,8.5vw,2.3rem);line-height:.95;text-wrap:balance}
+  .record-sub{font-size:.66rem}
+  .record-metric{display:none}   /* 幅が足りないので数値は詳細側に逃がす */
+  .record-arrow{width:36px;height:36px}
+}
+
+/* ============================================================
+   モーションを減らす設定への配慮
+   ============================================================ */
+@media (prefers-reduced-motion:reduce){
+  .record,.record::before,.record-arrow,.rv-links a,.rv-close{transition:none}
+  .record:hover .record-arrow,
+  .record:focus-visible .record-arrow{transform:none}
+}

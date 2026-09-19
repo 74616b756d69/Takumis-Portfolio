@@ -1,0 +1,258 @@
+@charset "UTF-8";
+/* ============================================================
+   横スクロールの装飾バンド
+
+   同じ並びを2周ぶん並べ、-50% 動かして先頭に戻すことで
+   つなぎ目なくループさせている。
+   図形そのものの動き（明滅・ゆれ・きらめき）は帯の移動とは独立していて、
+   入れ子にした g にそれぞれ別のアニメーションを当てている。
+   ============================================================ */
+
+.mq-defs{
+  position:absolute;
+  width:0;height:0;
+  overflow:hidden;
+}
+
+/* 色の変数はセクションに置く。
+   グラデーションの定義（.mq-defs）と図形は別の要素なので、
+   図形側に置くと defs の stop-color から参照できず、色が黒に落ちる。 */
+.marquee-section{
+  /* ダイヤモンド（オレンジ → ピンク） */
+  --o1:#ff7a18;
+  --o2:#ff2e7e;
+  --o3:#ffc978;
+  --o4:#ff9ec4;
+
+  /* リング（グリーン → ブルー） */
+  --g1:#0ae4a1;
+  --g2:#22d3ee;
+  --g3:#3d7bff;
+  --g4:#a8f5dc;
+
+  /* 星（パープル → ピンク） */
+  --p1:#7c5cff;
+  --p2:#c44dff;
+  --p3:#ff3d7f;
+  --p4:#ffb3e6;
+
+  overflow:hidden;
+  padding-block:clamp(3rem,7vw,6rem);
+  border-block:1px solid var(--line);
+  border-color:rgba(240,240,240,.14);
+}
+
+.marquee{
+  display:flex;
+  width:max-content;
+}
+
+.marquee-track{
+  display:flex;
+  animation:mq-scroll var(--mq-speed,52s) linear infinite;
+}
+
+.marquee-item{
+  display:flex;
+  align-items:center;
+  gap:clamp(.9rem,2vw,1.6rem);
+  padding-inline:clamp(1.6rem,4vw,3.4rem);
+}
+
+/* 2周ぶんの並びが1周ぶん進んだ時点で、見た目が元と同じ状態になる */
+@keyframes mq-scroll{
+  from{transform:translateX(0)}
+  to  {transform:translateX(-50%)}
+}
+
+.mq-label{
+  margin:0;
+  display:flex;
+  flex-direction:column;
+  gap:.35em;
+  white-space:nowrap;
+}
+
+.mq-word{
+  font-family:var(--font-editorial);
+  font-size:clamp(1.25rem,3.2vw,2.1rem);
+  line-height:1;
+  letter-spacing:.06em;
+}
+
+.mq-note{
+  font-family:var(--font-display);
+  font-size:clamp(.6rem,1.2vw,.72rem);
+  letter-spacing:.2em;
+  color:var(--muted);
+}
+
+/* ---- 図形の共通設定 ---- */
+.fig{
+  display:block;
+  width:clamp(72px,11vw,132px);
+  height:auto;
+  overflow:visible;
+  flex:none;
+}
+
+/* ============================================================
+   ダイヤモンド（つくる）
+   ============================================================ */
+.fig--diamond{
+  --dm-swing:13s;
+  --dm-swing-angle:15deg;
+  --dm-turn:9s;
+  --dm-float:6s;
+  --dm-shine:7s;
+}
+
+.s-o1{stop-color:var(--o1)}
+.s-o2{stop-color:var(--o2)}
+.s-o3{stop-color:var(--o3)}
+.s-o4{stop-color:var(--o4)}
+
+/* 回転の中心は菱形の重心。fill-box だと面ごとに基準がずれるので view-box 基準にする */
+.dm-swing,.dm-turn,.dm-float{
+  transform-box:view-box;
+  transform-origin:130px 156px;
+}
+
+/* メトロノームのように左右へ振れて戻る。
+   ease-in-out なので両端でいったん止まり、中央がいちばん速くなる */
+.dm-swing{animation:dm-swing var(--dm-swing) ease-in-out infinite}
+.dm-turn {animation:dm-turn  var(--dm-turn)  ease-in-out infinite}
+.dm-float{animation:dm-float var(--dm-float) ease-in-out infinite}
+
+@keyframes dm-swing{
+  0%,100%{transform:rotate(calc(var(--dm-swing-angle) * -1))}
+  50%    {transform:rotate(var(--dm-swing-angle))}
+}
+/* 横幅をわずかに縮めることで、平面のまま奥行きのある回転に見せる */
+@keyframes dm-turn{
+  0%,100%{transform:scaleX(1)}
+  50%    {transform:scaleX(.9)}
+}
+@keyframes dm-float{
+  0%,100%{transform:translateY(0)}
+  50%    {transform:translateY(-10px)}
+}
+
+/* 研磨中のように、面ごとに明るさが移り変わる */
+.dm-facet{animation:dm-facet 5.5s ease-in-out infinite}
+.dm-facet:nth-of-type(3n)  {animation-delay:-1.8s;animation-duration:6.4s}
+.dm-facet:nth-of-type(3n+1){animation-delay:-3.6s;animation-duration:7.1s}
+.dm-facet:nth-of-type(4n)  {animation-delay:-.9s}
+@keyframes dm-facet{
+  0%,100%{opacity:1}
+  50%    {opacity:.86}
+}
+
+/* ハイライトは大半の時間を画面外で待機してから一気に横切る */
+.dm-shine{animation:dm-shine var(--dm-shine) cubic-bezier(.5,0,.5,1) infinite}
+@keyframes dm-shine{
+  0%,62%{transform:translateX(-210px)}
+  88%,100%{transform:translateX(210px)}
+}
+
+/* 光が頂点に達する瞬間に弾ける。--dm-shine を共有しているので必ず同期する */
+.dm-spark{
+  transform-box:fill-box;transform-origin:50% 50%;
+  animation:dm-spark var(--dm-shine) ease-out infinite;
+}
+@keyframes dm-spark{
+  0%,68% {transform:scale(0);opacity:0}
+  76%    {transform:scale(1) rotate(25deg);opacity:1}
+  92%,100%{transform:scale(0) rotate(45deg);opacity:0}
+}
+
+/* ============================================================
+   リング（うごかす）
+   ============================================================ */
+.fig--ring{
+  --rg-spin-1:56s;
+  --rg-spin-2:44s;
+  --rg-spin-3:72s;
+  --rg-w1:16;
+  --rg-w2:10;
+  --rg-w3:20;
+}
+
+.s-g1{stop-color:var(--g1)}
+.s-g2{stop-color:var(--g2)}
+.s-g3{stop-color:var(--g3)}
+.s-g4{stop-color:var(--g4)}
+
+.rg-rot{transform-box:view-box;transform-origin:150px 150px}
+
+/* 同方向で速度差のある1と3が追いかけっこし、2だけが逆に横切る */
+.rg-rot--1{animation:rg-spin var(--rg-spin-1) linear infinite}
+.rg-rot--2{animation:rg-spin var(--rg-spin-2) linear infinite reverse}
+.rg-rot--3{animation:rg-spin var(--rg-spin-3) linear infinite}
+
+@keyframes rg-spin{
+  from{transform:rotate(0deg)}
+  to  {transform:rotate(360deg)}
+}
+
+.rg-arc{
+  fill:none;
+  stroke-linecap:round;   /* 端を丸めて柔らかい印象に */
+}
+.rg-arc--1{stroke-width:var(--rg-w1);stroke:url(#mq-ar-a)}
+.rg-arc--2{stroke-width:var(--rg-w2);stroke:url(#mq-ar-b)}
+.rg-arc--3{stroke-width:var(--rg-w3);stroke:url(#mq-ar-c)}
+
+/* ============================================================
+   星（とどける）
+   ============================================================ */
+.fig--star{
+  --st-blink:7s;
+  --st-swing:11s;
+  --st-swing-angle:15deg;
+  --st-scale-min:.94;
+  --st-scale-max:1.05;
+  --st-fade-min:.82;
+}
+
+.s-p1{stop-color:var(--p1)}
+.s-p2{stop-color:var(--p2)}
+.s-p3{stop-color:var(--p3)}
+.s-p4{stop-color:var(--p4)}
+
+.st-swing,.st-blink{transform-box:fill-box;transform-origin:50% 50%}
+
+.st-swing{animation:st-swing var(--st-swing) ease-in-out infinite}
+.st-blink{animation:st-blink var(--st-blink) ease-in-out infinite}
+
+@keyframes st-swing{
+  0%,100%{transform:rotate(calc(var(--st-swing-angle) * -1))}
+  50%    {transform:rotate(var(--st-swing-angle))}
+}
+@keyframes st-blink{
+  0%,100%{transform:scale(var(--st-scale-min));opacity:var(--st-fade-min)}
+  50%    {transform:scale(var(--st-scale-max));opacity:1}
+}
+
+/* 負のdelayで途中から始めることで、3つが同時に光らないようにする */
+.st-blink--2{animation-duration:calc(var(--st-blink) * 1.45);animation-delay:-2.6s}
+.st-blink--3{animation-duration:calc(var(--st-blink) * 1.15);animation-delay:-4.9s}
+.st-swing--2{animation-duration:calc(var(--st-swing) * .72);animation-delay:-1.9s;--st-swing-angle:22deg}
+.st-swing--3{animation-duration:calc(var(--st-swing) * 1.3);animation-direction:reverse;--st-swing-angle:19deg}
+
+/* ============================================================
+   モーション低減
+   ============================================================ */
+@media (prefers-reduced-motion:reduce){
+  .marquee-track,
+  .marquee-section *{
+    animation:none!important;
+  }
+  /* 帯が止まると先頭しか見えないので、折り返して全部見えるようにする */
+  .marquee,
+  .marquee-track{
+    width:auto;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+}

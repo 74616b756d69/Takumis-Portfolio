@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hero Shapes</title>
+<style>
+  /* ===== デモページ用（組み込み時は不要） ===== */
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: grid; place-items: center;
+    background: #faf9f6;
+  }
+  .hero { position: relative; width: min(94vw, 960px); aspect-ratio: 16 / 9; }
+
+  /* ===== ここから下が図形アニメーション本体 ===== */
+  .shapes {
+    display: block;
+    width: 100%; height: 100%;
+    overflow: visible;
+    pointer-events: none;   /* 前面に置いても操作の邪魔をしない */
+
+    /* ---- カラー：ビビッドなアクセント3色 ---- */
+    --accent-1: #ff3d7f;   /* ピンク */
+    --accent-2: #ffcf2d;   /* イエロー */
+    --accent-3: #0ae4a1;   /* グリーン */
+    --ink:      #15161a;   /* 線画用の黒 */
+
+    /* ---- モーション ---- */
+    --float-duration: 7s;    /* 浮遊の基準周期 */
+    --spin-duration: 22s;    /* 回転の基準周期 */
+    --stroke: 6;             /* 線の太さ（SVG単位） */
+
+    /* ---- パララックス（JSが -1〜1 を書き込む。JSなしでも 0 のまま動きます） ---- */
+    --mx: 0;
+    --my: 0;
+  }
+
+  /* 3段の入れ子で役割を分ける：
+     .shape          … transform 属性で「配置」（CSSアニメーションと衝突しない）
+       .shape__pllx  … マウスのパララックス
+         .shape__float … ふわふわ浮遊
+           図形本体   … 回転                                        */
+  .shape__pllx {
+    transform: translate(calc(var(--mx) * var(--depth, 10) * 1px),
+                         calc(var(--my) * var(--depth, 10) * 1px));
+    transition: transform .9s cubic-bezier(.22, 1, .36, 1);
+  }
+  .shape__float {
+    transform-box: fill-box; transform-origin: 50% 50%;
+    animation: float var(--float-duration) ease-in-out infinite;
+  }
+  .shape__spin {
+    transform-box: fill-box; transform-origin: 50% 50%;
+    animation: spin var(--spin-duration) linear infinite;
+  }
+  .shape__wobble {
+    transform-box: fill-box; transform-origin: 50% 50%;
+    animation: wobble var(--spin-duration) ease-in-out infinite;
+  }
+
+  /* 0% と 100% を同値にしてシームレスにループ */
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(0, -22px); }
+  }
+  @keyframes float-x {
+    0%, 100% { transform: translate(0, 0); }
+    33%      { transform: translate(12px, -14px); }
+    66%      { transform: translate(-10px, -24px); }
+  }
+  @keyframes spin   { from { transform: rotate(0deg); }   to { transform: rotate(360deg); } }
+  @keyframes wobble {
+    0%, 100% { transform: rotate(-10deg); }
+    50%      { transform: rotate(10deg); }
+  }
+
+  /* ---- 図形ごとに速度・向き・遅延をずらしてランダム感を出す ---- */
+  /* 1. 大きい円（塗り） */
+  .s1 .shape__float { animation-duration: calc(var(--float-duration) * 1.00); animation-delay: -0.4s; }
+  .s1 .shape__spin  { animation-duration: calc(var(--spin-duration)  * 1.00); animation-delay: -3s; }
+  /* 2. 三角形（塗り） */
+  .s2 .shape__float { animation-duration: calc(var(--float-duration) * 1.45); animation-delay: -2.7s; animation-name: float-x; }
+  .s2 .shape__spin  { animation-duration: calc(var(--spin-duration)  * 0.72); animation-delay: -8s; animation-direction: reverse; }
+  /* 3. 波線（線画） */
+  .s3 .shape__float { animation-duration: calc(var(--float-duration) * 1.18); animation-delay: -5.1s; }
+  .s3 .shape__wobble{ animation-duration: calc(var(--spin-duration)  * 0.40); animation-delay: -1.5s; }
+  /* 4. リング（線の円） */
+  .s4 .shape__float { animation-duration: calc(var(--float-duration) * 1.70); animation-delay: -1.2s; animation-name: float-x; }
+  .s4 .shape__spin  { animation-duration: calc(var(--spin-duration)  * 1.35); animation-delay: -12s; }
+  /* 5. 十字（プラス） */
+  .s5 .shape__float { animation-duration: calc(var(--float-duration) * 0.86); animation-delay: -3.9s; }
+  .s5 .shape__spin  { animation-duration: calc(var(--spin-duration)  * 0.55); animation-delay: -6s; animation-direction: reverse; }
+  /* 6. 角丸スクエア（塗り） */
+  .s6 .shape__float { animation-duration: calc(var(--float-duration) * 1.32); animation-delay: -6.5s; }
+  .s6 .shape__spin  { animation-duration: calc(var(--spin-duration)  * 0.95); animation-delay: -15s; }
+  /* 7. ジグザグ（線画） */
+  .s7 .shape__float { animation-duration: calc(var(--float-duration) * 1.58); animation-delay: -4.3s; animation-name: float-x; }
+  .s7 .shape__wobble{ animation-duration: calc(var(--spin-duration)  * 0.33); animation-delay: -2.2s; }
+
+  /* ---- 塗りと線 ---- */
+  .fill-1 { fill: var(--accent-1); }
+  .fill-2 { fill: var(--accent-2); }
+  .fill-3 { fill: var(--accent-3); }
+  .line-1, .line-2, .line-3, .line-ink {
+    fill: none;
+    stroke-width: var(--stroke);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .line-1   { stroke: var(--accent-1); }
+  .line-2   { stroke: var(--accent-2); }
+  .line-3   { stroke: var(--accent-3); }
+  .line-ink { stroke: var(--ink); }
+
+  /* ---- モーション低減設定を尊重 ---- */
+  @media (prefers-reduced-motion: reduce) {
+    .shape__float, .shape__spin, .shape__wobble { animation: none !important; }
+    .shape__pllx { transform: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+
+  <!-- ===================== ここから下をコピーして使えます ===================== -->
+  <svg class="shapes" viewBox="0 0 960 540" role="presentation" aria-hidden="true"
+       xmlns="http://www.w3.org/2000/svg">
+
+    <!-- 1. 円 -->
+    <g class="shape s1" transform="translate(150 150)" style="--depth: 26">
+      <g class="shape__pllx"><g class="shape__float"><g class="shape__spin">
+        <circle class="fill-1" r="46"/>
+      </g></g></g>
+    </g>
+
+    <!-- 2. 三角形 -->
+    <g class="shape s2" transform="translate(810 130)" style="--depth: 34">
+      <g class="shape__pllx"><g class="shape__float"><g class="shape__spin">
+        <path class="fill-2" d="M0,-52 L47,30 Q52,40 40,40 L-40,40 Q-52,40 -47,30 Z"/>
+      </g></g></g>
+    </g>
+
+    <!-- 3. 波線 -->
+    <g class="shape s3" transform="translate(480 440)" style="--depth: 16">
+      <g class="shape__pllx"><g class="shape__float"><g class="shape__wobble">
+        <path class="line-1" d="M-78,0 q19.5,-26 39,0 t39,0 t39,0"/>
+      </g></g></g>
+    </g>
+
+    <!-- 4. リング -->
+    <g class="shape s4" transform="translate(270 430)" style="--depth: 42">
+      <g class="shape__pllx"><g class="shape__float"><g class="shape__spin">
+        <circle class="line-ink" r="35" stroke-dasharray="9 13"/>
+      </g></g></g>
+    </g>
+
+    <!-- 5. 十字 -->
+    <g class="shape s5" transform="translate(680 380)" style="--depth: 30">
+      <g class="shape__pllx"><g class="shape__float"><g class="shape__spin">
+        <path class="line-ink" d="M0,-30 V30 M-30,0 H30"/>
+      </g></g></g>
+    </g>
+
+    <!-- 6. 角丸スクエア -->
+    <g class="shape s6" transform="translate(120 330)" style="--depth: 20">
+      <g class="shape__pllx"><g class="shape__float"><g class="shape__spin">
+        <rect class="fill-3" x="-30" y="-30" width="60" height="60" rx="16"/>
+      </g></g></g>
+    </g>
+
+    <!-- 7. ジグザグ -->
+    <g class="shape s7" transform="translate(860 330)" style="--depth: 48">
+      <g class="shape__pllx"><g class="shape__float"><g class="shape__wobble">
+        <path class="line-3" d="M-45,14 L-22,-14 L0,14 L22,-14 L45,14"/>
+      </g></g></g>
+    </g>
+  </svg>
+  <!-- ===================== ここまで ===================== -->
+</div>
+
+<script>
+/* パララックス：マウス位置を -1〜1 に正規化して CSS 変数に流すだけ。
+   実際の移動量は各図形の --depth と CSS 側の transform が決めます。
+   このスクリプトを消しても、浮遊と回転はそのまま動きます。 */
+(function () {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  document.querySelectorAll('.shapes').forEach(function (svg) {
+    var frame = null;
+
+    function onMove(e) {
+      if (frame) return;                       // 1フレームにつき1回だけ更新
+      frame = requestAnimationFrame(function () {
+        frame = null;
+        var r = svg.getBoundingClientRect();
+        if (!r.width || !r.height) return;
+        var x = (e.clientX - (r.left + r.width  / 2)) / (r.width  / 2);
+        var y = (e.clientY - (r.top  + r.height / 2)) / (r.height / 2);
+        svg.style.setProperty('--mx', Math.max(-1, Math.min(1, x)).toFixed(3));
+        svg.style.setProperty('--my', Math.max(-1, Math.min(1, y)).toFixed(3));
+      });
+    }
+
+    function reset() {
+      svg.style.setProperty('--mx', 0);
+      svg.style.setProperty('--my', 0);
+    }
+
+    window.addEventListener('pointermove', onMove, { passive: true });
+    window.addEventListener('pointerleave', reset);
+    window.addEventListener('blur', reset);
+  });
+})();
+</script>
+
+</body>
+</html>

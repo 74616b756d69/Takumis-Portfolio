@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mascot Planet</title>
+<style>
+  /* ===== デモページ用（組み込み時は不要） ===== */
+  html, body { height: 100%; margin: 0; }
+  body { display: grid; place-items: center; background: #faf9f6; }
+  .stage { width: min(74vw, 360px); }
+
+  /* ===== ここから下がマスコット本体 ===== */
+  .mascot {
+    display: block; width: 100%; height: auto; overflow: visible;
+
+    --c1:   #7c5cff;   /* 惑星 */
+    --c2:   #ff3d7f;   /* クレーター */
+    --c3:   #ffcf2d;   /* リング・星 */
+    --ink:  #15161a;
+
+    --stroke: 8;
+    --breathe: 4.2s;
+    --blink: 6.1s;
+  }
+
+  .mascot * { stroke-linecap: round; stroke-linejoin: round; }
+  .line  { fill: none; stroke: var(--ink); stroke-width: var(--stroke); }
+  .solid { stroke: var(--ink); stroke-width: var(--stroke); }
+
+  .hop, .breathe, .eye, .star {
+    transform-box: fill-box; transform-origin: 50% 50%;
+  }
+  /* リングは前後2つのパーツを同じ中心で揺らす必要があるので、
+     fill-box ではなく view-box 基準の座標で原点を指定する */
+  .ring {
+    transform-box: view-box; transform-origin: 120px 124px;
+    animation: ring-rock 7.5s ease-in-out infinite;
+  }
+
+  .breathe { animation: breathe var(--breathe) ease-in-out infinite; }
+  .eye     { animation: blink var(--blink) infinite; }
+  .eye--r  { animation-delay: -0.05s; }
+  .star    { animation: twinkle 3.4s ease-in-out infinite; }
+  .star--2 { animation-delay: -1.1s; animation-duration: 2.6s; }
+  .star--3 { animation-delay: -2.3s; animation-duration: 4.1s; }
+  .star--4 { animation-delay: -0.7s; animation-duration: 3.1s; }
+
+  @keyframes blink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    95%           { transform: scaleY(0.06); }
+    98%           { transform: scaleY(1); }
+  }
+  @keyframes breathe {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-9px) scale(1.02); }
+  }
+  @keyframes ring-rock {
+    0%, 100% { transform: rotate(-5deg) scaleY(0.92); }
+    50%      { transform: rotate(5deg)  scaleY(1.08); }
+  }
+  @keyframes twinkle {
+    0%, 100% { transform: scale(0.45) rotate(0deg);   opacity: .35; }
+    50%      { transform: scale(1)    rotate(45deg);  opacity: 1; }
+  }
+
+  /* ---- 表情の切り替え ---- */
+  .eye-wink, .blush { opacity: 0; transition: opacity .18s ease; }
+  .eye--r, .mouth--idle { transition: opacity .18s ease; }
+
+  /* ---- ホバー：ウインクして、リングが勢いよく回る ---- */
+  .mascot:hover .hop       { animation: hop .8s cubic-bezier(.3, 1.4, .5, 1); }
+  .mascot:hover .eye--r    { opacity: 0; }
+  .mascot:hover .eye-wink  { opacity: 1; }
+  .mascot:hover .blush     { opacity: 1; }
+  .mascot:hover .ring      { animation: ring-spin 1.6s linear infinite; }
+  .mascot:hover .star      { animation-duration: .9s; }
+
+  @keyframes hop {
+    0%   { transform: translateY(0)     scale(1); }
+    25%  { transform: translateY(7px)   scale(1.06, 0.94); }
+    58%  { transform: translateY(-28px) scale(0.96, 1.05); }
+    82%  { transform: translateY(3px)   scale(1.03, 0.97); }
+    100% { transform: translateY(0)     scale(1); }
+  }
+  @keyframes ring-spin {
+    0%, 100% { transform: rotate(-9deg) scaleY(0.8); }
+    50%      { transform: rotate(9deg)  scaleY(1.2); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mascot *, .mascot *:hover { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <!-- ===================== ここから下をコピーして使えます ===================== -->
+  <svg class="mascot" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg"
+       role="img" aria-label="惑星のマスコット">
+
+    <!-- 星（まわりでチカチカ） -->
+    <g transform="translate(28 40)">
+      <g class="star star--1">
+        <path d="M0,-11 Q2,-2 11,0 Q2,2 0,11 Q-2,2 -11,0 Q-2,-2 0,-11 Z" fill="var(--c3)"/>
+      </g>
+    </g>
+    <g transform="translate(206 62)">
+      <g class="star star--2">
+        <path d="M0,-9 Q2,-2 9,0 Q2,2 0,9 Q-2,2 -9,0 Q-2,-2 0,-9 Z" fill="var(--c2)"/>
+      </g>
+    </g>
+    <g transform="translate(196 198)">
+      <g class="star star--3">
+        <path d="M0,-12 Q2,-2 12,0 Q2,2 0,12 Q-2,2 -12,0 Q-2,-2 0,-12 Z" fill="var(--c3)"/>
+      </g>
+    </g>
+    <g transform="translate(36 190)">
+      <g class="star star--4">
+        <path d="M0,-8 Q2,-2 8,0 Q2,2 0,8 Q-2,2 -8,0 Q-2,-2 0,-8 Z" fill="var(--c1)"/>
+      </g>
+    </g>
+
+    <g class="hop">
+      <g class="breathe">
+
+        <!-- リング（奥側）：静的な傾きは属性、揺れはCSSと役割を分ける -->
+        <g transform="rotate(-16 120 124)">
+          <g class="ring">
+            <path d="M24,124 A96,28 0 0 1 216,124" fill="none" stroke="var(--ink)" stroke-width="20"/>
+            <path d="M24,124 A96,28 0 0 1 216,124" fill="none" stroke="var(--c3)" stroke-width="8"/>
+          </g>
+        </g>
+
+        <!-- 惑星本体 -->
+        <circle class="solid" cx="120" cy="124" r="62" fill="var(--c1)"/>
+        <circle cx="84" cy="86" r="9"  fill="var(--c2)"/>
+        <circle cx="158" cy="158" r="12" fill="var(--c2)"/>
+        <circle cx="150" cy="80" r="6"  fill="var(--c2)"/>
+
+        <!-- ほっぺ -->
+        <ellipse class="blush" cx="90" cy="130" rx="10" ry="6" fill="var(--c2)"/>
+        <ellipse class="blush" cx="150" cy="130" rx="10" ry="6" fill="var(--c2)"/>
+
+        <!-- 目 -->
+        <g class="eye eye--l"><circle cx="102" cy="108" r="9" fill="var(--ink)"/></g>
+        <g class="eye eye--r"><circle cx="138" cy="108" r="9" fill="var(--ink)"/></g>
+        <!-- ホバー時のウインク（右目だけ閉じる） -->
+        <path class="eye-wink line" d="M129,110 q9,-11 18,0" stroke-width="6"/>
+
+        <!-- 口 -->
+        <path class="line mouth--idle" d="M106,130 q14,13 28,0" stroke-width="6"/>
+
+        <!-- リング（手前側） -->
+        <g transform="rotate(-16 120 124)">
+          <g class="ring">
+            <path d="M24,124 A96,28 0 0 0 216,124" fill="none" stroke="var(--ink)" stroke-width="20"/>
+            <path d="M24,124 A96,28 0 0 0 216,124" fill="none" stroke="var(--c3)" stroke-width="8"/>
+          </g>
+        </g>
+
+      </g>
+    </g>
+  </svg>
+  <!-- ===================== ここまで ===================== -->
+</div>
+
+</body>
+</html>
