@@ -14,12 +14,12 @@
   .dog {
     display: block; width: 100%; height: auto; overflow: visible;
 
-    /* ---- 毛色。写真に合わせて、青寄りのグレーではなく
-           茶色みを含んだ暗いチャコールにしている ---- */
-    --fur:      #6b6158;   /* 体のベース */
-    --fur-dark: #3d372f;   /* 陰・後ろ側（黒に近い焦げ茶） */
-    --fur-lite: #94897c;   /* 明るい面・マズル（グレージュ） */
-    --ink:      #221e19;   /* 輪郭線 */
+    /* ---- 毛色。写真に合わせた、彩度の低い銀チャコール ---- */
+    --fur:      #5c6268;   /* 体のベース */
+    --fur-dark: #2f3339;   /* 陰・後ろ側（黒に近い） */
+    --fur-lite: #a2a8ae;   /* 明るい面・マズル（銀グレー） */
+    --ink:      #1c1f23;   /* 輪郭線 */
+    --mouth:    #ff85b3;   /* 口まわり */
 
     /* ---- 差し色（耳の内側と影に使うポップなグラデーション） ---- */
     --pop-1: #ff6fb5;
@@ -36,6 +36,7 @@
 
   .dog * { stroke-linecap: round; stroke-linejoin: round; }
   .line  { fill: none; stroke: var(--ink); stroke-width: var(--stroke); }
+  .mouth { fill: none; stroke: var(--mouth); stroke-width: 5.5; }
   .solid { stroke: var(--ink); stroke-width: var(--stroke); }
 
   /* グラデーションの色（属性では var() が効かないため CSS で指定） */
@@ -205,10 +206,11 @@
         <!-- マズルと鼻と口 -->
         <ellipse cx="160" cy="130" rx="28" ry="20" fill="var(--fur-lite)"/>
         <path d="M149,122 h22 q4,0 2,4 l-9,9 q-4,4 -8,0 l-9,-9 q-2,-4 2,-4 Z" fill="var(--ink)"/>
-        <path class="line" stroke-width="5" d="M160,137 v6 M160,143 q-9,9 -16,1 M160,143 q9,9 16,1"/>
+        <path class="line" stroke-width="5" d="M160,137 v6"/>
+        <path class="mouth" d="M160,143 q-9,9 -16,1 M160,143 q9,9 16,1"/>
 
         <!-- 舌（ホバーで出る） -->
-        <path class="tongue" d="M152,147 h16 q0,16 -8,16 q-8,0 -8,-16 Z" fill="url(#dog-ear)"/>
+        <path class="tongue" d="M152,147 h16 q0,16 -8,16 q-8,0 -8,-16 Z" fill="var(--mouth)"/>
       </g>
 
     </g>
