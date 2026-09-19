@@ -813,6 +813,15 @@ const TAKUMI_WORK_FIELDS = array(
 	'metric'=> array( 'レコード指標(英字)', 'Work一覧の索引に表示。空欄なら担当から自動生成。例: 8-PERSON TEAM' ),
 );
 
+/* ---------- スキルメタボックス ---------- */
+const TAKUMI_SKILL_FIELDS = array(
+	'icon'       => array( 'アイコン(skillicons.dev のID)', '例: html' ),
+	'genre'      => array( 'ジャンル', 'main / base / sub / learn / tool のいずれか。空欄でも可。' ),
+	'experience' => array( '経験', '例: 4 yrs / Learning' ),
+	'percent'    => array( '習熟度(0-100)', '例: 90' ),
+	'note'       => array( '補足', '例: Webサイト制作で使用' ),
+);
+
 /* ---------- 経歴メタボックス ---------- */
 const TAKUMI_CAREER_FIELDS = array(
 	'date'        => array( '日付', '例: 2021.04' ),
@@ -830,6 +839,7 @@ const TAKUMI_BUILD_FIELDS = array(
 
 add_action( 'add_meta_boxes', function () {
 	add_meta_box( 'takumi_work_meta', '実績情報', takumi_meta_box_renderer( TAKUMI_WORK_FIELDS, 'work' ), 'works', 'normal', 'high' );
+	add_meta_box( 'takumi_skill_meta', 'スキル情報', takumi_meta_box_renderer( TAKUMI_SKILL_FIELDS, 'skill' ), 'skill', 'normal', 'high' );
 	add_meta_box( 'takumi_career_meta', '経歴情報', takumi_meta_box_renderer( TAKUMI_CAREER_FIELDS, 'career' ), 'career', 'normal', 'high' );
 	add_meta_box( 'takumi_build_meta', '個人開発の情報', takumi_meta_box_renderer( TAKUMI_BUILD_FIELDS, 'build' ), 'build', 'normal', 'high' );
 } );
@@ -851,6 +861,9 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 
 add_action( 'save_post_works', function ( $post_id ) {
 	takumi_save_meta_fields( $post_id, TAKUMI_WORK_FIELDS, 'work' );
+} );
+add_action( 'save_post_skill', function ( $post_id ) {
+	takumi_save_meta_fields( $post_id, TAKUMI_SKILL_FIELDS, 'skill' );
 } );
 add_action( 'save_post_career', function ( $post_id ) {
 	takumi_save_meta_fields( $post_id, TAKUMI_CAREER_FIELDS, 'career' );
@@ -1815,6 +1828,59 @@ function takumi_get_home_works() {
 }
 
 /* ---------- スキル・経歴の取得 ---------- */
+
+/**
+ * スキル一覧を取得(管理画面「スキル」に投稿がなければ既定値を返す)
+ * 各要素: array( アイコンID, 名前, 経験, 習熟度%, 補足, ジャンル )
+ * トップの Skill セクションは廃止したが、About ページでは今も使っている。
+ */
+function takumi_get_skills_data() {
+	$posts = get_posts( array(
+		'post_type'      => 'skill',
+		'posts_per_page' => -1,
+		'orderby'        => 'menu_order',
+		'order'          => 'ASC',
+	) );
+
+	if ( ! $posts ) {
+		return array(
+			array( 'html', 'HTML', '4 yrs', 90, 'LP・WordPressテーマの制作で使用', 'base' ),
+			array( 'css', 'CSS', '4 yrs', 85, 'レスポンシブとアニメーション実装で使用', 'base' ),
+			array( 'js', 'JavaScript', '2 yrs', 70, 'UI実装とスクロール演出(GSAP)で使用', 'main' ),
+			array( 'ts', 'TypeScript', '1 yr', 65, 'crystallography / FUMI をTypeScriptで構築', 'learn' ),
+			array( 'react', 'React', '1 yr', 60, 'gourmet-Maps(React 19)・Apogee(React 18)で使用', 'main' ),
+			array( 'vite', 'Vite', '1 yr', 60, 'フロントエンドのビルド環境として常用', 'tool' ),
+			array( 'tailwind', 'Tailwind CSS', '1 yr', 55, 'アプリのUIスタイリングで使用', 'learn' ),
+			array( 'php', 'PHP', '2 yrs', 65, 'Laravel・WordPressテーマ開発で使用', 'main' ),
+			array( 'laravel', 'Laravel', '1 yr', 55, 'Code_Note・Laravel_ToDo を制作', 'main' ),
+			array( 'java', 'Java', '1 yr', 55, 'Apogee を Spring Boot 3 で構築', 'sub' ),
+			array( 'spring', 'Spring Boot', '1 yr', 50, '認証(Spring Security / OAuth2)まで実装', 'sub' ),
+			array( 'cs', 'C#', '1 yr', 45, 'gourmet-Maps を ASP.NET Core で制作', 'learn' ),
+			array( 'python', 'Python', '2 yrs', 60, '産学連携のDjango開発と基本構文の習得', 'sub' ),
+			array( 'django', 'Django', 'Learning', 35, '産学連携プロジェクトで制作経験あり', 'learn' ),
+			array( 'nodejs', 'Node.js', '1 yr', 55, 'Express 5 + TypeScript でREST APIを実装', 'sub' ),
+			array( 'mysql', 'MySQL', '1 yr', 55, 'Apogee・Code_Note のテーブル設計とJPA経由の操作', 'tool' ),
+			array( 'docker', 'Docker', '1 yr', 55, 'docker compose で開発環境を構築', 'tool' ),
+			array( 'vscode', 'VS Code', '4 yrs', 85, '普段のエディタ。拡張機能とタスク設定で開発を回している', 'tool' ),
+			array( 'git', 'Git', '2 yrs', 70, 'ブランチ運用を含めた日常的なバージョン管理', 'tool' ),
+			array( 'github', 'GitHub', '2 yrs', 70, 'チーム開発とGitHub Actionsでの自動化', 'tool' ),
+			array( 'wordpress', 'WordPress', '4 yrs', 90, 'オリジナルテーマの制作で使用', 'main' ),
+			array( 'threejs', 'Three.js', 'Learning', 30, '本サイトの3D演出で使用', 'learn' ),
+			array( 'swift', 'Swift', 'Learning', 25, 'iOSアプリ開発の学習で使用', 'learn' ),
+		);
+	}
+
+	return array_map( function ( $post ) {
+		return array(
+			get_post_meta( $post->ID, '_takumi_icon', true ),
+			get_the_title( $post ),
+			get_post_meta( $post->ID, '_takumi_experience', true ),
+			(int) get_post_meta( $post->ID, '_takumi_percent', true ),
+			get_post_meta( $post->ID, '_takumi_note', true ),
+			get_post_meta( $post->ID, '_takumi_genre', true ),
+		);
+	}, $posts );
+}
 
 
 /**
