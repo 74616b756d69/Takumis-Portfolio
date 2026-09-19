@@ -140,22 +140,6 @@ const ICON_BASE = "https://skillicons.dev/icons?i=";
 const BASE = window.TAKUMI_BASE || "";
 const WORK_PAGE = window.TAKUMI_WORK_URL || "Work.html";
 
-/* ---------- トップページ: マーキー ---------- */
-const marqueeTrack = document.querySelector(".works-marquee__track");
-if (marqueeTrack && !marqueeTrack.children.length) {
-  const items = WORKS.map(
-    (w) =>
-      `<a class="works-marquee__item" href="${WORK_PAGE}" aria-label="${w.title}">
-        <img src="${BASE}${w.thumb}" alt="${w.title}" loading="lazy">
-      </a>`
-  ).join("");
-  // シームレスにループさせるため2周分並べる
-  marqueeTrack.innerHTML = items + items;
-} else if (marqueeTrack) {
-  // サーバー側で描画済みの場合も、ループ用に2周分へ複製する
-  marqueeTrack.innerHTML += marqueeTrack.innerHTML;
-}
-
 /* ---------- Workページ: 全詳細を常時表示するリスト描画 ---------- */
 const grid = document.getElementById("works-grid");
 if (grid) {
@@ -175,7 +159,7 @@ if (grid) {
         .filter(Boolean)
         .join("");
       return `
-      <article class="work-row"
+      <article class="work-row" id="work-${w.id}"
         data-year="${w.year}" data-tech="${w.tech.join(",")}" data-type="${w.type.join(",")}">
         <div class="work-row__gallery">${gallery}</div>
         <div class="work-row__body">
@@ -192,6 +176,64 @@ if (grid) {
   }
 
   initFilters();
+}
+
+/* ---------- Workページ: Field Records(実績インデックス) ---------- */
+const ARROW_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>';
+
+const records = document.getElementById("work-records");
+if (records) {
+  if (records.dataset.source !== "server") {
+    records.innerHTML = WORKS.map(
+      (w, i) => `
+      <a class="work-record" href="#work-${w.id}">
+        <span class="record-index">${String(i + 1).padStart(2, "0")}</span>
+        <span class="record-title">
+          <small>${recordLabel(w)}</small>
+          <strong>${w.title}</strong>
+          ${w.meta ? `<em>${w.meta}</em>` : ""}
+        </span>
+        <span class="record-metric">${recordMetric(w)}</span>
+        <span class="record-arrow" aria-hidden="true">${ARROW_SVG}</span>
+      </a>`
+    ).join("");
+  }
+
+  initRecords();
+}
+
+// PHP側 takumi_work_record_parts() と同じ規則でラベル・指標を組み立てる
+function recordLabel(w) {
+  return w.label || (w.tech.length ? w.tech.slice(0, 3).join(" × ").toUpperCase() : "WORK");
+}
+function recordMetric(w) {
+  if (w.metric) return w.metric;
+  const role = (w.role || "").split(/[・、/]/).map((t) => t.trim()).filter(Boolean);
+  return role.length ? role[0].toUpperCase() : String(w.year);
+}
+
+/* ---------- レコード → 詳細カードへのジャンプ ---------- */
+function initRecords() {
+  records.querySelectorAll(".work-record").forEach((rec) => {
+    rec.addEventListener("click", (e) => {
+      const id = decodeURIComponent(rec.getAttribute("href").slice(1));
+      const target = document.getElementById(id);
+      if (!target) return;
+      e.preventDefault();
+
+      // フィルタで隠れている場合は絞り込みを解除してから移動する
+      if (target.classList.contains("is-hidden")) {
+        document.querySelector(".filter-reset")?.click();
+      }
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      history.replaceState(null, "", "#" + id);
+
+      target.classList.remove("is-flash");
+      void target.offsetWidth; // アニメーションを再生し直すためのリフロー
+      target.classList.add("is-flash");
+    });
+  });
 }
 
 /* ---------- フィルタ ---------- */
@@ -236,3 +278,10 @@ function initFilters() {
     apply();
   });
 }
+
+/* ---------- 別ページからハッシュ付きで着地したときも該当カードを光らせる ---------- */
+window.addEventListener("load", () => {
+  const id = decodeURIComponent(location.hash.slice(1));
+  if (!id.startsWith("work-")) return;
+  document.getElementById(id)?.classList.add("is-flash");
+});

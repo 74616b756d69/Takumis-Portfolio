@@ -52,7 +52,7 @@
 				<li><a href="<?php echo esc_url( home_url( '/' ) ); ?>" <?php echo is_front_page() ? 'class="is-current"' : ''; ?>>Top</a></li>
 				<li><a href="<?php echo esc_url( takumi_page_url( 'about' ) ); ?>" <?php echo is_page( 'about' ) ? 'class="is-current"' : ''; ?>>About</a></li>
 				<li><a href="<?php echo esc_url( takumi_page_url( 'work' ) ); ?>" <?php echo is_page( 'work' ) ? 'class="is-current"' : ''; ?>>Work</a></li>
-				<li><a href="<?php echo esc_url( home_url( '/#station-summit' ) ); ?>">Contact</a></li>
+				<li><a href="<?php echo esc_url( home_url( '/#contact' ) ); ?>">Contact</a></li>
 			</ul>
 			<?php
 		}

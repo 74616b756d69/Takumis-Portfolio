@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TAKUMI_VERSION', '1.0.8' );
+define( 'TAKUMI_VERSION', '2.6.0' );
 
 /* ============================================================
    テーマサポート
@@ -34,7 +34,7 @@ add_action( 'wp_enqueue_scripts', function () {
 	wp_enqueue_style( 'destyle', 'https://cdn.jsdelivr.net/npm/destyle.css@3.0.2/destyle.css', array(), '3.0.2' );
 	wp_enqueue_style(
 		'takumi-fonts',
-		'https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Marcellus&family=Montserrat:wght@400;500;600&display=swap',
+		'https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap',
 		array(),
 		null
 	);
@@ -55,22 +55,11 @@ add_action( 'wp_enqueue_scripts', function () {
 
 	// Three.js 星空背景(全ページ)
 	wp_enqueue_script( 'takumi-three-stars', $uri . '/assets/js/three-stars.js', array(), TAKUMI_VERSION, true );
-
-	// Three.js 登山モード(フロントページ / climbテンプレート)
-	if ( is_front_page() || is_page_template( 'page-climb.php' ) || is_page( 'climb' ) ) {
-		wp_enqueue_script( 'takumi-three-climb', $uri . '/assets/js/three-climb.js', array(), TAKUMI_VERSION, true );
-		wp_add_inline_script(
-			'takumi-three-climb',
-			'window.TAKUMI_SKILLS = ' . wp_json_encode( takumi_get_top_skills() ) . ';'
-			. 'window.TAKUMI_SKILL_ICON_BASE = ' . wp_json_encode( $uri . '/assets/img/skills/' ) . ';',
-			'before'
-		);
-	}
 } );
 
 // Three.js 関連は ES Modules として読み込む
 add_filter( 'script_loader_tag', function ( $tag, $handle ) {
-	if ( in_array( $handle, array( 'takumi-three-hero', 'takumi-three-stars', 'takumi-three-climb' ), true ) ) {
+	if ( in_array( $handle, array( 'takumi-three-stars' ), true ) ) {
 		$tag = str_replace( '<script ', '<script type="module" ', $tag );
 	}
 	return $tag;
@@ -128,6 +117,26 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'type'        => 'textarea',
 	) );
 
+	// 「プロフィールの要点」として箇条で出す項目
+	$fact_fields = array(
+		'takumi_fact_base'   => array( '拠点・出身', '2004年 / 岐阜県生まれ' ),
+		'takumi_fact_school' => array( '所属', 'KADOKAWAドワンゴ情報工科学院' ),
+		'takumi_fact_role'   => array( '担当領域', 'フロントエンド / バックエンド' ),
+		'takumi_fact_now'    => array( 'いま力を入れていること', 'WordPressテーマ開発 / Laravel でのWebアプリ制作' ),
+	);
+	foreach ( $fact_fields as $key => $conf ) {
+		$wp_customize->add_setting( $key, array(
+			'default'           => $conf[1],
+			'sanitize_callback' => 'sanitize_text_field',
+		) );
+		$wp_customize->add_control( $key, array(
+			'label'       => 'プロフィール要点: ' . $conf[0],
+			'description' => '空欄にするとその行は表示されません。',
+			'section'     => 'takumi_profile',
+			'type'        => 'text',
+		) );
+	}
+
 	$wp_customize->add_setting( 'takumi_face', array(
 		// NOTE: テーマフォルダ名に含まれるアポストロフィがURLエンコードされると "%27s" となり、
 		// get_theme_mod() の sprintf プレースホルダー検出に誤って一致し値が壊れるため、
@@ -182,6 +191,17 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'label'   => 'キャッチコピー(麓/Topセクション)',
 		'section' => 'takumi_top_texts',
 		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'takumi_hero_statement', array(
+		'default'           => "BUILDING\nTHE FUTURE,\nONE LINE AT A TIME.",
+		'sanitize_callback' => 'sanitize_textarea_field',
+	) );
+	$wp_customize->add_control( 'takumi_hero_statement', array(
+		'label'       => 'トップの大見出し(英字)',
+		'description' => '改行ごとに1行として組まれます。2行目が差し色になります。',
+		'section'     => 'takumi_top_texts',
+		'type'        => 'textarea',
 	) );
 
 	$wp_customize->add_setting( 'takumi_top_skill_desc', array(
@@ -334,6 +354,8 @@ const TAKUMI_WORK_FIELDS = array(
 	'url'   => array( '公開URL', '空欄可' ),
 	'github'=> array( 'GitHub URL', '空欄可' ),
 	'icons' => array( 'スキルアイコン(カンマ区切り)', 'skillicons.dev のID。例: html,css,js' ),
+	'label' => array( 'レコード見出し(英字)', 'Work一覧の索引に表示。空欄なら技術から自動生成。例: TEAM DEVELOPMENT' ),
+	'metric'=> array( 'レコード指標(英字)', 'Work一覧の索引に表示。空欄なら担当から自動生成。例: 8-PERSON TEAM' ),
 );
 
 /* ---------- スキルメタボックス ---------- */
@@ -385,7 +407,7 @@ function takumi_render_work_card( $post ) {
 		$images = array_values( array_unique( array_merge( $images, $m[1] ) ) );
 	}
 	?>
-	<article class="work-row"
+	<article class="work-row" id="<?php echo esc_attr( takumi_work_anchor( $post ) ); ?>"
 		data-year="<?php echo esc_attr( $meta( 'year' ) ); ?>"
 		data-tech="<?php echo esc_attr( implode( ',', $techs ) ); ?>"
 		data-type="<?php echo esc_attr( implode( ',', $types ) ); ?>">
@@ -424,6 +446,109 @@ function takumi_render_work_card( $post ) {
 		</div>
 	</article>
 	<?php
+}
+
+/* ---------- Field Records(制作実績インデックス) ---------- */
+
+/**
+ * 実績カードへのアンカーIDを返す
+ */
+function takumi_work_anchor( $post ) {
+	// 日本語スラッグはURLエンコードされてCSSセレクタに使えないため、ASCIIのときだけ採用する
+	$slug = (string) $post->post_name;
+	if ( preg_match( '/^[a-z0-9\-_]+$/', $slug ) ) {
+		return 'work-' . $slug;
+	}
+	return 'work-' . $post->ID;
+}
+
+/**
+ * レコード行に出す英字ラベルと指標を組み立てる
+ * (メタ未入力なら技術・担当から自動生成する)
+ */
+function takumi_work_record_parts( $post ) {
+	$meta = fn( $key ) => (string) get_post_meta( $post->ID, '_takumi_' . $key, true );
+
+	$label = $meta( 'label' );
+	if ( ! $label ) {
+		$techs = array_filter( array_map( 'trim', explode( ',', $meta( 'tech' ) ) ) );
+		$label = $techs ? mb_strtoupper( implode( ' × ', array_slice( $techs, 0, 3 ) ) ) : 'WORK';
+	}
+
+	$metric = $meta( 'metric' );
+	if ( ! $metric ) {
+		$roles  = array_filter( array_map( 'trim', preg_split( '/[・、\/]/u', $meta( 'role' ) ) ) );
+		$metric = $roles ? mb_strtoupper( reset( $roles ) ) : $meta( 'year' );
+	}
+
+	return array( $label, $metric, $meta( 'meta' ) );
+}
+
+/**
+ * 制作実績インデックスの1行を出力する
+ */
+function takumi_render_work_record( $post, $index, $base = '' ) {
+	list( $label, $metric, $sub ) = takumi_work_record_parts( $post );
+	?>
+	<a class="work-record" href="<?php echo esc_url( $base . '#' . takumi_work_anchor( $post ) ); ?>">
+		<span class="record-index"><?php echo esc_html( sprintf( '%02d', $index ) ); ?></span>
+		<span class="record-title">
+			<small><?php echo esc_html( $label ); ?></small>
+			<strong><?php echo esc_html( get_the_title( $post ) ); ?></strong>
+			<?php if ( $sub ) : ?><em><?php echo esc_html( $sub ); ?></em><?php endif; ?>
+		</span>
+		<span class="record-metric"><?php echo esc_html( $metric ); ?></span>
+		<span class="record-arrow" aria-hidden="true"><?php takumi_arrow_icon(); ?></span>
+	</a>
+	<?php
+}
+
+/**
+ * プロフィールの要点(カスタマイザーで編集)を定義リストで出力する
+ */
+function takumi_render_profile_facts() {
+	$facts = array(
+		'BASE'  => get_theme_mod( 'takumi_fact_base', '2004年 / 岐阜県生まれ' ),
+		'SCHOOL' => get_theme_mod( 'takumi_fact_school', 'KADOKAWAドワンゴ情報工科学院' ),
+		'ROLE'  => get_theme_mod( 'takumi_fact_role', 'フロントエンド / バックエンド' ),
+		'NOW'   => get_theme_mod( 'takumi_fact_now', 'WordPressテーマ開発 / Laravel でのWebアプリ制作' ),
+	);
+	$facts = array_filter( $facts );
+	if ( ! $facts ) {
+		return;
+	}
+	?>
+	<dl class="profile-facts">
+		<?php foreach ( $facts as $label => $value ) : ?>
+			<div class="profile-facts__row">
+				<dt><?php echo esc_html( $label ); ?></dt>
+				<dd><?php echo esc_html( $value ); ?></dd>
+			</div>
+		<?php endforeach; ?>
+	</dl>
+	<?php
+}
+
+/**
+ * Statement セクションに散らす装飾図形(グラデーションのみ、テーマ配色に合わせた自作)
+ */
+function takumi_shape_svg( $name ) {
+	$shapes = array(
+		'diamond' => '<svg viewBox="0 0 60 60" fill="none" aria-hidden="true"><path d="M27.2 1.8a4 4 0 0 1 5.6 0l25.4 25.4a4 4 0 0 1 0 5.6L32.8 58.2a4 4 0 0 1-5.6 0L1.8 32.8a4 4 0 0 1 0-5.6L27.2 1.8Z" fill="url(#sg1)"/><defs><linearGradient id="sg1" x1="0" y1="0" x2="60" y2="60" gradientUnits="userSpaceOnUse"><stop stop-color="#eaff4d"/><stop offset="1" stop-color="#ff4d94"/></linearGradient></defs></svg>',
+		'ring'    => '<svg viewBox="0 0 60 60" fill="none" aria-hidden="true"><circle cx="30" cy="30" r="26" stroke="url(#sg2)" stroke-width="7"/><defs><linearGradient id="sg2" x1="0" y1="0" x2="60" y2="60" gradientUnits="userSpaceOnUse"><stop stop-color="#8c6bff"/><stop offset="1" stop-color="#7de0c8"/></linearGradient></defs></svg>',
+		'star'    => '<svg viewBox="0 0 60 60" fill="none" aria-hidden="true"><path d="M26.4 25 8.8 25a4.6 4.6 0 0 0 0 9.2l17.6.1L14 46.7a4.6 4.6 0 0 0 6.5 6.5l12.4-12.4.1 17.6a4.6 4.6 0 0 0 9.2 0l.1-17.6 12.4 12.4a4.6 4.6 0 0 0 6.5-6.5L48.8 34.3l17.6-.1" fill="url(#sg3)" transform="translate(-6 -6) scale(0.92)"/><defs><linearGradient id="sg3" x1="0" y1="0" x2="60" y2="60" gradientUnits="userSpaceOnUse"><stop stop-color="#ff4d94"/><stop offset="1" stop-color="#8c6bff"/></linearGradient></defs></svg>',
+	);
+
+	if ( isset( $shapes[ $name ] ) ) {
+		echo $shapes[ $name ]; // phpcs:ignore WordPress.Security.EscapeOutput
+	}
+}
+
+/**
+ * 右上向き矢印アイコン
+ */
+function takumi_arrow_icon() {
+	echo '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>';
 }
 
 /**
@@ -535,18 +660,3 @@ function takumi_get_top_skill_icons( $limit = 6 ) {
 	return array_slice( $icons, 0, $limit );
 }
 
-/**
- * 登山モードの吹き出し表示用に、上位スキルのアイコンID・名前を取得
- * ※ アイコン画像がローカルに無い場合(/assets/img/skills/{icon}.svg が404)でも
- *   three-climb.js 側で名前のみの吹き出しにフォールバックする
- */
-function takumi_get_top_skills( $limit = 6 ) {
-	$skills = array_slice( takumi_get_skills_data(), 0, $limit );
-
-	return array_map( function ( $skill ) {
-		return array(
-			'icon' => $skill[0],
-			'name' => $skill[1],
-		);
-	}, $skills );
-}

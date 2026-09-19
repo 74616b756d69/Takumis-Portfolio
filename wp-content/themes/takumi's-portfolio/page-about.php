@@ -21,13 +21,22 @@ $timeline = takumi_get_career_data();
 <main>
 	<section class="page-hero">
 		<canvas class="stars-canvas"></canvas>
-		<h1 class="page-hero__title">About</h1>
-		<p class="page-hero__sub">私について</p>
+		<div class="container page-hero__inner">
+			<p class="page-hero__label"><span>02</span> Profile / Skill / Career</p>
+			<h1 class="page-hero__title">About</h1>
+			<p class="page-hero__sub">私について</p>
+			<p class="page-hero__lead"><?php echo esc_html( $motto ); ?></p>
+		</div>
 	</section>
 
 	<!-- Profile -->
 	<section class="section" id="profile">
 		<div class="container">
+			<div class="section-head" data-reveal>
+				<span class="section-head__num">01</span>
+				<h2 class="section-head__en">Profile</h2>
+				<p class="section-head__ja">プロフィール</p>
+			</div>
 			<div class="profile-grid">
 				<div class="profile-photo" data-reveal>
 					<img src="<?php echo esc_url( $face ); ?>" alt="<?php echo esc_attr( $name_ja ); ?>の写真">
@@ -45,6 +54,7 @@ $timeline = takumi_get_career_data();
 						}
 						?>
 					</div>
+					<?php takumi_render_profile_facts(); ?>
 					<div class="profile-sns">
 						<a href="<?php echo esc_url( $github ); ?>" target="_blank" rel="noopener" aria-label="GitHub"><img src="<?php echo esc_url( $uri ); ?>/assets/img/github-brands.svg" alt="GitHub"></a>
 						<a href="<?php echo esc_url( $x_url ); ?>" target="_blank" rel="noopener" aria-label="X"><img src="<?php echo esc_url( $uri ); ?>/assets/img/x-solid.svg" alt="X"></a>
@@ -58,6 +68,7 @@ $timeline = takumi_get_career_data();
 	<section class="section section--alt" id="skill">
 		<div class="container">
 			<div class="section-head" data-reveal>
+				<span class="section-head__num">02</span>
 				<h2 class="section-head__en">Skill</h2>
 				<p class="section-head__ja">スキル</p>
 			</div>
@@ -80,6 +91,7 @@ $timeline = takumi_get_career_data();
 	<section class="section" id="career">
 		<div class="container">
 			<div class="section-head" data-reveal>
+				<span class="section-head__num">03</span>
 				<h2 class="section-head__en">Career</h2>
 				<p class="section-head__ja">経歴</p>
 			</div>

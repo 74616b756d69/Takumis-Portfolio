@@ -8,7 +8,10 @@ get_header();
 <main>
 	<section class="page-hero">
 		<canvas class="stars-canvas"></canvas>
-		<h1 class="page-hero__title"><?php echo is_singular() ? esc_html( get_the_title() ) : esc_html( get_bloginfo( 'name' ) ); ?></h1>
+		<div class="container page-hero__inner">
+			<p class="page-hero__label"><span>—</span> <?php bloginfo( 'name' ); ?></p>
+			<h1 class="page-hero__title"><?php echo is_singular() ? esc_html( get_the_title() ) : esc_html( get_bloginfo( 'name' ) ); ?></h1>
+		</div>
 	</section>
 
 	<section class="section" style="padding-top: 40px;">
