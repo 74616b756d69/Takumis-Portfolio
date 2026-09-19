@@ -38,12 +38,21 @@
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --font-en: var(--font-mono);
   --font-label: var(--font-mono);
-  --header-h: 72px;
+  --header-bar: 72px;  /* バーそのものの高さ(ロゴ・ハンバーガーが並ぶ帯) */
+  /* 画面上端からバー下端まで。セーフエリアぶんを含むので、ヒーローの上余白も
+     scroll-margin-top も、これを参照している箇所は自動で追従する。
+     env() の第2引数が 0px なので、ノッチの無い端末では 72px になる。 */
+  --header-h: calc(var(--header-bar) + env(safe-area-inset-top, 0px));
 }
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+/* 背景は body から伝播するが、セーフエリア外の描画色を曖昧にしないよう
+   html にも明示する(iOS のステータスバー周辺で効く)。 */
+html {
+  scroll-behavior: smooth;
+  background: var(--bg);
+}
 
 body {
   background: var(--bg);
@@ -138,7 +147,13 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 clamp(20px, 4vw, 48px);
+  /* 上: セーフエリアぶんを内側に確保し、帯の背景でその領域ごと覆う。
+     左右: 横向きのときノッチ側に文字が入らないようにする。 */
+  padding:
+    env(safe-area-inset-top, 0px)
+    calc(clamp(20px, 4vw, 48px) + env(safe-area-inset-right, 0px))
+    0
+    calc(clamp(20px, 4vw, 48px) + env(safe-area-inset-left, 0px));
   transition: background 0.4s ease, backdrop-filter 0.4s ease, border-color 0.4s ease;
   border-bottom: 1px solid transparent;
 }
@@ -147,6 +162,18 @@ a { color: inherit; text-decoration: none; }
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom-color: var(--line);
+}
+
+/* スマホ縦。すりガラス(78%)のままだと、ヘッダーが覆っているステータスバー/
+   ダイナミックアイランドの帯に下のコンテンツが透けて色が変わって見える。
+   この幅では不透明に塗り、島の帯とバーを完全に同じ色にする。
+   (横向きは 600px を超えるのでこの段に入らず、すりガラスのまま) */
+@media (max-width: 600px) {
+  .site-header.is-scrolled {
+    background: var(--bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 .site-header__logo {
   font-family: var(--font-display);
@@ -234,8 +261,10 @@ a { color: inherit; text-decoration: none; }
     /* 項目が増えても、横向きで画面が低くても読めるように */
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: calc(var(--header-h) + env(safe-area-inset-top)) 20px
-             calc(24px + env(safe-area-inset-bottom));
+    padding: var(--header-h)
+             calc(20px + env(safe-area-inset-right, 0px))
+             calc(24px + env(safe-area-inset-bottom, 0px))
+             calc(20px + env(safe-area-inset-left, 0px));
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.4s ease, visibility 0.4s ease;
@@ -366,6 +395,14 @@ a { color: inherit; text-decoration: none; }
 .container {
   width: min(1440px, 90%);
   margin: 0 auto;
+}
+/* 横向きはノッチが左右に来る。本文が潜らないよう内側へ逃がす。 */
+@media (orientation: landscape) {
+  .container,
+  .container--narrow {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
 }
 .container--narrow { width: min(1100px, 90%); margin: 0 auto; }
 
@@ -1725,7 +1762,11 @@ a { color: inherit; text-decoration: none; }
 .site-footer {
   position: relative;
   border-top: 1px solid var(--line);
-  padding: clamp(40px, 6vw, 64px) clamp(20px, 4vw, 48px) clamp(28px, 4vw, 40px);
+  padding:
+    clamp(40px, 6vw, 64px)
+    calc(clamp(20px, 4vw, 48px) + env(safe-area-inset-right, 0px))
+    calc(clamp(28px, 4vw, 40px) + env(safe-area-inset-bottom, 0px))
+    calc(clamp(20px, 4vw, 48px) + env(safe-area-inset-left, 0px));
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
