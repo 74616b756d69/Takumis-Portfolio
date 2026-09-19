@@ -18,8 +18,11 @@
     --fur:      #5c6268;   /* 体のベース */
     --fur-dark: #2f3339;   /* 陰・後ろ側（黒に近い） */
     --fur-lite: #a2a8ae;   /* 明るい面・マズル（銀グレー） */
-    --ink:      #1c1f23;   /* 輪郭線 */
-    --mouth:    #ff85b3;   /* 口まわり */
+    --face:     #333940;   /* 顔（体より暗い） */
+    --muzzle:   #474e56;   /* マズル。顔より少しだけ明るくして、
+                              黒い鼻と口の形が沈まないようにする */
+    --ink:      #1c1f23;   /* 輪郭線・唇 */
+    --tongue:   #ff85b3;   /* 舌 */
 
     /* ---- 差し色（耳の内側と影に使うポップなグラデーション） ---- */
     --pop-1: #ff6fb5;
@@ -36,7 +39,7 @@
 
   .dog * { stroke-linecap: round; stroke-linejoin: round; }
   .line  { fill: none; stroke: var(--ink); stroke-width: var(--stroke); }
-  .mouth { fill: none; stroke: var(--mouth); stroke-width: 5.5; }
+  .mouth { fill: none; stroke: var(--ink); stroke-width: 5.5; }
   .solid { stroke: var(--ink); stroke-width: var(--stroke); }
 
   /* グラデーションの色（属性では var() が効かないため CSS で指定） */
@@ -44,6 +47,7 @@
   .dog .s-p2 { stop-color: var(--pop-2); }
   .dog .s-p3 { stop-color: var(--pop-3); }
   .dog .s-f1 { stop-color: var(--fur-lite); }
+  .dog .s-fc { stop-color: var(--face); }
   .dog .s-f2 { stop-color: var(--fur); }
   .dog .s-f3 { stop-color: var(--fur-dark); }
 
@@ -121,8 +125,8 @@
         <stop offset="1"    class="s-f3"/>
       </linearGradient>
       <linearGradient id="dog-head" x1="0.2" y1="0" x2="0.8" y2="1">
-        <stop offset="0" class="s-f1"/>
-        <stop offset="1" class="s-f2"/>
+        <stop offset="0" class="s-f2"/>
+        <stop offset="1" class="s-fc"/>
       </linearGradient>
       <linearGradient id="dog-ear" x1="0" y1="0" x2="0.6" y2="1">
         <stop offset="0" class="s-p1"/>
@@ -204,13 +208,13 @@
         </g>
 
         <!-- マズルと鼻と口 -->
-        <ellipse cx="160" cy="130" rx="28" ry="20" fill="var(--fur-lite)"/>
+        <ellipse cx="160" cy="130" rx="28" ry="20" fill="var(--muzzle)"/>
         <path d="M149,122 h22 q4,0 2,4 l-9,9 q-4,4 -8,0 l-9,-9 q-2,-4 2,-4 Z" fill="var(--ink)"/>
         <path class="line" stroke-width="5" d="M160,137 v6"/>
         <path class="mouth" d="M160,143 q-9,9 -16,1 M160,143 q9,9 16,1"/>
 
         <!-- 舌（ホバーで出る） -->
-        <path class="tongue" d="M152,147 h16 q0,16 -8,16 q-8,0 -8,-16 Z" fill="var(--mouth)"/>
+        <path class="tongue" d="M152,147 h16 q0,16 -8,16 q-8,0 -8,-16 Z" fill="var(--tongue)"/>
       </g>
 
     </g>
