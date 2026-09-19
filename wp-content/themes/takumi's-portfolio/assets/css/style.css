@@ -981,16 +981,23 @@ a { color: inherit; text-decoration: none; }
 }
 .work-detail__stage {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--radius);
   border: 1px solid var(--line);
   background: var(--bg-2);
   overflow: hidden;
 }
-/* 画像の縦横比がばらついても、並べたときの高さを揃える */
+/* スマホの縦長スクリーンショットも横長の画像も、切り取らずそのまま収める。
+   幅いっぱいを基準にしつつ、縦長画像は高さの上限で頭打ちにして横幅が自動で縮む。 */
 .work-detail__main {
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: min(64vh, 620px);
+  object-fit: contain;
   transition: opacity 0.28s ease;
 }
 .work-detail__main.is-swapping { opacity: 0.25; }
@@ -1005,7 +1012,7 @@ a { color: inherit; text-decoration: none; }
   flex: 0 0 auto;
   width: 84px;
   padding: 0;
-  background: none;
+  background: var(--bg-2);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -1015,8 +1022,9 @@ a { color: inherit; text-decoration: none; }
 }
 .work-detail__thumb img {
   width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
+  aspect-ratio: 1;
+  /* こちらは一覧性を優先して正方形に収めるが、縦長画像でも全体が見えるよう cover ではなく contain にする */
+  object-fit: contain;
 }
 .work-detail__thumb:hover,
 .work-detail__thumb:focus-visible { opacity: 1; transform: translateY(-2px); }
@@ -1195,7 +1203,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 @media (max-width: 600px) {
-  .work-detail__main { aspect-ratio: 3 / 2; }
+  .work-detail__main { max-height: 46vh; }
   .work-detail__thumbs { scroll-snap-type: x proximity; }
   .work-detail__thumb { width: 72px; scroll-snap-align: start; }
   .work-detail__fact { grid-template-columns: 60px minmax(0, 1fr); gap: 12px; padding: 10px 0; }
@@ -1209,9 +1217,9 @@ a { color: inherit; text-decoration: none; }
   .work-detail__links .btn { width: 100%; justify-content: center; }
 }
 
-/* 背の低い横向き。16:10 のままだと画像だけで画面が埋まる。 */
+/* 背の低い横向き。画像の上限をさらに詰めて、本文が隠れないようにする。 */
 @media (orientation: landscape) and (max-height: 560px) {
-  .work-detail__main { aspect-ratio: auto; height: 42dvh; }
+  .work-detail__main { max-height: 42dvh; }
   .work-detail__thumb { width: 64px; }
 }
 

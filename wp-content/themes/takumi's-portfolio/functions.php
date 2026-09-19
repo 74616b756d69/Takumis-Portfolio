@@ -743,6 +743,12 @@ function takumi_meta_box_renderer( $fields, $prefix ) {
 				continue;
 			}
 
+			// 画像は wp.media のギャラリー選択UI。値は添付ファイルIDのカンマ区切り。
+			if ( 'gallery' === $type ) {
+				takumi_render_gallery_field( $key, $value, $conf[0], $conf[1] );
+				continue;
+			}
+
 			printf(
 				'<p><label for="takumi_%1$s"><strong>%2$s</strong><br><small>%3$s</small></label><br>',
 				esc_attr( $key ),
@@ -757,6 +763,32 @@ function takumi_meta_box_renderer( $fields, $prefix ) {
 			echo '</p>';
 		}
 	};
+}
+
+/**
+ * ギャラリー欄(wp.media で選んだ画像)を描画する。
+ * 値は添付ファイルIDのカンマ区切り文字列。並び順=選んだ順で、1枚目がメイン画像になる。
+ */
+function takumi_render_gallery_field( $key, $value, $label, $desc ) {
+	$ids = array_filter( array_map( 'absint', explode( ',', (string) $value ) ) );
+	?>
+	<p><label><strong><?php echo esc_html( $label ); ?></strong><br><small><?php echo esc_html( $desc ); ?></small></label></p>
+	<div class="takumi-gallery" data-field="<?php echo esc_attr( $key ); ?>">
+		<input type="hidden" id="takumi_<?php echo esc_attr( $key ); ?>" name="takumi_<?php echo esc_attr( $key ); ?>" value="<?php echo esc_attr( implode( ',', $ids ) ); ?>">
+		<div class="takumi-gallery__list">
+			<?php foreach ( $ids as $att_id ) : ?>
+				<?php $thumb = wp_get_attachment_image( $att_id, 'thumbnail' ); ?>
+				<?php if ( $thumb ) : ?>
+					<span class="takumi-gallery__item" data-id="<?php echo esc_attr( $att_id ); ?>">
+						<?php echo $thumb; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_attachment_image はエスケープ済みのimgタグを返す ?>
+						<button type="button" class="takumi-gallery__remove" aria-label="この画像を削除">&times;</button>
+					</span>
+				<?php endif; ?>
+			<?php endforeach; ?>
+		</div>
+		<button type="button" class="button takumi-gallery__add">画像を追加</button>
+	</div>
+	<?php
 }
 
 /**
@@ -783,6 +815,13 @@ function takumi_save_meta_fields( $post_id, $fields, $prefix ) {
 			continue;
 		}
 
+		// ギャラリーは添付ファイルIDのカンマ区切りのみを許す(数字以外は捨てる)。
+		if ( 'gallery' === $type ) {
+			$ids = isset( $_POST[ 'takumi_' . $key ] ) ? array_filter( array_map( 'absint', explode( ',', wp_unslash( $_POST[ 'takumi_' . $key ] ) ) ) ) : array();
+			update_post_meta( $post_id, '_takumi_' . $key, implode( ',', $ids ) );
+			continue;
+		}
+
 		if ( isset( $_POST[ 'takumi_' . $key ] ) ) {
 			$value = wp_unslash( $_POST[ 'takumi_' . $key ] );
 			update_post_meta( $post_id, '_takumi_' . $key, 'textarea' === $type ? sanitize_textarea_field( $value ) : sanitize_text_field( $value ) );
@@ -797,6 +836,8 @@ const TAKUMI_WORK_FIELDS = array(
 		. '並び順と表示件数の上限は「外観 > カスタマイズ > トップページ文言設定」から。', 'checkbox' ),
 	'meta'  => array( 'サブタイトル', '例: 個人制作・2025' ),
 	'year'  => array( '制作年', 'Work一覧の Year 絞り込みに使う。新しい年を入れると選択肢が自動で増える。例: 2025' ),
+	'gallery' => array( '画像を追加', '「画像を追加」からメディアライブラリで選択できます(複数選択可)。'
+		. '1枚目がモーダルのメイン画像、残りはサムネイルになります。空欄ならアイキャッチ + 本文中の画像を自動で使います。', 'gallery' ),
 	'category' => array( '区分(カンマ区切り)', 'Work一覧の絞り込みに使う。既定は personal / company / team / school。'
 		. '区分の追加や表示名の変更は「外観 > カスタマイズ > Work: 絞り込み設定」から。' ),
 	'type'  => array( '種別(カンマ区切り)', 'front / back / design' ),
@@ -846,6 +887,21 @@ add_action( 'add_meta_boxes', function () {
 	add_meta_box( 'takumi_skill_meta', 'スキル情報', takumi_meta_box_renderer( TAKUMI_SKILL_FIELDS, 'skill' ), 'skill', 'normal', 'high' );
 	add_meta_box( 'takumi_career_meta', '経歴情報', takumi_meta_box_renderer( TAKUMI_CAREER_FIELDS, 'career' ), 'career', 'normal', 'high' );
 	add_meta_box( 'takumi_build_meta', '個人開発の情報', takumi_meta_box_renderer( TAKUMI_BUILD_FIELDS, 'build' ), 'build', 'normal', 'high' );
+} );
+
+/* 「実績情報」の画像を追加(ギャラリー欄)は wp.media を使うため、works の編集画面でだけ読み込む。 */
+add_action( 'admin_enqueue_scripts', function ( $hook ) {
+	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
+		return;
+	}
+	$screen = get_current_screen();
+	if ( ! $screen || 'works' !== $screen->post_type ) {
+		return;
+	}
+	wp_enqueue_media();
+	$uri = get_template_directory_uri();
+	wp_enqueue_style( 'takumi-admin-gallery', $uri . '/assets/css/admin-gallery.css', array(), TAKUMI_VERSION );
+	wp_enqueue_script( 'takumi-admin-gallery', $uri . '/assets/js/admin-gallery.js', array(), TAKUMI_VERSION, true );
 } );
 
 add_action( 'save_post_works', function ( $post_id ) {
@@ -1030,23 +1086,35 @@ function takumi_render_work_detail( $post ) {
 	$techs = array_filter( array_map( 'trim', explode( ',', (string) $meta( 'tech' ) ) ) );
 	$icons = array_filter( array_map( 'trim', explode( ',', (string) $meta( 'icons' ) ) ) );
 
-	// 本文内の画像 + アイキャッチをギャラリーに。alt があれば拾って添える。
-	$images = $thumb ? array( array( 'src' => $thumb, 'alt' => '' ) ) : array();
-	if ( preg_match_all( '/<img[^>]+>/', $post->post_content, $tags ) ) {
-		foreach ( $tags[0] as $tag ) {
-			if ( ! preg_match( '/src="([^"]+)"/', $tag, $src ) ) {
-				continue;
-			}
-			$alt = preg_match( '/alt="([^"]*)"/', $tag, $m ) ? $m[1] : '';
-			$images[] = array( 'src' => $src[1], 'alt' => $alt );
+	// 「実績情報」の画像を追加欄(メディアライブラリ)で選んだ画像を最優先で使う。
+	$gallery_ids = array_filter( array_map( 'absint', explode( ',', (string) $meta( 'gallery' ) ) ) );
+	$images      = array();
+	foreach ( $gallery_ids as $att_id ) {
+		$src = wp_get_attachment_image_url( $att_id, 'large' );
+		if ( $src ) {
+			$images[] = array( 'src' => $src, 'alt' => get_post_meta( $att_id, '_wp_attachment_image_alt', true ) );
 		}
 	}
-	// 同じ画像が二重に並ばないように src で畳む。
-	$unique = array();
-	foreach ( $images as $image ) {
-		$unique[ $image['src'] ] = $image;
+
+	// 画像を追加欄が空のときだけ、旧方式(アイキャッチ + 本文内の画像)にフォールバック。
+	if ( ! $images ) {
+		$images = $thumb ? array( array( 'src' => $thumb, 'alt' => '' ) ) : array();
+		if ( preg_match_all( '/<img[^>]+>/', $post->post_content, $tags ) ) {
+			foreach ( $tags[0] as $tag ) {
+				if ( ! preg_match( '/src="([^"]+)"/', $tag, $src ) ) {
+					continue;
+				}
+				$alt = preg_match( '/alt="([^"]*)"/', $tag, $m ) ? $m[1] : '';
+				$images[] = array( 'src' => $src[1], 'alt' => $alt );
+			}
+		}
+		// 同じ画像が二重に並ばないように src で畳む。
+		$unique = array();
+		foreach ( $images as $image ) {
+			$unique[ $image['src'] ] = $image;
+		}
+		$images = array_values( $unique );
 	}
-	$images = array_values( $unique );
 
 	// 画像はギャラリーで出すので、本文からは取り除く。
 	// 画像だけを並べた行が残ると空段落になるため、余った <br> と空白行も畳む。
