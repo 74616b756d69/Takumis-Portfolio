@@ -702,63 +702,144 @@ a { color: inherit; text-decoration: none; }
 /* ============================================================
    Works — filters & grid (Work page)
    ============================================================ */
-.filter-groups {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  margin-bottom: clamp(40px, 6vw, 64px);
+/* --- 絞り込み ---
+   上の section-kicker と同じ「ラベル + 罫線」の並びに載せる。
+   1 行 = 1 軸（Type / Tech / Year）で、各軸はひとつだけ選べる。
+   ボタンらしい枠は持たせず、選択中は下線が滑って示す。 */
+.records-filter {
   border-top: 1px solid var(--line);
+  margin-bottom: clamp(40px, 6vw, 64px);
 }
-.filter-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  padding: 14px 0;
+.records-filter__row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  align-items: baseline;   /* ラベル・ボタン・件数の文字ベースを揃える */
+  gap: 0 18px;
   border-bottom: 1px solid var(--line);
 }
-.filter-row__label {
+.records-filter__row[hidden] { display: none; }
+
+.records-filter__label {
   font-family: var(--font-label);
   font-size: 10.5px;
+  font-weight: 700;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: var(--gold);
-  min-width: 72px;
-}
-.filter-btn {
-  cursor: pointer;
-  padding: 9px 20px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  font-size: 13.5px;
-  letter-spacing: 0.08em;
-  color: var(--text-dim);
-  background: transparent;
-  transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
-  user-select: none;
-}
-.filter-btn input { display: none; }
-.filter-btn:hover { border-color: var(--accent); color: var(--text); }
-.filter-btn.is-active {
-  background: var(--yellow);
-  border-color: var(--yellow);
-  color: var(--accent-ink);
-}
-.filter-reset {
-  margin-left: auto;
-  padding: 9px 20px;
-  border: 1px solid var(--line);
   color: var(--yellow);
-  border-radius: 999px;
+}
+
+/* ボタンの並ぶ帯。はみ出したら横スクロールさせる(バーは出さない) */
+.records-filter__track {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: clamp(10px, 2.2vw, 24px);
+  padding: 15px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.records-filter__track::-webkit-scrollbar { display: none; }
+
+.filter-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  flex: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-dim);
   font-family: var(--font-label);
-  font-size: 11px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+.filter-btn[hidden] { display: none; }
+.filter-btn:hover,
+.filter-btn.is-active { color: var(--text); }
+.filter-btn:focus-visible { outline: 2px solid var(--yellow); outline-offset: 4px; }
+
+/* 件数は上付きの小さな数字。押す前から母数が見える */
+.filter-btn__num {
+  margin-left: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  vertical-align: super;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.3s ease;
+}
+.filter-btn.is-active .filter-btn__num { color: var(--yellow); }
+
+/* 選択中を示す下線。JS が translateX + scaleX で動かす。
+   track の内側に置く(overflow:auto に切られないよう外へはみ出させない) */
+.records-filter__ink {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  height: 2px;
+  background: var(--yellow);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+/* 右端の「03 / 08」とリセット */
+.records-filter__tools {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+.records-count {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.records-count strong { font-weight: 700; color: var(--text); }
+
+.filter-reset {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-label);
+  font-size: 10.5px;
+  font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  background: transparent;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
 }
-.filter-reset:hover { background: var(--gold); color: var(--bg); }
+.filter-reset:hover { color: var(--yellow); }
+.filter-reset:focus-visible { outline: 2px solid var(--yellow); outline-offset: 4px; }
+
+@media (max-width: 680px) {
+  /* 幅が足りないのでラベルは行の上に逃がす */
+  .records-filter__row { grid-template-columns: minmax(0, 1fr) auto; }
+  .records-filter__label { grid-column: 1 / -1; padding-top: 14px; }
+  .records-filter__track { padding-top: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-btn,
+  .filter-btn__num,
+  .filter-reset,
+  .records-filter__ink { transition: none; }
+}
 
 .works-empty {
   padding: 60px 0;
@@ -2111,11 +2192,34 @@ a { color: inherit; text-decoration: none; }
   justify-content: center;
   gap: 26px;
 }
+.hscroll__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding-inline: max(calc((100vw - min(1440px, 90vw)) / 2), 20px);
+}
+.hscroll__headings {
+  display: grid;
+  gap: 6px;
+}
+.hscroll__note {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--text-dim);
+}
+.hscroll__count {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
 .hscroll__label {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding-inline: max(calc((100vw - min(1440px, 90vw)) / 2), 20px);
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.14em;
@@ -2139,7 +2243,8 @@ a { color: inherit; text-decoration: none; }
 .hpanel {
   position: relative;
   width: min(62vw, 440px);
-  aspect-ratio: 4 / 5;
+  /* 高さは 4:5 を目安にしつつ、文章が増えても切れないよう min-height で確保する */
+  min-height: calc(min(62vw, 440px) * 1.25);
   border-radius: 28px;
   padding: 32px;
   display: flex;
@@ -2175,11 +2280,47 @@ a { color: inherit; text-decoration: none; }
   color: rgba(11, 10, 16, 0.7);
   max-width: 32ch;
 }
+.hpanel__meta {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(11, 10, 16, 0.18);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+  color: rgba(11, 10, 16, 0.62);
+  max-width: 34ch;
+}
 .hpanel__icons {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 18px;
+}
+.hpanel__link {
+  align-self: flex-start;
+  margin-top: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 1px solid rgba(11, 10, 16, 0.3);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  color: var(--accent-ink);
+  text-decoration: none;
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+.hpanel__link::after {
+  content: "\2197";
+  font-size: 0.9em;
+}
+.hpanel__link:hover,
+.hpanel__link:focus-visible {
+  background: rgba(11, 10, 16, 0.1);
+  border-color: rgba(11, 10, 16, 0.55);
 }
 .hpanel__icons img {
   width: 34px;
@@ -2193,7 +2334,7 @@ a { color: inherit; text-decoration: none; }
 .hpanel:nth-child(5n + 4) { background: #7de0c8; }
 .hpanel:nth-child(5n + 5) { background: var(--text); }
 @media (max-width: 720px) {
-  .hpanel { width: 78vw; padding: 24px; }
+  .hpanel { width: 78vw; min-height: calc(78vw * 1.25); padding: 24px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hscroll { height: auto; }

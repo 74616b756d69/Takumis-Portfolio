@@ -112,37 +112,84 @@ $works  = takumi_get_works();
 				<p class="lead__meta"><span>02</span>Skill <i>できること</i></p>
 				<div class="lead__body">
 					<h2 class="lead__title">触れる技術を、<br>増やしている途中です。</h2>
-					<p class="lead__lede"><?php echo esc_html( get_theme_mod( 'takumi_top_skill_desc', 'フロントエンドからバックエンドまで。HTML/CSSでの制作経験を軸に、Laravel・Django などのフレームワークにも挑戦中です。' ) ); ?></p>
+					<p class="lead__lede"><?php echo esc_html( get_theme_mod( 'takumi_top_skill_desc', 'フロントエンドからバックエンドまで。HTML/CSSでの制作経験を軸に、React・Spring Boot・ASP.NET Core まで、実際に動くものを作りながら幅を広げています。' ) ); ?></p>
 				</div>
 			</div>
 		</div>
 
 		<?php
-		// 横スクロールのパネル。内容を変えたいときはこの配列を編集する
-		$panels = array(
-			array( 'FRONTEND', 'HTML / CSS / JavaScript', 'マークアップとUI実装。レスポンシブ対応やアニメーションまで。', array( 'html', 'css', 'js', 'ts' ) ),
-			array( 'BACKEND', 'PHP / Python / Java', 'サーバーサイドの実装とデータ処理を担当します。', array( 'php', 'python', 'java', 'cs' ) ),
-			array( 'FRAMEWORK', 'Laravel / Django', 'CRUD・認証・バリデーションを備えたWebアプリの構築。', array( 'laravel', 'django' ) ),
-			array( 'DATA & INFRA', 'MySQL / Docker / Git', 'データベース設計とチーム開発の環境づくり。', array( 'mysql', 'docker', 'git', 'github' ) ),
-			array( 'CMS & 3D', 'WordPress / Three.js', 'テーマ開発と、Web上での3D表現に挑戦しています。', array( 'wordpress', 'threejs' ) ),
+		// 横スクロールのパネル＝個人開発。1枚につき1リポジトリ。
+		// 学校/チームの制作は 03 Work、技術の一覧は About に載せる。ここは「勝手に作っているもの」だけ。
+		$repo = 'https://github.com/74616b756d69/';
+		$builds = array(
+			array(
+				'cat'   => 'APOGEE',
+				'title' => '宇宙の打ち上げを、<br>日々の予定に並べる',
+				'text'  => '次の打ち上げまでのカウントダウン、機関の検索、打ち上げ統計。Apple Calendar と連携して、自分の予定として取り込めるところまで作りました。',
+				'meta'  => '設計・API・UI すべて一人で / Spring Boot 3 + React 18 + MySQL',
+				'icons' => array( 'java', 'spring', 'react', 'mysql', 'docker' ),
+				'url'   => $repo . 'Apogee',
+			),
+			array(
+				'cat'   => 'TABE MAP',
+				'title' => '食べたものを、<br>地図と順位で残す',
+				'text'  => '味・コスパ・雰囲気・接客・また行きたいかの5軸で評価して、地図のピンとランキングに貯めていく記録アプリ。招待コード制のログイン付きです。',
+				'meta'  => 'ASP.NET Core 9 + React 19 / EF Core・Identity・Leaflet',
+				'icons' => array( 'cs', 'dotnet', 'react', 'vite', 'docker' ),
+				'url'   => $repo . 'gourmet-Maps',
+			),
+			array(
+				'cat'   => 'CRYSTALLOGRAPHY',
+				'title' => '結晶構造を、<br>ブラウザで覗く',
+				'text'  => '公開データベース COD の API から CIF を取ってきて、そのまま 3D で表示する試作。フロントも API も TypeScript で書いています。',
+				'meta'  => 'Express 5 + TypeScript + Vite / Docker Compose',
+				'icons' => array( 'ts', 'vite', 'nodejs', 'express', 'docker' ),
+				'url'   => $repo . 'crystallography',
+			),
+			array(
+				'cat'   => 'CODE NOTE',
+				'title' => '書いたコードを、<br>あとから引き出す',
+				'text'  => 'Markdown のリアルタイムプレビュー、ラベルでの分類、画像の埋め込み。自分がほしかったものをそのまま作ったノートアプリです。',
+				'meta'  => 'Laravel + MySQL / CodeMirror・commonmark',
+				'icons' => array( 'php', 'laravel', 'mysql', 'js' ),
+				'url'   => $repo . 'Code_Note',
+			),
+			array(
+				'cat'   => 'FUMI',
+				'title' => 'Mac で、<br>宛名を印刷したかった',
+				'text'  => '筆まめのようなソフトが Mac に無かったので、自分で作り始めました。年賀状の宛名面を組んで、そのまま印刷に回すための個人ツールです。',
+				'meta'  => '制作中 / TypeScript + Vite + Tailwind CSS',
+				'icons' => array( 'ts', 'vite', 'tailwind', 'css' ),
+				'url'   => $repo . 'FUMI',
+			),
 		);
 		?>
 		<div class="hscroll" id="hscroll">
 			<div class="hscroll__inner">
-				<p class="hscroll__label">Scroll down — panels move sideways</p>
+				<div class="hscroll__head">
+					<div class="hscroll__headings">
+						<p class="hscroll__label">Personal builds — scroll sideways</p>
+						<p class="hscroll__note">学校やチームでの制作とは別に、個人で作っているものです。</p>
+					</div>
+					<p class="hscroll__count"><?php echo esc_html( sprintf( '%02d', count( $builds ) ) ); ?> projects</p>
+				</div>
 				<div class="hscroll__track" id="hscroll-track">
-					<?php foreach ( $panels as $i => $panel ) : ?>
+					<?php foreach ( $builds as $i => $build ) : ?>
 						<div class="hpanel">
-							<span class="hpanel__num"><?php echo esc_html( sprintf( '%02d', $i + 1 ) ); ?> / <?php echo esc_html( $panel[0] ); ?></span>
-							<div>
-								<h3><?php echo esc_html( $panel[1] ); ?></h3>
-								<p><?php echo esc_html( $panel[2] ); ?></p>
+							<span class="hpanel__num"><?php echo esc_html( sprintf( '%02d', $i + 1 ) ); ?> / <?php echo esc_html( $build['cat'] ); ?></span>
+							<div class="hpanel__body">
+								<h3><?php echo wp_kses( $build['title'], array( 'br' => array() ) ); ?></h3>
+								<p><?php echo esc_html( $build['text'] ); ?></p>
+								<p class="hpanel__meta"><?php echo esc_html( $build['meta'] ); ?></p>
 								<div class="hpanel__icons">
-									<?php foreach ( $panel[3] as $icon ) : ?>
+									<?php foreach ( $build['icons'] as $icon ) : ?>
 										<img src="<?php echo esc_url( takumi_skill_icon_url( $icon ) ); ?>" alt="<?php echo esc_attr( $icon ); ?>" loading="lazy">
 									<?php endforeach; ?>
 								</div>
 							</div>
+							<a class="hpanel__link" href="<?php echo esc_url( $build['url'] ); ?>" target="_blank" rel="noopener">
+								GitHub で見る<span class="visually-hidden">(<?php echo esc_html( $build['cat'] ); ?>・新しいタブで開きます)</span>
+							</a>
 						</div>
 					<?php endforeach; ?>
 				</div>

@@ -236,47 +236,169 @@ function initRecords() {
   });
 }
 
-/* ---------- フィルタ ---------- */
+/* ---------- フィルタ ----------
+   1 行 = 1 軸(Type / Tech / Year)。各軸はひとつだけ選べ、軸どうしは AND。
+   ボタンの選択肢はテンプレート側が実データから出しているので、ここでは
+   件数を数えて 0 件のボタンを畳み、表示の出し入れだけを受け持つ。 */
 function initFilters() {
-  const buttons = document.querySelectorAll(".filter-btn");
-  const reset = document.querySelector(".filter-reset");
+  const bar = document.querySelector(".records-filter");
+  const items = [...document.querySelectorAll(".work-row")];
+  if (!bar || !items.length) return;
+
+  const EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
+  const shownEl = bar.querySelector(".records-count strong");
+  const totalEl = bar.querySelector(".records-count__total");
   const empty = document.querySelector(".works-empty");
+  const reset = bar.querySelector(".filter-reset");
 
-  function activeValues(group) {
-    return [...document.querySelectorAll(`.filter-btn.is-active[data-group="${group}"]`)].map(
-      (b) => b.dataset.value
-    );
-  }
+  const pad = (n) => String(n).padStart(2, "0");
+  const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const valuesOf = (item, group) =>
+    (item.dataset[group] || "").split(",").map((v) => v.trim()).filter(Boolean);
 
-  function apply() {
-    const types = activeValues("type");
-    const techs = activeValues("tech");
-    const years = activeValues("year");
-    let shown = 0;
+  // 状態は「軸ごとに 1 つ」。all は絞り込みなし
+  const state = {};
 
-    document.querySelectorAll(".work-row").forEach((card) => {
-      const cardTypes = card.dataset.type.split(",");
-      const cardTechs = card.dataset.tech.split(",");
-      const okType = !types.length || types.some((t) => cardTypes.includes(t));
-      const okTech = !techs.length || techs.some((t) => cardTechs.includes(t));
-      const okYear = !years.length || years.includes(card.dataset.year);
-      const show = okType && okTech && okYear;
-      card.classList.toggle("is-hidden", !show);
-      if (show) shown++;
-    });
-    if (empty) empty.style.display = shown ? "none" : "block";
-  }
+  const groups = [...bar.querySelectorAll(".records-filter__row")]
+    .map((row) => {
+      const track = row.querySelector(".records-filter__track");
+      const group = track.dataset.group;
+      const buttons = [...track.querySelectorAll(".filter-btn")];
+      state[group] = "all";
 
-  buttons.forEach((btn) =>
-    btn.addEventListener("click", () => {
-      btn.classList.toggle("is-active");
-      apply();
+      // 件数はカードから数える。1 件も無い値のボタンは出さない
+      buttons.forEach((btn) => {
+        if (btn.dataset.value === "all") return;
+        const hits = items.filter((item) => valuesOf(item, group).includes(btn.dataset.value)).length;
+        if (!hits) {
+          btn.hidden = true;
+          return;
+        }
+        const num = btn.querySelector(".filter-btn__num");
+        if (num) num.textContent = pad(hits);
+      });
+
+      const visible = buttons.filter((btn) => !btn.hidden);
+      // All しか残らない軸は、絞り込む意味がないので行ごと畳む
+      if (visible.length < 2) row.hidden = true;
+
+      return { row, group, track, ink: track.querySelector(".records-filter__ink"), buttons: visible };
     })
-  );
-  reset?.addEventListener("click", () => {
-    buttons.forEach((b) => b.classList.remove("is-active"));
-    apply();
+    .filter((g) => !g.row.hidden);
+
+  if (!groups.length) {
+    bar.hidden = true;
+    return;
+  }
+
+  function moveInk(g) {
+    const active = g.buttons.find((btn) => btn.classList.contains("is-active"));
+    if (!g.ink || !active) return;
+    // 幅 1px の帯を scaleX で伸ばす。レイアウトを触らないので滑らかに動く
+    g.ink.style.transform = `translateX(${active.offsetLeft}px) scaleX(${active.offsetWidth})`;
+  }
+
+  /* --- FLIP。詰まるカードを transform だけで滑らせる --- */
+  function flip(before) {
+    items.forEach((item, i) => {
+      if (item.classList.contains("is-hidden") || !item.animate) return;
+
+      if (before[i].hidden) {
+        // 新しく現れたカードは、少し持ち上げた位置から差し込む
+        item.animate(
+          [
+            { opacity: 0, transform: "translateY(14px)" },
+            { opacity: 1, transform: "none" },
+          ],
+          { duration: 420, easing: EASE }
+        );
+        return;
+      }
+
+      const delta = before[i].top - item.getBoundingClientRect().top;
+      if (Math.abs(delta) < 1) return;
+      item.animate([{ transform: `translateY(${delta}px)` }, { transform: "none" }], {
+        duration: 460,
+        easing: EASE,
+      });
+    });
+  }
+
+  function apply(animate) {
+    // FLIP の First：入れ替え前の位置と表示状態を控える
+    const before =
+      animate && !reduced()
+        ? items.map((item) => ({
+            hidden: item.classList.contains("is-hidden"),
+            top: item.getBoundingClientRect().top,
+          }))
+        : null;
+
+    let shown = 0;
+    items.forEach((item) => {
+      const hit = Object.keys(state).every(
+        (group) => state[group] === "all" || valuesOf(item, group).includes(state[group])
+      );
+      item.classList.toggle("is-hidden", !hit);
+      if (hit) shown++;
+    });
+
+    if (shownEl) shownEl.textContent = pad(shown);
+    if (empty) empty.style.display = shown ? "none" : "block";
+    if (before) flip(before);
+  }
+
+  function select(g, btn, animate, refresh = true) {
+    g.buttons.forEach((b) => {
+      const on = b === btn;
+      b.classList.toggle("is-active", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+      // role="toolbar" の作法。Tab では帯に 1 回だけ入り、中は矢印キーで移動する
+      b.tabIndex = on ? 0 : -1;
+    });
+    state[g.group] = btn.dataset.value;
+    moveInk(g);
+    if (refresh) apply(animate);
+  }
+
+  groups.forEach((g) => {
+    g.track.addEventListener("click", (e) => {
+      const btn = e.target.closest(".filter-btn");
+      if (!btn || !g.track.contains(btn)) return;
+      select(g, btn, true);
+    });
+
+    g.track.addEventListener("keydown", (e) => {
+      const i = g.buttons.indexOf(document.activeElement);
+      if (i < 0) return;
+
+      const last = g.buttons.length - 1;
+      let next;
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") next = i === last ? 0 : i + 1;
+      else if (e.key === "ArrowLeft" || e.key === "ArrowUp") next = i === 0 ? last : i - 1;
+      else if (e.key === "Home") next = 0;
+      else if (e.key === "End") next = last;
+      else return;
+
+      e.preventDefault();
+      g.buttons[next].focus();
+    });
   });
+
+  // 実績インデックスからのジャンプもこのボタンを押して絞り込みを解除する
+  reset?.addEventListener("click", () => {
+    groups.forEach((g) => select(g, g.buttons[0], false, false));
+    apply(true);
+  });
+
+  // 下線は文字幅に依存する。フォント差し替えとリサイズのあとに測り直す
+  const refreshInk = () => groups.forEach((g) => moveInk(g));
+  window.addEventListener("resize", refreshInk);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshInk);
+
+  if (totalEl) totalEl.textContent = pad(items.length);
+  if (shownEl) shownEl.textContent = pad(items.length);
+  refreshInk();
 }
 
 /* ---------- 別ページからハッシュ付きで着地したときも該当カードを光らせる ---------- */

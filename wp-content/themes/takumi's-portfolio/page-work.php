@@ -64,27 +64,66 @@ $works = takumi_get_works();
 				<p class="section-head__ja">作品詳細</p>
 			</div>
 
+			<?php
+			// 絞り込みの選択肢は、実際に並ぶカードのデータから組み立てる。
+			// ボタンを固定文字列で持つと、管理画面の入力とズレた瞬間に
+			// 「押しても 0 件」になるため、値そのものを拾う。
+			$facets = array(
+				'type' => array( 'label' => 'Type', 'values' => array() ),
+				'tech' => array( 'label' => 'Tech', 'values' => array() ),
+				'year' => array( 'label' => 'Year', 'values' => array() ),
+			);
+			if ( $works ) {
+				foreach ( $works as $facet_work ) {
+					foreach ( array_keys( $facets ) as $facet_key ) {
+						$facet_raw = (string) get_post_meta( $facet_work->ID, '_takumi_' . $facet_key, true );
+						foreach ( array_filter( array_map( 'trim', explode( ',', $facet_raw ) ) ) as $facet_value ) {
+							$facets[ $facet_key ]['values'][ $facet_value ] = true;
+						}
+					}
+				}
+			} else {
+				// 投稿が未登録のときは works.js 同梱データの語彙に合わせる。
+				$facets['type']['values'] = array_fill_keys( array( 'front', 'back', 'design' ), true );
+				$facets['tech']['values'] = array_fill_keys( array( 'html/css', 'js', 'php', 'python' ), true );
+				$facets['year']['values'] = array_fill_keys( array( '2025', '2024' ), true );
+			}
+			$facet_row = 0;
+			?>
+
 			<!-- Filters -->
-			<div class="filter-groups" data-reveal>
-				<div class="filter-row">
-					<span class="filter-row__label">Type</span>
-					<button class="filter-btn" data-group="type" data-value="front">フロントエンド</button>
-					<button class="filter-btn" data-group="type" data-value="back">バックエンド</button>
-					<button class="filter-btn" data-group="type" data-value="design">デザイン</button>
-				</div>
-				<div class="filter-row">
-					<span class="filter-row__label">Tech</span>
-					<button class="filter-btn" data-group="tech" data-value="html/css">HTML/CSS</button>
-					<button class="filter-btn" data-group="tech" data-value="js">JavaScript</button>
-					<button class="filter-btn" data-group="tech" data-value="php">PHP</button>
-					<button class="filter-btn" data-group="tech" data-value="python">Python</button>
-				</div>
-				<div class="filter-row">
-					<span class="filter-row__label">Year</span>
-					<button class="filter-btn" data-group="year" data-value="2025">2025</button>
-					<button class="filter-btn" data-group="year" data-value="2024">2024</button>
-					<button class="filter-reset">すべて表示</button>
-				</div>
+			<div class="records-filter" role="toolbar" aria-label="作品の絞り込み">
+				<?php
+				foreach ( $facets as $facet_key => $facet ) :
+					if ( ! $facet['values'] ) {
+						continue;
+					}
+					$facet_row++;
+					?>
+					<div class="records-filter__row">
+						<span class="records-filter__label"><?php echo esc_html( $facet['label'] ); ?></span>
+
+						<div class="records-filter__track" data-group="<?php echo esc_attr( $facet_key ); ?>">
+							<button type="button" class="filter-btn is-active" data-group="<?php echo esc_attr( $facet_key ); ?>" data-value="all" aria-pressed="true">All</button>
+							<?php foreach ( array_keys( $facet['values'] ) as $facet_value ) : ?>
+								<button type="button" class="filter-btn" data-group="<?php echo esc_attr( $facet_key ); ?>" data-value="<?php echo esc_attr( $facet_value ); ?>" aria-pressed="false" tabindex="-1"><?php echo esc_html( $facet_value ); ?><span class="filter-btn__num"></span></button>
+							<?php endforeach; ?>
+
+							<?php // 選択中を示す下線。位置と幅は JS が transform で動かす。 ?>
+							<span class="records-filter__ink" aria-hidden="true"></span>
+						</div>
+
+						<?php if ( 1 === $facet_row ) : ?>
+							<div class="records-filter__tools">
+								<?php // 件数は JS がカードから数えて入れる。 ?>
+								<p class="records-count" aria-live="polite"><strong>--</strong> / <span class="records-count__total">--</span></p>
+								<button type="button" class="filter-reset">Reset</button>
+							</div>
+						<?php else : ?>
+							<span aria-hidden="true"></span>
+						<?php endif; ?>
+					</div>
+				<?php endforeach; ?>
 			</div>
 
 			<?php if ( $works ) : ?>

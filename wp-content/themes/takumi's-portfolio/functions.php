@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TAKUMI_VERSION', '2.6.0' );
+define( 'TAKUMI_VERSION', '2.7.0' );
 
 /* ============================================================
    テーマサポート
@@ -204,7 +204,7 @@ add_action( 'customize_register', function ( $wp_customize ) {
 	) );
 
 	$wp_customize->add_setting( 'takumi_top_skill_desc', array(
-		'default'           => 'フロントエンドからバックエンドまで。HTML/CSSでの制作経験を軸に、Laravel・Django などのフレームワークにも挑戦中です。',
+		'default'           => 'フロントエンドからバックエンドまで。HTML/CSSでの制作経験を軸に、React・Spring Boot・ASP.NET Core まで、実際に動くものを作りながら幅を広げています。',
 		'sanitize_callback' => 'sanitize_textarea_field',
 	) );
 	$wp_customize->add_control( 'takumi_top_skill_desc', array(
@@ -1032,20 +1032,27 @@ function takumi_get_skills_data() {
 
 	if ( ! $posts ) {
 		return array(
-			array( 'html', 'HTML', '4 yrs', 90, 'Webサイト制作で使用' ),
-			array( 'css', 'CSS', '4 yrs', 80, 'Webサイト制作で使用' ),
-			array( 'js', 'JavaScript', 'Learning', 40, '経験半年・Webサイト制作で使用' ),
-			array( 'php', 'PHP', 'Learning', 20, '経験半年・基礎から学習中' ),
-			array( 'python', 'Python', '1 yr', 80, '基本構文を習得済み' ),
-			array( 'java', 'Java', 'Learning', 10, '経験半年・基礎から学習中' ),
-			array( 'django', 'Django', 'Learning', 20, '産学連携プロジェクトで制作経験あり' ),
-			array( 'laravel', 'Laravel', 'Learning', 35, 'Webアプリの制作経験あり' ),
-			array( 'mysql', 'MySQL', '<1 yr', 30, 'データベース構築で使用' ),
-			array( 'git', 'Git', '<1 yr', 30, 'リポジトリの管理で使用' ),
-			array( 'github', 'GitHub', '1 yr', 50, 'チーム開発でのリポジトリ共有で使用' ),
-			array( 'docker', 'Docker', '<1 yr', 25, '開発環境の構築経験あり' ),
-			array( 'wordpress', 'WordPress', '4 yrs', 90, 'Webサイト制作・テーマ開発で使用' ),
-			array( 'threejs', 'Three.js', 'Learning', 20, '本サイトの3D演出で使用' ),
+			array( 'html', 'HTML', '4 yrs', 90, 'LP・WordPressテーマの制作で使用' ),
+			array( 'css', 'CSS', '4 yrs', 85, 'レスポンシブとアニメーション実装で使用' ),
+			array( 'js', 'JavaScript', '2 yrs', 70, 'UI実装とスクロール演出(GSAP)で使用' ),
+			array( 'ts', 'TypeScript', '1 yr', 65, 'crystallography / FUMI をTypeScriptで構築' ),
+			array( 'react', 'React', '1 yr', 60, 'gourmet-Maps(React 19)・Apogee(React 18)で使用' ),
+			array( 'vite', 'Vite', '1 yr', 60, 'フロントエンドのビルド環境として常用' ),
+			array( 'tailwind', 'Tailwind CSS', '1 yr', 55, 'アプリのUIスタイリングで使用' ),
+			array( 'php', 'PHP', '2 yrs', 65, 'Laravel・WordPressテーマ開発で使用' ),
+			array( 'laravel', 'Laravel', '1 yr', 55, 'Code_Note・Laravel_ToDo を制作' ),
+			array( 'java', 'Java', '1 yr', 55, 'Apogee を Spring Boot 3 で構築' ),
+			array( 'spring', 'Spring Boot', '1 yr', 50, '認証(Spring Security / OAuth2)まで実装' ),
+			array( 'cs', 'C#', '1 yr', 45, 'gourmet-Maps を ASP.NET Core で制作' ),
+			array( 'python', 'Python', '2 yrs', 60, '産学連携のDjango開発と基本構文の習得' ),
+			array( 'django', 'Django', 'Learning', 35, '産学連携プロジェクトで制作経験あり' ),
+			array( 'nodejs', 'Node.js', '1 yr', 55, 'Express 5 + TypeScript でREST APIを実装' ),
+			array( 'mysql', 'MySQL', '1 yr', 55, 'Apogee・Code_Note のテーブル設計とJPA経由の操作' ),
+			array( 'docker', 'Docker', '1 yr', 55, 'docker compose で開発環境を構築' ),
+			array( 'git', 'Git', '2 yrs', 70, 'ブランチ運用を含めた日常的なバージョン管理' ),
+			array( 'github', 'GitHub', '2 yrs', 70, 'チーム開発とGitHub Actionsでの自動化' ),
+			array( 'wordpress', 'WordPress', '4 yrs', 90, 'オリジナルテーマの制作で使用' ),
+			array( 'threejs', 'Three.js', 'Learning', 30, '本サイトの3D演出で使用' ),
 		);
 	}
 
