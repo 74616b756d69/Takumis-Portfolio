@@ -2,6 +2,52 @@
    共通スクリプト — ローダー / ナビ / スクロール演出
    ============================================================ */
 
+/* ---------- 散らした図形のパララックス ----------
+   マウス位置を -1〜1 に正規化して CSS 変数に流すだけ。
+   実際の移動量は各図形の --depth と CSS 側の transform が決める。
+   このブロックを消しても、浮遊と回転は CSS 側で動き続ける。 */
+(function () {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const fields = document.querySelectorAll(".shape-field");
+  if (!fields.length) return;
+
+  let frame = null;
+  let pointer = { x: 0, y: 0 };
+
+  function update() {
+    frame = null;
+    fields.forEach((field) => {
+      const r = field.getBoundingClientRect();
+      // 画面外のセクションは計算しない
+      if (!r.width || r.bottom < 0 || r.top > window.innerHeight) return;
+      const x = (pointer.x - (r.left + r.width / 2)) / (r.width / 2);
+      const y = (pointer.y - (r.top + r.height / 2)) / (r.height / 2);
+      field.style.setProperty("--mx", Math.max(-1, Math.min(1, x)).toFixed(3));
+      field.style.setProperty("--my", Math.max(-1, Math.min(1, y)).toFixed(3));
+    });
+  }
+
+  window.addEventListener(
+    "pointermove",
+    (e) => {
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
+      if (!frame) frame = requestAnimationFrame(update); // 1フレームにつき1回だけ更新
+    },
+    { passive: true }
+  );
+
+  function reset() {
+    fields.forEach((field) => {
+      field.style.setProperty("--mx", 0);
+      field.style.setProperty("--my", 0);
+    });
+  }
+  window.addEventListener("pointerleave", reset);
+  window.addEventListener("blur", reset);
+})();
+
 /* ---------- ローダー ---------- */
 window.addEventListener("load", () => {
   const loader = document.querySelector(".loader");
@@ -131,7 +177,6 @@ if (window.gsap && window.ScrollTrigger) {
         .from(".home-hero__name", { opacity: 0, y: 26, duration: 0.7, ease: "power2.out" }, "-=0.3")
         .from(".home-hero__lead", { opacity: 0, y: 26, duration: 0.6, ease: "power2.out" }, "-=0.45")
         .from(".home-stats__item", { opacity: 0, y: 26, scale: 0.9, duration: 0.6, stagger: 0.08, ease: "back.out(2)" }, "-=0.4")
-        .from(".home-index a", { opacity: 0, y: 26, scale: 0.94, duration: 0.55, stagger: 0.07, ease: "back.out(2)" }, "-=0.35")
         .from(".blob", { opacity: 0, scale: 0.1, rotate: 180, duration: 1.1, stagger: 0.1, ease: "back.out(2.4)" }, "-=1.4")
         .from(".home-hero__inner > .page-hero__label", { opacity: 0, x: -30, duration: 0.5 }, "-=1.5");
 
@@ -219,18 +264,30 @@ if (window.gsap && window.ScrollTrigger) {
           },
         });
 
-        // 図形は横送りに合わせて回しておく
+        // 図形は横送りに合わせて回しつつ、上下にもずらして視差をつける。
+        // SVG の中身は CSS で常時ゆれ続けているので、ここでは外側のラッパーだけを動かし、
+        // 回転量も控えめにしてイラストの向きが読めなくならないようにする。
         gsap.utils.toArray(".statement__shape").forEach((shape, i) => {
-          gsap.to(shape, {
-            rotate: i % 2 === 0 ? 220 : -200,
-            ease: "none",
-            scrollTrigger: {
-              trigger: "#statement",
-              start: "top top",
-              end: "+=" + distance,
-              scrub: true,
-            },
-          });
+          // リングは円なので大きく回して良いが、ダイヤと星は形が崩れて見えるので浅く回す
+          const isRing = shape.classList.contains("statement__shape--ring");
+          const dir = i % 2 === 0 ? 1 : -1;
+
+          gsap.fromTo(
+            shape,
+            { rotate: (isRing ? -60 : -18) * dir, scale: 0.86, y: 30 * dir },
+            {
+              rotate: (isRing ? 120 : 24) * dir,
+              scale: 1.06,
+              y: -30 * dir,
+              ease: "none",
+              scrollTrigger: {
+                trigger: "#statement",
+                start: "top top",
+                end: "+=" + distance,
+                scrub: true,
+              },
+            }
+          );
         });
 
         // 語ごとに縦のズレをつけて、平坦に流れないようにする
@@ -281,7 +338,7 @@ if (window.gsap && window.ScrollTrigger) {
     }
 
     // カード類はふわっと
-    const cards = gsap.utils.toArray(".skill-card, .home-index a");
+    const cards = gsap.utils.toArray(".skill-card");
     if (cards.length) {
       ScrollTrigger.batch(cards, {
         start: "top 90%",

@@ -530,18 +530,407 @@ function takumi_render_profile_facts() {
 }
 
 /**
- * Statement セクションに散らす装飾図形(グラデーションのみ、テーマ配色に合わせた自作)
+ * Statement セクションに散らす装飾図形
+ * demo/scroll-*.html のイラストを取り込んだもの。
+ * 動きの中身は CSS（style.css の「Statement の装飾イラスト」）側で定義し、
+ * ここでは形とグラデーションの定義だけを持たせる。
+ * 装飾なので aria-hidden、キーボード対象外にするため focusable="false" を付ける。
  */
 function takumi_shape_svg( $name ) {
-	$shapes = array(
-		'diamond' => '<svg viewBox="0 0 60 60" fill="none" aria-hidden="true"><path d="M27.2 1.8a4 4 0 0 1 5.6 0l25.4 25.4a4 4 0 0 1 0 5.6L32.8 58.2a4 4 0 0 1-5.6 0L1.8 32.8a4 4 0 0 1 0-5.6L27.2 1.8Z" fill="url(#sg1)"/><defs><linearGradient id="sg1" x1="0" y1="0" x2="60" y2="60" gradientUnits="userSpaceOnUse"><stop stop-color="#eaff4d"/><stop offset="1" stop-color="#ff4d94"/></linearGradient></defs></svg>',
-		'ring'    => '<svg viewBox="0 0 60 60" fill="none" aria-hidden="true"><circle cx="30" cy="30" r="26" stroke="url(#sg2)" stroke-width="7"/><defs><linearGradient id="sg2" x1="0" y1="0" x2="60" y2="60" gradientUnits="userSpaceOnUse"><stop stop-color="#8c6bff"/><stop offset="1" stop-color="#7de0c8"/></linearGradient></defs></svg>',
-		'star'    => '<svg viewBox="0 0 60 60" fill="none" aria-hidden="true"><path d="M26.4 25 8.8 25a4.6 4.6 0 0 0 0 9.2l17.6.1L14 46.7a4.6 4.6 0 0 0 6.5 6.5l12.4-12.4.1 17.6a4.6 4.6 0 0 0 9.2 0l.1-17.6 12.4 12.4a4.6 4.6 0 0 0 6.5-6.5L48.8 34.3l17.6-.1" fill="url(#sg3)" transform="translate(-6 -6) scale(0.92)"/><defs><linearGradient id="sg3" x1="0" y1="0" x2="60" y2="60" gradientUnits="userSpaceOnUse"><stop stop-color="#ff4d94"/><stop offset="1" stop-color="#8c6bff"/></linearGradient></defs></svg>',
-	);
+	$shapes = array();
+
+	/* ダイヤモンド（オレンジ → ピンク） */
+	$shapes['diamond'] = <<<'SVG'
+<svg class="shape-svg shape-svg--diamond" viewBox="0 0 260 340" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+	<defs>
+		<linearGradient id="dg-a" gradientUnits="userSpaceOnUse" x1="44" y1="20" x2="216" y2="292"><stop offset="0" class="shape-s1"/><stop offset="1" class="shape-s2"/></linearGradient>
+		<linearGradient id="dg-b" gradientUnits="userSpaceOnUse" x1="216" y1="20" x2="44" y2="292"><stop offset="0" class="shape-s3"/><stop offset="1" class="shape-s2"/></linearGradient>
+		<linearGradient id="dg-c" gradientUnits="userSpaceOnUse" x1="130" y1="20" x2="130" y2="292"><stop offset="0" class="shape-s3"/><stop offset="0.55" class="shape-s1"/><stop offset="1" class="shape-s2"/></linearGradient>
+		<linearGradient id="dg-d" gradientUnits="userSpaceOnUse" x1="44" y1="292" x2="216" y2="20"><stop offset="0" class="shape-s2"/><stop offset="1" class="shape-s1"/></linearGradient>
+		<radialGradient id="dg-e" gradientUnits="userSpaceOnUse" cx="120" cy="86" r="180"><stop offset="0" class="shape-s3"/><stop offset="0.5" class="shape-s1"/><stop offset="1" class="shape-s2"/></radialGradient>
+		<linearGradient id="dg-f" gradientUnits="userSpaceOnUse" x1="88" y1="80" x2="172" y2="212"><stop offset="0" class="shape-s4"/><stop offset="1" class="shape-s2"/></linearGradient>
+		<linearGradient id="dg-shine" gradientUnits="userSpaceOnUse" x1="100" y1="0" x2="160" y2="0">
+			<stop offset="0" stop-color="#fff" stop-opacity="0"/>
+			<stop offset="0.38" stop-color="#fff" stop-opacity="0.55"/>
+			<stop offset="0.5" stop-color="#fff" stop-opacity="0.95"/>
+			<stop offset="0.62" stop-color="#fff" stop-opacity="0.55"/>
+			<stop offset="1" stop-color="#fff" stop-opacity="0"/>
+		</linearGradient>
+		<filter id="dg-grain" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+			<feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" stitchTiles="stitch"/>
+			<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.32 0.32 0.32 0 -0.38"/>
+		</filter>
+		<clipPath id="dg-clip"><path d="M130,20 L216,146 L130,292 L44,146 Z"/></clipPath>
+	</defs>
+	<g class="shape-float"><g class="shape-swing"><g class="shape-turn">
+		<g style="isolation: isolate">
+			<path class="shape-facet" fill="url(#dg-c)" d="M130,20 L44,146 L88,146 Z"/>
+			<path class="shape-facet" fill="url(#dg-e)" d="M130,20 L88,146 L130,80 Z"/>
+			<path class="shape-facet" fill="url(#dg-a)" d="M130,20 L130,80 L172,146 Z"/>
+			<path class="shape-facet" fill="url(#dg-b)" d="M130,20 L172,146 L216,146 Z"/>
+			<path class="shape-facet" fill="url(#dg-d)" d="M44,146 L130,292 L130,212 Z"/>
+			<path class="shape-facet" fill="url(#dg-c)" d="M44,146 L130,212 L88,146 Z"/>
+			<path class="shape-facet" fill="url(#dg-a)" d="M172,146 L130,212 L130,292 Z"/>
+			<path class="shape-facet" fill="url(#dg-e)" d="M172,146 L130,292 L216,146 Z"/>
+			<path class="shape-facet" fill="url(#dg-f)" d="M88,146 L130,80 L130,146 Z"/>
+			<path class="shape-facet" fill="url(#dg-b)" d="M130,80 L172,146 L130,146 Z"/>
+			<path class="shape-facet" fill="url(#dg-a)" d="M88,146 L130,146 L130,212 Z"/>
+			<path class="shape-facet" fill="url(#dg-f)" d="M130,146 L172,146 L130,212 Z"/>
+			<g clip-path="url(#dg-clip)" style="mix-blend-mode: screen">
+				<g transform="rotate(-18 130 156)"><g class="shape-shine"><rect x="100" y="-150" width="60" height="620" fill="url(#dg-shine)"/></g></g>
+			</g>
+			<g class="shape-grain" clip-path="url(#dg-clip)"><rect x="0" y="0" width="260" height="340" filter="url(#dg-grain)"/></g>
+		</g>
+		<g transform="translate(130 20)"><g class="shape-spark shape-spark--sync"><path d="M0,-16 Q3,-3 16,0 Q3,3 0,16 Q-3,3 -16,0 Q-3,-3 0,-16 Z" fill="#fff"/></g></g>
+	</g></g></g>
+	<g transform="translate(34 62)"><g class="shape-spark shape-spark--idle"><path d="M0,-11 Q2,-2 11,0 Q2,2 0,11 Q-2,2 -11,0 Q-2,-2 0,-11 Z" fill="var(--c1)"/></g></g>
+	<g transform="translate(228 108)"><g class="shape-spark shape-spark--idle shape-spark--idle-2"><path d="M0,-8 Q2,-2 8,0 Q2,2 0,8 Q-2,2 -8,0 Q-2,-2 0,-8 Z" fill="var(--c2)"/></g></g>
+	<g transform="translate(58 292)"><g class="shape-spark shape-spark--idle shape-spark--idle-3"><path d="M0,-9 Q2,-2 9,0 Q2,2 0,9 Q-2,2 -9,0 Q-2,-2 0,-9 Z" fill="var(--c4)"/></g></g>
+</svg>
+SVG;
+
+	/* リング（グリーン → ブルー）— 3本の円弧が別々の速度で回り続ける */
+	$shapes['ring'] = <<<'SVG'
+<svg class="shape-svg shape-svg--ring" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+	<defs>
+		<linearGradient id="ar-a" gradientUnits="userSpaceOnUse" x1="38" y1="40" x2="262" y2="250"><stop offset="0" class="shape-s1"/><stop offset="0.5" class="shape-s2"/><stop offset="1" class="shape-s3"/></linearGradient>
+		<linearGradient id="ar-b" gradientUnits="userSpaceOnUse" x1="240" y1="70" x2="60" y2="230"><stop offset="0" class="shape-s3"/><stop offset="0.5" class="shape-s2"/><stop offset="1" class="shape-s4"/></linearGradient>
+		<linearGradient id="ar-c" gradientUnits="userSpaceOnUse" x1="90" y1="220" x2="215" y2="85"><stop offset="0" class="shape-s2"/><stop offset="0.5" class="shape-s1"/><stop offset="1" class="shape-s2"/></linearGradient>
+		<filter id="ar-grain" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+			<feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" stitchTiles="stitch" result="noise"/>
+			<feColorMatrix in="noise" type="matrix" result="grain" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0.3 0.3 0 -0.35"/>
+			<feComposite in="grain" in2="SourceGraphic" operator="in" result="grainClipped"/>
+			<feBlend in="grainClipped" in2="SourceGraphic" mode="multiply"/>
+		</filter>
+	</defs>
+	<g class="shape-rot shape-rot--1"><path class="shape-arc shape-arc--1" filter="url(#ar-grain)" d="M130.55,39.70 A112,112 0 1 1 38.43,140.24"/></g>
+	<g class="shape-rot shape-rot--2"><path class="shape-arc shape-arc--2" filter="url(#ar-grain)" d="M192.00,222.75 A84,84 0 1 1 203.99,85.65"/></g>
+	<g class="shape-rot shape-rot--3"><path class="shape-arc shape-arc--3" filter="url(#ar-grain)" d="M92.88,160.07 A58,58 0 1 1 200.23,179.00"/></g>
+</svg>
+SVG;
+
+	/* 星（パープル → ピンク）— 大小3つが時間差で瞬く */
+	$shapes['star'] = <<<'SVG'
+<svg class="shape-svg shape-svg--star" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+	<defs>
+		<linearGradient id="st-a" gradientUnits="userSpaceOnUse" x1="-72" y1="-88" x2="66" y2="82"><stop offset="0" class="shape-s1"/><stop offset="0.42" class="shape-s2"/><stop offset="1" class="shape-s3"/></linearGradient>
+		<radialGradient id="st-b" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="40"><stop offset="0" class="shape-s4"/><stop offset="1" class="shape-s3"/></radialGradient>
+		<linearGradient id="st-c" gradientUnits="userSpaceOnUse" x1="-26" y1="-26" x2="26" y2="26"><stop offset="0" class="shape-s2"/><stop offset="1" class="shape-s1"/></linearGradient>
+		<filter id="st-grain" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+			<feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" stitchTiles="stitch" result="noise"/>
+			<feColorMatrix in="noise" type="matrix" result="grain" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.32 0.32 0.32 0 -0.38"/>
+			<feComposite in="grain" in2="SourceGraphic" operator="in" result="grainClipped"/>
+			<feBlend in="grainClipped" in2="SourceGraphic" mode="multiply"/>
+		</filter>
+	</defs>
+	<g transform="translate(150 150)"><g class="shape-blink"><g class="shape-swing">
+		<path filter="url(#st-grain)" fill="url(#st-a)" d="M0,-118 C7,-40 40,-7 118,0 C40,7 7,40 0,118 C-7,40 -40,7 -118,0 C-40,-7 -7,-40 0,-118 Z"/>
+	</g></g></g>
+	<g transform="translate(252 68)"><g class="shape-blink shape-blink--2"><g class="shape-swing shape-swing--2">
+		<path filter="url(#st-grain)" fill="url(#st-b)" d="M0,-38 C2,-13 13,-2 38,0 C13,2 2,13 0,38 C-2,13 -13,2 -38,0 C-13,-2 -2,-13 0,-38 Z"/>
+	</g></g></g>
+	<g transform="translate(56 240)"><g class="shape-blink shape-blink--3"><g class="shape-swing shape-swing--3">
+		<path filter="url(#st-grain)" fill="url(#st-c)" d="M0,-26 C1.5,-9 9,-1.5 26,0 C9,1.5 1.5,9 0,26 C-1.5,9 -9,1.5 -26,0 C-9,-1.5 -1.5,-9 0,-26 Z"/>
+	</g></g></g>
+</svg>
+SVG;
 
 	if ( isset( $shapes[ $name ] ) ) {
 		echo $shapes[ $name ]; // phpcs:ignore WordPress.Security.EscapeOutput
 	}
+}
+
+/**
+ * うねる区切り線（demo/flow-lines.html の SECTION DIVIDER 由来）
+ * 線そのものをマスクにして、内側で繰り返しグラデーションの面を横に流している。
+ * ページ内に複数出すので、id はインスタンスごとに連番を振って衝突を避ける。
+ *
+ * @param string $modifier 追加クラス（例: 'flow-line--flip' で上下反転）
+ */
+function takumi_flow_line( $modifier = '' ) {
+	static $seq = 0;
+	++$seq;
+	$p = 'fl' . $seq; // この SVG 専用の id 接頭辞
+
+	$class = 'flow-line' . ( $modifier ? ' ' . $modifier : '' );
+	?>
+	<svg class="<?php echo esc_attr( $class ); ?>" viewBox="0 36 1200 52" xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true" focusable="false">
+		<defs>
+			<!-- 端の色を始点と同じにすると、繰り返しても色の段差が出ない -->
+			<linearGradient id="<?php echo esc_attr( $p ); ?>-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="600" y2="0" spreadMethod="repeat">
+				<stop offset="0" class="s-g1"/>
+				<stop offset="0.33" class="s-g2"/>
+				<stop offset="0.66" class="s-g3"/>
+				<stop offset="1" class="s-g1"/>
+			</linearGradient>
+			<linearGradient id="<?php echo esc_attr( $p ); ?>-grad2" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="600" y2="0" spreadMethod="repeat">
+				<stop offset="0" class="s-g4"/>
+				<stop offset="0.5" class="s-g1"/>
+				<stop offset="1" class="s-g4"/>
+			</linearGradient>
+			<!-- 線そのものをマスクに（白＝見える） -->
+			<mask id="<?php echo esc_attr( $p ); ?>-m1">
+				<path class="wave w1" stroke="#fff" d="M0,60 q75,-34 150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0"/>
+			</mask>
+			<mask id="<?php echo esc_attr( $p ); ?>-m2">
+				<path class="wave w2" stroke="#fff" d="M0,66 q100,30 200,0 t200,0 t200,0 t200,0 t200,0 t200,0"/>
+			</mask>
+			<mask id="<?php echo esc_attr( $p ); ?>-m3">
+				<path class="wave w3" stroke="#fff" d="M0,52 q60,-16 120,0 t120,0 t120,0 t120,0 t120,0 t120,0 t120,0 t120,0 t120,0 t120,0"/>
+			</mask>
+		</defs>
+		<g mask="url(#<?php echo esc_attr( $p ); ?>-m1)">
+			<g class="flow"><rect x="-600" y="0" width="2400" height="120" fill="url(#<?php echo esc_attr( $p ); ?>-grad)"/></g>
+		</g>
+		<g mask="url(#<?php echo esc_attr( $p ); ?>-m2)" opacity="0.75">
+			<g class="flow flow--rev"><rect x="-600" y="0" width="2400" height="120" fill="url(#<?php echo esc_attr( $p ); ?>-grad2)"/></g>
+		</g>
+		<g mask="url(#<?php echo esc_attr( $p ); ?>-m3)" opacity="0.55">
+			<g class="flow flow--slow"><rect x="-600" y="0" width="2400" height="120" fill="url(#<?php echo esc_attr( $p ); ?>-grad)"/></g>
+		</g>
+	</svg>
+	<?php
+}
+
+/**
+ * 散らす装飾図形1つぶん（demo/hero-shapes.html 由来）
+ *
+ * デモは 1 枚の大きな SVG に 7 個を配置していたが、セクションごとに
+ * 好きな数・好きな位置へ置けるよう「図形1つ＝1ステッカー」に分解してある。
+ * 配置と視差は外側の span（CSS）、浮遊と回転は SVG の中（CSS アニメーション）が担当。
+ *
+ * @param string $shape circle|triangle|wave|ring|cross|square|zigzag
+ * @param array  $args  x, y   … セクション内の位置（% 文字列）
+ *                      size   … 幅（CSS の長さ。clamp() 可）
+ *                      depth  … 視差の強さ。大きいほどマウスに追従する
+ *                      delay  … アニメーションの開始ずらし（負値で途中から）
+ *                      class  … 追加クラス（例: 'is-sm-hidden'）
+ */
+function takumi_shape_deco( $shape, $args = array() ) {
+	// viewBox は図形ごとに実寸へ合わせる（原点中心に描いてあるので左上は負の値）
+	$shapes = array(
+		'circle'   => array( '-56 -56 112 112', '<circle class="fill-1" r="46"/>', 'spin' ),
+		'triangle' => array( '-62 -62 124 124', '<path class="fill-2" d="M0,-52 L47,30 Q52,40 40,40 L-40,40 Q-52,40 -47,30 Z"/>', 'spin' ),
+		'wave'     => array( '-88 -34 176 68', '<path class="line-1" d="M-78,0 q19.5,-26 39,0 t39,0 t39,0"/>', 'wobble' ),
+		'ring'     => array( '-44 -44 88 88', '<circle class="line-ink" r="35" stroke-dasharray="9 13"/>', 'spin' ),
+		'cross'    => array( '-40 -40 80 80', '<path class="line-ink" d="M0,-30 V30 M-30,0 H30"/>', 'spin' ),
+		'square'   => array( '-40 -40 80 80', '<rect class="fill-3" x="-30" y="-30" width="60" height="60" rx="16"/>', 'spin' ),
+		'zigzag'   => array( '-55 -28 110 56', '<path class="line-3" d="M-45,14 L-22,-14 L0,14 L22,-14 L45,14"/>', 'wobble' ),
+	);
+
+	if ( ! isset( $shapes[ $shape ] ) ) {
+		return;
+	}
+
+	list( $viewbox, $body, $turn ) = $shapes[ $shape ];
+
+	$args = wp_parse_args( $args, array(
+		'x'     => '50%',
+		'y'     => '50%',
+		'size'  => 'clamp(34px, 5vw, 68px)',
+		'depth' => 24,
+		'delay' => '0s',
+		'class' => '',
+	) );
+
+	$style = sprintf(
+		'--x:%s;--y:%s;--size:%s;--depth:%d;--delay:%s',
+		$args['x'],
+		$args['y'],
+		$args['size'],
+		(int) $args['depth'],
+		$args['delay']
+	);
+
+	$class = 'shape-deco shape-deco--' . $shape;
+	if ( $args['class'] ) {
+		$class .= ' ' . $args['class'];
+	}
+	?>
+	<span class="<?php echo esc_attr( $class ); ?>" style="<?php echo esc_attr( $style ); ?>" aria-hidden="true">
+		<svg viewBox="<?php echo esc_attr( $viewbox ); ?>" xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true" focusable="false">
+			<g class="shape__float"><g class="shape__<?php echo esc_attr( $turn ); ?>"><?php echo $body; // phpcs:ignore WordPress.Security.EscapeOutput ?></g></g>
+		</svg>
+	</span>
+	<?php
+}
+
+/**
+ * セクション背面に図形を散らすレイヤー
+ * バリエーションごとに図形・位置・大きさを変え、同じ絵面の繰り返しにならないようにする。
+ * 画面が狭いと本文に重なるので、内側寄りのものは is-sm-hidden で落とす。
+ *
+ * @param string $variant profile|skill|work|contact
+ */
+function takumi_shape_field( $variant ) {
+	$fields = array(
+		'profile' => array(
+			array( 'circle', array( 'x' => '4%',  'y' => '18%', 'size' => 'clamp(40px, 6vw, 86px)', 'depth' => 26, 'delay' => '-0.4s' ) ),
+			array( 'cross',  array( 'x' => '95%', 'y' => '12%', 'size' => 'clamp(26px, 3.4vw, 48px)', 'depth' => 34, 'delay' => '-3.9s' ) ),
+			array( 'zigzag', array( 'x' => '90%', 'y' => '78%', 'size' => 'clamp(44px, 6vw, 82px)', 'depth' => 48, 'delay' => '-4.3s', 'class' => 'is-sm-hidden' ) ),
+		),
+		'skill' => array(
+			array( 'square',   array( 'x' => '6%',  'y' => '74%', 'size' => 'clamp(32px, 4.4vw, 62px)', 'depth' => 20, 'delay' => '-6.5s' ) ),
+			array( 'triangle', array( 'x' => '94%', 'y' => '22%', 'size' => 'clamp(36px, 5vw, 72px)', 'depth' => 34, 'delay' => '-2.7s' ) ),
+			array( 'wave',     array( 'x' => '12%', 'y' => '8%',  'size' => 'clamp(56px, 8vw, 116px)', 'depth' => 16, 'delay' => '-5.1s', 'class' => 'is-sm-hidden' ) ),
+		),
+		'work' => array(
+			array( 'ring',   array( 'x' => '3%',  'y' => '34%', 'size' => 'clamp(34px, 4.6vw, 66px)', 'depth' => 42, 'delay' => '-1.2s' ) ),
+			array( 'circle', array( 'x' => '96%', 'y' => '66%', 'size' => 'clamp(30px, 4vw, 58px)', 'depth' => 26, 'delay' => '-2.8s' ) ),
+			array( 'cross',  array( 'x' => '88%', 'y' => '6%',  'size' => 'clamp(24px, 3vw, 42px)', 'depth' => 30, 'delay' => '-6s', 'class' => 'is-sm-hidden' ) ),
+		),
+		'contact' => array(
+			array( 'triangle', array( 'x' => '5%',  'y' => '62%', 'size' => 'clamp(34px, 4.6vw, 66px)', 'depth' => 34, 'delay' => '-7.4s' ) ),
+			array( 'zigzag',   array( 'x' => '93%', 'y' => '28%', 'size' => 'clamp(42px, 5.6vw, 78px)', 'depth' => 48, 'delay' => '-2.2s' ) ),
+			array( 'square',   array( 'x' => '80%', 'y' => '86%', 'size' => 'clamp(26px, 3.4vw, 48px)', 'depth' => 20, 'delay' => '-4.8s', 'class' => 'is-sm-hidden' ) ),
+		),
+		// フッターだけは「散らす」よりも「紛れさせる」のが目的。
+		// マスコット2体の周りに寄せて、クリーム色の丸い地を図形の一部に見せる。
+		'footer' => array(
+			array( 'circle', array( 'x' => '3%',  'y' => '36%', 'size' => 'clamp(30px, 4vw, 54px)', 'depth' => 26, 'delay' => '-0.4s' ) ),
+			array( 'zigzag', array( 'x' => '19%', 'y' => '26%', 'size' => 'clamp(38px, 5vw, 68px)', 'depth' => 48, 'delay' => '-4.3s' ) ),
+			array( 'cross',  array( 'x' => '13%', 'y' => '72%', 'size' => 'clamp(20px, 2.6vw, 36px)', 'depth' => 30, 'delay' => '-6s', 'class' => 'is-sm-hidden' ) ),
+			array( 'ring',   array( 'x' => '82%', 'y' => '30%', 'size' => 'clamp(28px, 3.8vw, 52px)', 'depth' => 42, 'delay' => '-1.2s' ) ),
+			array( 'square', array( 'x' => '97%', 'y' => '62%', 'size' => 'clamp(24px, 3.2vw, 44px)', 'depth' => 20, 'delay' => '-6.5s' ) ),
+			array( 'wave',   array( 'x' => '88%', 'y' => '84%', 'size' => 'clamp(44px, 6vw, 88px)', 'depth' => 16, 'delay' => '-5.1s', 'class' => 'is-sm-hidden' ) ),
+		),
+	);
+
+	if ( ! isset( $fields[ $variant ] ) ) {
+		return;
+	}
+	?>
+	<div class="shape-field shape-field--<?php echo esc_attr( $variant ); ?>" aria-hidden="true">
+		<?php foreach ( $fields[ $variant ] as $deco ) : ?>
+			<?php takumi_shape_deco( $deco[0], $deco[1] ); ?>
+		<?php endforeach; ?>
+	</div>
+	<?php
+}
+
+/**
+ * 猫のマスコット（demo/mascot-cat.html 由来）
+ *
+ * フッター上辺のラインに前足を揃えて座らせる。viewBox は 0 0 240 250 から
+ * 0 12 240 216 に詰めてあり、下端が前足の底（y=225）とほぼ一致する。
+ * こうしないと SVG 下部の余白ぶん、猫がラインから浮いて見える。
+ *
+ * 毛色は明るいので輪郭はクリーム（--ink）で引いて背景から切り離す。
+ * 目と口は黄色い顔の上に乗るため --eye（暗色）に分けてある。
+ * 装飾なので aria-hidden。
+ */
+function takumi_mascot_cat() {
+	?>
+	<svg class="mascot mascot--cat" viewBox="0 12 240 216" xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true" focusable="false">
+		<g class="sway"><g class="hop"><g class="breathe">
+
+			<!-- しっぽ（太い線の上に細い線を重ねて「輪郭線つき」に見せる） -->
+			<g class="tail">
+				<path d="M162,206 q46,2 40,-46" fill="none" stroke="var(--ink)" stroke-width="22"/>
+				<path d="M162,206 q46,2 40,-46" fill="none" stroke="var(--c1)" stroke-width="8"/>
+			</g>
+
+			<!-- 体 -->
+			<path class="solid" d="M62,214 q0,-52 58,-52 q58,0 58,52 Z" fill="var(--c1)"/>
+			<!-- 前足 -->
+			<ellipse class="solid" cx="92" cy="210" rx="17" ry="11" fill="var(--c1)"/>
+			<ellipse class="solid" cx="148" cy="210" rx="17" ry="11" fill="var(--c1)"/>
+
+			<g class="head">
+				<!-- 耳 -->
+				<g class="ear ear--l">
+					<path class="solid" d="M70,72 L62,26 L106,48 Z" fill="var(--c1)"/>
+					<path d="M78,66 L74,42 L94,53 Z" fill="var(--c2)"/>
+				</g>
+				<g class="ear ear--r">
+					<path class="solid" d="M170,72 L178,26 L134,48 Z" fill="var(--c1)"/>
+					<path d="M162,66 L166,42 L146,53 Z" fill="var(--c2)"/>
+				</g>
+
+				<!-- 顔 -->
+				<circle class="solid" cx="120" cy="112" r="64" fill="var(--c1)"/>
+
+				<!-- ひげ -->
+				<path class="line" d="M52,104 H28 M52,120 H30" stroke-width="5"/>
+				<path class="line" d="M188,104 H212 M188,120 H210" stroke-width="5"/>
+
+				<!-- ほっぺ（ホバーで出る） -->
+				<ellipse class="blush" cx="80" cy="128" rx="11" ry="7" fill="var(--c2)"/>
+				<ellipse class="blush" cx="160" cy="128" rx="11" ry="7" fill="var(--c2)"/>
+
+				<!-- 目：待機時 -->
+				<g class="eye eye--l"><ellipse cx="97" cy="106" rx="9" ry="12" fill="var(--eye)"/></g>
+				<g class="eye eye--r"><ellipse cx="143" cy="106" rx="9" ry="12" fill="var(--eye)"/></g>
+				<!-- 目：ホバー時（にっこり） -->
+				<path class="eye-happy line line--eye" d="M87,110 q10,-14 20,0"/>
+				<path class="eye-happy line line--eye" d="M133,110 q10,-14 20,0"/>
+
+				<!-- 鼻と口 -->
+				<path d="M113,126 h14 l-7,9 Z" fill="var(--c2)"/>
+				<path class="line line--eye" d="M120,135 q-9,11 -18,2 M120,135 q9,11 18,2" stroke-width="6"/>
+			</g>
+
+			<!-- 首輪 -->
+			<path class="solid" d="M84,166 q36,20 72,0" fill="none" stroke-width="12"/>
+			<path d="M84,166 q36,20 72,0" fill="none" stroke="var(--c3)" stroke-width="6"/>
+
+		</g></g></g>
+	</svg>
+	<?php
+}
+
+/**
+ * ロボットのマスコット（demo/mascot-robot.html 由来）
+ * 猫と対になる相方。ヘッダーのラインに足を着けて立たせる。
+ * viewBox 下端(250)が脚の底(y=248)とほぼ一致するので、そのまま使える。
+ * 装飾なので aria-hidden。
+ */
+function takumi_mascot_robot() {
+	?>
+	<svg class="mascot mascot--robot" viewBox="0 0 240 250" xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true" focusable="false">
+		<g class="sway"><g class="hop"><g class="breathe">
+
+			<!-- 脚 -->
+			<path class="line" d="M98,232 V244 M142,232 V244"/>
+
+			<!-- 胴体 -->
+			<rect class="solid" x="78" y="180" width="84" height="54" rx="22" fill="var(--c2)"/>
+
+			<!-- 腕 -->
+			<g class="arm arm--l"><path class="line" d="M78,204 H50"/></g>
+			<g class="arm arm--r"><path class="line" d="M162,204 H190"/></g>
+
+			<!-- アンテナ -->
+			<g class="antenna">
+				<path class="line" d="M120,62 V30"/>
+				<circle class="solid" cx="120" cy="21" r="11" fill="var(--c3)"/>
+			</g>
+
+			<!-- 耳 -->
+			<rect class="solid" x="26" y="104" width="20" height="44" rx="10" fill="var(--c2)"/>
+			<rect class="solid" x="194" y="104" width="20" height="44" rx="10" fill="var(--c2)"/>
+
+			<!-- 頭 -->
+			<rect class="solid" x="42" y="60" width="156" height="122" rx="34" fill="var(--c1)"/>
+			<!-- 顔の下地 -->
+			<rect class="solid" x="62" y="80" width="116" height="84" rx="24" fill="var(--face)"/>
+
+			<!-- ほっぺ（ホバーで出る） -->
+			<ellipse class="blush" cx="78" cy="134" rx="9" ry="6" fill="var(--c1)"/>
+			<ellipse class="blush" cx="162" cy="134" rx="9" ry="6" fill="var(--c1)"/>
+
+			<!-- 目 -->
+			<g class="eye eye--l"><circle cx="96" cy="112" r="11" fill="var(--eye)"/></g>
+			<g class="eye eye--r"><circle cx="144" cy="112" r="11" fill="var(--eye)"/></g>
+
+			<!-- 口：待機時 -->
+			<path class="line line--eye mouth--idle" d="M104,140 q16,13 32,0"/>
+			<!-- 口：ホバー時（にっと開く） -->
+			<path class="mouth--hover" d="M100,136 h40 a20,20 0 0 1 -40,0 Z" fill="var(--eye)" stroke="var(--eye)" stroke-width="8"/>
+
+		</g></g></g>
+	</svg>
+	<?php
 }
 
 /**

@@ -65,20 +65,13 @@ $works  = takumi_get_works();
 				<?php endforeach; ?>
 			</div>
 
-			<!-- 目次 -->
-			<nav class="home-index" aria-label="ページ内ナビゲーション">
-				<a href="#profile"><span class="home-index__num">01</span><strong>Profile</strong><em>私について</em></a>
-				<a href="#skill"><span class="home-index__num">02</span><strong>Skill</strong><em>できること</em></a>
-				<a href="#work"><span class="home-index__num">03</span><strong>Work</strong><em>制作実績</em></a>
-				<a href="#contact"><span class="home-index__num">04</span><strong>Contact</strong><em>お問い合わせ</em></a>
-			</nav>
-
 			<p class="home-hero__scroll">Scroll</p>
 		</div>
 	</section>
 
 	<!-- 01 Profile -->
 	<section class="section" id="profile">
+		<?php takumi_shape_field( 'profile' ); ?>
 		<div class="container">
 			<div class="section-head" data-reveal>
 				<span class="section-head__num">01</span>
@@ -117,6 +110,7 @@ $works  = takumi_get_works();
 
 	<!-- 02 Skill -->
 	<section class="section section--alt" id="skill">
+		<?php takumi_shape_field( 'skill' ); ?>
 		<div class="container">
 			<div class="section-head" data-reveal>
 				<span class="section-head__num">02</span>
@@ -187,6 +181,7 @@ $works  = takumi_get_works();
 		}
 	}
 	?>
+	<?php takumi_flow_line(); ?>
 	<section class="statement" id="statement">
 		<p class="visually-hidden"><?php echo esc_html( $plain ); ?></p>
 		<div class="statement__pin" aria-hidden="true">
@@ -202,9 +197,11 @@ $works  = takumi_get_works();
 			</div>
 		</div>
 	</section>
+	<?php takumi_flow_line( 'flow-line--flip' ); ?>
 
 	<!-- 03 Work -->
 	<section class="section" id="work">
+		<?php takumi_shape_field( 'work' ); ?>
 		<div class="container">
 			<div class="section-head" data-reveal>
 				<span class="section-head__num">03</span>
@@ -249,6 +246,7 @@ $works  = takumi_get_works();
 
 	<!-- 04 Contact -->
 	<section class="section section--alt" id="contact">
+		<?php takumi_shape_field( 'contact' ); ?>
 		<div class="container">
 			<div class="section-head" data-reveal>
 				<span class="section-head__num">04</span>

@@ -5,6 +5,10 @@
 ?>
 <!-- Footer -->
 <footer class="site-footer">
+	<?php takumi_shape_field( 'footer' ); ?>
+	<!-- フッター上辺のラインに足を揃えて載る2体 -->
+	<span class="footer-mascot footer-mascot--cat"><?php takumi_mascot_cat(); ?></span>
+	<span class="footer-mascot footer-mascot--robot"><?php takumi_mascot_robot(); ?></span>
 	<p class="site-footer__logo"><?php bloginfo( 'name' ); ?></p>
 	<nav class="site-footer__nav">
 		<a href="<?php echo esc_url( home_url( '/' ) ); ?>">Top</a>
