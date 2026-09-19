@@ -18,6 +18,7 @@ const WORKS = [
     url: "",
     github: "https://github.com/74616b756d69/YLMEMORIA",
     icons: ["html", "css", "js"],
+    category: "personal",
   },
   {
     id: "wakashachiya",
@@ -34,6 +35,7 @@ const WORKS = [
     url: "",
     github: "https://github.com/74616b756d69/Wakasyatiya-TeamH",
     icons: ["html", "css", "js"],
+    category: "company",
   },
   {
     id: "hikariwo",
@@ -50,6 +52,7 @@ const WORKS = [
     url: "",
     github: "https://github.com/74616b756d69/TECJUM-teamE_hikariwo",
     icons: ["html", "css", "js", "python", "django", "docker"],
+    category: "company",
   },
   {
     id: "client-k",
@@ -66,6 +69,7 @@ const WORKS = [
     url: "",
     github: "",
     icons: ["html", "css", "js", "php", "wordpress"],
+    category: "company",
   },
   {
     id: "portfolio",
@@ -82,6 +86,7 @@ const WORKS = [
     url: "https://takumisportfolio.main.jp",
     github: "https://github.com/74616b756d69/Takumis-portfolio",
     icons: ["html", "css", "js", "threejs", "wordpress"],
+    category: "personal",
   },
   {
     id: "lapesca",
@@ -98,6 +103,7 @@ const WORKS = [
     url: "",
     github: "",
     icons: ["html", "css", "js"],
+    category: "company",
   },
   {
     id: "todo",
@@ -114,6 +120,7 @@ const WORKS = [
     url: "",
     github: "https://github.com/74616b756d69/Laravel_ToDo",
     icons: ["php", "laravel", "js", "mysql"],
+    category: "personal",
   },
   {
     id: "spottimer",
@@ -130,80 +137,82 @@ const WORKS = [
     url: "",
     github: "",
     icons: ["html", "css", "js", "php"],
+    category: "team",
   },
 ];
 
 const ICON_BASE = "https://skillicons.dev/icons?i=";
-
 // WordPressテーマなど、サブディレクトリから読み込む場合のパス接頭辞
 // (テーマ側で window.TAKUMI_BASE を定義する)
 const BASE = window.TAKUMI_BASE || "";
-const WORK_PAGE = window.TAKUMI_WORK_URL || "Work.html";
-
-/* ---------- Workページ: 全詳細を常時表示するリスト描画 ---------- */
-const grid = document.getElementById("works-grid");
-if (grid) {
-  // サーバー側(WordPress)で描画済みならクライアント描画をスキップ
-  if (grid.dataset.source !== "server") {
-    grid.innerHTML = WORKS.map((w) => {
-      const gallery = w.images
-        .map((src) => `<img src="${BASE}${src}" alt="${w.title}" loading="lazy">`)
-        .join("");
-      const icons = (w.icons || [])
-        .map((i) => `<img src="${ICON_BASE}${i}" alt="${i}" loading="lazy">`)
-        .join("");
-      const links = [
-        w.url && `<a class="btn" href="${w.url}" target="_blank" rel="noopener">Visit Site</a>`,
-        w.github && `<a class="btn btn--gold" href="${w.github}" target="_blank" rel="noopener">GitHub</a>`,
-      ]
-        .filter(Boolean)
-        .join("");
-      return `
-      <article class="work-row" id="work-${w.id}"
-        data-year="${w.year}" data-tech="${w.tech.join(",")}" data-type="${w.type.join(",")}">
-        <div class="work-row__gallery">${gallery}</div>
-        <div class="work-row__body">
-          <h3>${w.title}</h3>
-          <p class="work-row__meta">${w.meta}</p>
-          <p class="work-row__role"><strong>担当:</strong> ${w.role}</p>
-          <p class="work-row__desc">${w.description}</p>
-          <div class="work-row__tags">${w.tech.map((t) => `<span>${t}</span>`).join("")}</div>
-          <div class="work-row__icons">${icons}</div>
-          ${links ? `<div class="work-row__links">${links}</div>` : ""}
-        </div>
-      </article>`;
-    }).join("");
-  }
-
-  initFilters();
-}
 
 /* ---------- Workページ: Field Records(実績インデックス) ---------- */
-const ARROW_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>';
+const PLUS_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>';
 
-const records = document.getElementById("work-records");
-if (records) {
-  if (records.dataset.source !== "server") {
-    records.innerHTML = WORKS.map(
-      (w, i) => `
-      <a class="work-record" href="#work-${w.id}">
-        <span class="record-index">${String(i + 1).padStart(2, "0")}</span>
+const CLOSE_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>';
+
+// トップと Work ページの両方に置かれる。ID ではなくクラスで拾う。
+const recordLists = [...document.querySelectorAll(".work-records")];
+
+if (recordLists.length) {
+  recordLists.forEach((list) => {
+    // サーバー側(WordPress)で描画済みならクライアント描画をスキップ
+    if (list.dataset.source === "server") return;
+    list.innerHTML = WORKS.map((w, i) => recordMarkup(w, i + 1)).join("");
+  });
+
+  // 先にフィルタを組み立てる。ハッシュ着地で Reset を押す場合があるため。
+  initFilters();
+  recordLists.forEach(initRecords);
+}
+
+function recordMarkup(w, index) {
+  const id = `work-${w.id}`;
+  const gallery = (w.images || [])
+    .map((src) => `<img src="${BASE}${src}" alt="${w.title}" loading="lazy">`)
+    .join("");
+  const icons = (w.icons || [])
+    .map((i) => `<img src="${ICON_BASE}${i}" alt="${i}" loading="lazy">`)
+    .join("");
+  const links = [
+    w.url && `<a class="btn" href="${w.url}" target="_blank" rel="noopener">Visit Site</a>`,
+    w.github && `<a class="btn btn--gold" href="${w.github}" target="_blank" rel="noopener">GitHub</a>`,
+  ]
+    .filter(Boolean)
+    .join("");
+
+  return `
+    <div class="work-record-item" id="${id}"
+      data-year="${w.year}" data-tech="${(w.tech||[]).join(",")}" data-type="${(w.type||[]).join(",")}" data-category="${w.category || ''}">
+      <button type="button" class="work-record" aria-haspopup="dialog">
+        <span class="record-index">${String(index).padStart(2, "0")}</span>
         <span class="record-title">
           <small>${recordLabel(w)}</small>
           <strong>${w.title}</strong>
           ${w.meta ? `<em>${w.meta}</em>` : ""}
         </span>
         <span class="record-metric">${recordMetric(w)}</span>
-        <span class="record-arrow" aria-hidden="true">${ARROW_SVG}</span>
-      </a>`
-    ).join("");
-  }
-
-  initRecords();
+        <span class="record-arrow record-arrow--mark" aria-hidden="true">${PLUS_SVG}</span>
+      </button>
+      <div class="work-record__panel" id="${id}-panel">
+        <div class="work-record__inner">
+          <div class="work-detail">
+            ${gallery ? `<div class="work-detail__gallery">${gallery}</div>` : ""}
+            <div class="work-detail__body">
+              ${w.role ? `<p class="work-detail__role"><strong>担当:</strong> ${w.role}</p>` : ""}
+              <div class="work-detail__desc"><p>${w.description}</p></div>
+              <div class="work-detail__tags">${w.tech.map((t) => `<span>${t}</span>`).join("")}</div>
+              ${icons ? `<div class="work-detail__icons">${icons}</div>` : ""}
+              ${links ? `<div class="work-detail__links">${links}</div>` : ""}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
 }
 
-// PHP側 takumi_work_record_parts() と同じ規則でラベル・指標を組み立てる
 function recordLabel(w) {
   return w.label || (w.tech.length ? w.tech.slice(0, 3).join(" × ").toUpperCase() : "WORK");
 }
@@ -213,27 +222,143 @@ function recordMetric(w) {
   return role.length ? role[0].toUpperCase() : String(w.year);
 }
 
-/* ---------- レコード → 詳細カードへのジャンプ ---------- */
-function initRecords() {
-  records.querySelectorAll(".work-record").forEach((rec) => {
-    rec.addEventListener("click", (e) => {
-      const id = decodeURIComponent(rec.getAttribute("href").slice(1));
-      const target = document.getElementById(id);
-      if (!target) return;
-      e.preventDefault();
+/* ---------- 詳細モーダル ----------
+   ページに 1 枚だけ置き、開くたびに対象レコードの .work-detail を
+   そのまま差し込む。複製ではなく移動なので、画像の読み込み状態も
+   id の一意性もそのまま保てる。閉じたら元の位置へ戻す。
+   <dialog> を使うのは、フォーカストラップ・Esc・最前面表示を
+   ブラウザ側に任せられるため。 */
+let modalEl = null;
+let modalOrigin = null; // 中身を戻す先(.work-record__inner)
+let modalOpener = null; // 閉じたあとフォーカスを返すボタン
 
-      // フィルタで隠れている場合は絞り込みを解除してから移動する
-      if (target.classList.contains("is-hidden")) {
-        document.querySelector(".filter-reset")?.click();
-      }
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
-      history.replaceState(null, "", "#" + id);
+function ensureModal() {
+  if (modalEl) return modalEl;
 
-      target.classList.remove("is-flash");
-      void target.offsetWidth; // アニメーションを再生し直すためのリフロー
-      target.classList.add("is-flash");
-    });
+  modalEl = document.createElement("dialog");
+  modalEl.className = "work-modal";
+  modalEl.setAttribute("aria-labelledby", "work-modal-title");
+  modalEl.innerHTML = `
+    <div class="work-modal__panel">
+      <div class="work-modal__head">
+        <span class="work-modal__index"></span>
+        <span class="work-modal__heading">
+          <small class="work-modal__label"></small>
+          <strong class="work-modal__title" id="work-modal-title"></strong>
+          <em class="work-modal__meta"></em>
+        </span>
+        <button type="button" class="work-modal__close" aria-label="閉じる">${CLOSE_SVG}</button>
+      </div>
+      <div class="work-modal__body"></div>
+    </div>`;
+  document.body.appendChild(modalEl);
+
+  modalEl.querySelector(".work-modal__close").addEventListener("click", () => modalEl.close());
+
+  // パネルの外側(=バックドロップ)のクリックで閉じる
+  modalEl.addEventListener("click", (e) => {
+    if (!e.target.closest(".work-modal__panel")) modalEl.close();
   });
+
+  // Esc・閉じるボタンのどちらで閉じても、後片付けは 1 か所にまとめる
+  modalEl.addEventListener("close", releaseModal);
+
+  return modalEl;
+}
+
+function openModal(entry) {
+  const modal = ensureModal();
+  const detail = entry.panel.querySelector(".work-detail");
+  if (!detail) return;
+
+  // すでに別のレコードが開いていれば、閉じ切ってから開き直す。
+  // close イベントは非同期に飛ぶので、片付けを待たずに差し替えると
+  // 新しい中身のほうが元の位置へ戻されてしまう。
+  if (modal.open) {
+    modal.addEventListener("close", () => openModal(entry), { once: true });
+    modal.close();
+    return;
+  }
+
+  const title = entry.toggle.querySelector(".record-title");
+  const set = (sel, text) => {
+    const el = modal.querySelector(sel);
+    el.textContent = text || "";
+    el.hidden = !text;
+  };
+  set(".work-modal__index", entry.toggle.querySelector(".record-index")?.textContent.trim());
+  set(".work-modal__label", title?.querySelector("small")?.textContent.trim());
+  set(".work-modal__title", title?.querySelector("strong")?.textContent.trim());
+  set(".work-modal__meta", title?.querySelector("em")?.textContent.trim());
+
+  modalOrigin = entry.panel.querySelector(".work-record__inner");
+  modalOpener = entry.toggle;
+  modal.querySelector(".work-modal__body").appendChild(detail);
+  modal.querySelector(".work-modal__body").scrollTop = 0;
+
+  entry.item.classList.add("is-open");
+  document.body.classList.add("is-modal-open");
+  modal.showModal();
+
+  history.replaceState(null, "", "#" + entry.item.id);
+}
+
+function releaseModal() {
+  if (!modalEl) return;
+
+  const detail = modalEl.querySelector(".work-detail");
+  if (detail && modalOrigin) modalOrigin.appendChild(detail);
+  modalOrigin = null;
+
+  document.querySelectorAll(".work-record-item.is-open").forEach((item) => item.classList.remove("is-open"));
+  document.body.classList.remove("is-modal-open");
+
+  if (modalOpener) {
+    // 開いた行へフォーカスを返す。一覧を辿り直さずに続きを読める
+    modalOpener.focus({ preventScroll: true });
+    modalOpener = null;
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+}
+
+/* ---------- レコードのクリック ----------
+   モーダルは JS が動いているときだけ。無効な環境では
+   .work-record__panel が開いたまま、その場で詳細が読める。 */
+function initRecords(records) {
+  const items = [...records.querySelectorAll(".work-record-item")];
+  if (!items.length) return;
+
+  records.classList.add("is-collapsible");
+
+  const panels = items.map((item) => ({
+    item,
+    toggle: item.querySelector(".work-record"),
+    panel: item.querySelector(".work-record__panel"),
+  }));
+
+  panels.forEach((entry) => {
+    // 畳んだパネルはタブ移動の対象から外す(中身はモーダル側で読む)
+    entry.panel.inert = true;
+    entry.toggle.addEventListener("click", () => openModal(entry));
+  });
+
+  // ハッシュ付きで着地したら、その行の詳細をそのまま開く
+  openFromHash(panels);
+  window.addEventListener("hashchange", () => openFromHash(panels));
+}
+
+function openFromHash(panels) {
+  const id = decodeURIComponent(location.hash.slice(1));
+  if (!id.startsWith("work-")) return;
+
+  const entry = panels.find((p) => p.item.id === id);
+  if (!entry) return;
+
+  // フィルタで隠れている場合は絞り込みを解除してから開く
+  if (entry.item.classList.contains("is-hidden")) {
+    document.querySelector(".filter-reset")?.click();
+  }
+  openModal(entry);
 }
 
 /* ---------- フィルタ ----------
@@ -242,7 +367,7 @@ function initRecords() {
    件数を数えて 0 件のボタンを畳み、表示の出し入れだけを受け持つ。 */
 function initFilters() {
   const bar = document.querySelector(".records-filter");
-  const items = [...document.querySelectorAll(".work-row")];
+  const items = [...document.querySelectorAll(".work-record-item")];
   if (!bar || !items.length) return;
 
   const EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
@@ -400,10 +525,3 @@ function initFilters() {
   if (shownEl) shownEl.textContent = pad(items.length);
   refreshInk();
 }
-
-/* ---------- 別ページからハッシュ付きで着地したときも該当カードを光らせる ---------- */
-window.addEventListener("load", () => {
-  const id = decodeURIComponent(location.hash.slice(1));
-  if (!id.startsWith("work-")) return;
-  document.getElementById(id)?.classList.add("is-flash");
-});

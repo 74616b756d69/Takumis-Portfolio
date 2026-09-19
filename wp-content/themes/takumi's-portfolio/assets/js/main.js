@@ -209,8 +209,8 @@ if (window.gsap && window.ScrollTrigger) {
         }, "-=0.35")
         .from(".home-hero__name", { opacity: 0, y: 26, duration: 0.7, ease: "power2.out" }, "-=0.3")
         .from(".home-hero__lead", { opacity: 0, y: 26, duration: 0.6, ease: "power2.out" }, "-=0.45")
-        .from(".home-stats__item", { opacity: 0, y: 26, scale: 0.9, duration: 0.6, stagger: 0.08, ease: "back.out(2)" }, "-=0.4")
-        .from(".blob", { opacity: 0, scale: 0.1, rotate: 180, duration: 1.1, stagger: 0.1, ease: "back.out(2.4)" }, "-=1.4")
+        // 実績サマリーを外した分、blob の入りは元のタイミングに合わせて詰めてある
+        .from(".blob", { opacity: 0, scale: 0.1, rotate: 180, duration: 1.1, stagger: 0.1, ease: "back.out(2.4)" }, "-=1.04")
         .from(".home-hero__inner > .page-hero__label", { opacity: 0, x: -30, duration: 0.5 }, "-=1.5");
 
       // 差し色の行だけ、ゆっくり揺らし続ける
@@ -343,8 +343,8 @@ if (window.gsap && window.ScrollTrigger) {
       }
     }
 
-    // レコード行を3Dで起こしながら出す
-    const records = gsap.utils.toArray(".work-record");
+    // レコード行を3Dで起こしながら出す（罫線ごと動かすので行の外枠を掴む）
+    const records = gsap.utils.toArray(".work-record-item");
     records.forEach((row, i) =>
       gsap.set(row, {
         opacity: 0,
@@ -366,6 +366,8 @@ if (window.gsap && window.ScrollTrigger) {
             duration: 0.85,
             stagger: 0.12,
             ease: "back.out(1.8)",
+            // 残った transform はフィルタの FLIP と競合するので消す
+            clearProps: "transform",
           }),
       });
     }
@@ -426,20 +428,21 @@ if (window.gsap && !window.matchMedia("(prefers-reduced-motion: reduce)").matche
     const index = row.querySelector(".record-index");
     const arrow = row.querySelector(".record-arrow");
     const title = row.querySelector(".record-title strong");
+    // 開閉マークだけは、開いた状態の 45 度回転を CSS が持っているので GSAP で触らない
+    const spinnable = arrow && !arrow.classList.contains("record-arrow--mark") ? arrow : null;
 
     row.addEventListener("mouseenter", () => {
       row.classList.add("is-hover");
       gsap.to(index, { rotate: -18, scale: 1.15, duration: 0.35, ease: "back.out(2.5)" });
-      gsap.to(arrow, { rotate: 45, scale: 1.1, duration: 0.4, ease: "back.out(2.5)" });
+      if (spinnable) gsap.to(spinnable, { rotate: 45, scale: 1.1, duration: 0.4, ease: "back.out(2.5)" });
+      // 行の padding は動かさない。番号を塗りの左端に揃えたままにするため
       gsap.to(title, { x: 10, duration: 0.35, ease: "power2.out" });
-      gsap.to(row, { paddingLeft: 18, duration: 0.35, ease: "power2.out" });
     });
     row.addEventListener("mouseleave", () => {
       row.classList.remove("is-hover");
       gsap.to(index, { rotate: 0, scale: 1, duration: 0.4, ease: "power2.out" });
-      gsap.to(arrow, { rotate: 0, scale: 1, duration: 0.4, ease: "power2.out" });
+      if (spinnable) gsap.to(spinnable, { rotate: 0, scale: 1, duration: 0.4, ease: "power2.out" });
       gsap.to(title, { x: 0, duration: 0.4, ease: "power2.out" });
-      gsap.to(row, { paddingLeft: 0, duration: 0.4, ease: "power2.out" });
     });
   });
 

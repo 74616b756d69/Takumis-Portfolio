@@ -1,6 +1,6 @@
 <?php
 /**
- * Takumi Portfolio — テーマ機能
+ * Takumi's Portfolio — テーマ機能
  */
 
 show_admin_bar(false);
@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TAKUMI_VERSION', '2.7.0' );
+define( 'TAKUMI_VERSION', '2.9.0' );
 
 /* ============================================================
    テーマサポート
@@ -48,8 +48,7 @@ add_action( 'wp_enqueue_scripts', function () {
 	wp_enqueue_script( 'takumi-works', $uri . '/assets/js/works.js', array(), TAKUMI_VERSION, true );
 	wp_add_inline_script(
 		'takumi-works',
-		'window.TAKUMI_BASE = ' . wp_json_encode( $uri . '/assets/' ) . ';'
-		. 'window.TAKUMI_WORK_URL = ' . wp_json_encode( takumi_page_url( 'work' ) ) . ';',
+		'window.TAKUMI_BASE = ' . wp_json_encode( $uri . '/assets/' ) . ';',
 		'before'
 	);
 
@@ -387,63 +386,73 @@ add_action( 'save_post_career', function ( $post_id ) {
 	takumi_save_meta_fields( $post_id, TAKUMI_CAREER_FIELDS, 'career' );
 } );
 
-/* ---------- 制作実績の取得・カード出力 ---------- */
+/* ---------- 制作実績の取得・レコード出力 ---------- */
 
 /**
- * 制作実績のカードを出力する
+ * 制作実績の詳細(レコードを開いたときに出る中身)を出力する
  */
-function takumi_render_work_card( $post ) {
-	$id     = $post->ID;
-	$meta   = fn( $key ) => get_post_meta( $id, '_takumi_' . $key, true );
-	$thumb  = get_the_post_thumbnail_url( $id, 'large' );
-	$techs  = array_filter( array_map( 'trim', explode( ',', (string) $meta( 'tech' ) ) ) );
-	$types  = array_filter( array_map( 'trim', explode( ',', (string) $meta( 'type' ) ) ) );
-	$icons  = array_filter( array_map( 'trim', explode( ',', (string) $meta( 'icons' ) ) ) );
+function takumi_render_work_detail( $post ) {
+	$id    = $post->ID;
+	$meta  = fn( $key ) => get_post_meta( $id, '_takumi_' . $key, true );
+	$thumb = get_the_post_thumbnail_url( $id, 'large' );
+	$techs = array_filter( array_map( 'trim', explode( ',', (string) $meta( 'tech' ) ) ) );
+	$icons = array_filter( array_map( 'trim', explode( ',', (string) $meta( 'icons' ) ) ) );
 
 	// 本文内の画像 + アイキャッチをギャラリーに
 	$images = $thumb ? array( $thumb ) : array();
 	if ( preg_match_all( '/<img[^>]+src="([^"]+)"/', $post->post_content, $m ) ) {
 		$images = array_values( array_unique( array_merge( $images, $m[1] ) ) );
 	}
+
+	// 画像はギャラリーで出すので、本文からは取り除く。
+	// 画像だけを並べた行が残ると空段落になるため、余った <br> と空白行も畳む。
+	$body = preg_replace( '/<img[^>]*>/', '', $post->post_content );
+	$body = preg_replace( '/^(\s*<br\s*\/?>)+/', '', $body );
+	$body = preg_replace( '/(<br\s*\/?>\s*){2,}/', '<br />', $body );
+	$body = preg_replace( '/(\s*<br\s*\/?>)+$/', '', $body );
+	$body = trim( preg_replace( '/\n{3,}/', "\n\n", $body ) );
 	?>
-	<article class="work-row" id="<?php echo esc_attr( takumi_work_anchor( $post ) ); ?>"
-		data-year="<?php echo esc_attr( $meta( 'year' ) ); ?>"
-		data-tech="<?php echo esc_attr( implode( ',', $techs ) ); ?>"
-		data-type="<?php echo esc_attr( implode( ',', $types ) ); ?>">
-		<div class="work-row__gallery">
-			<?php foreach ( $images as $src ) : ?>
-				<img src="<?php echo esc_url( $src ); ?>" alt="<?php the_title_attribute( array( 'post' => $id ) ); ?>" loading="lazy">
-			<?php endforeach; ?>
-		</div>
-		<div class="work-row__body">
-			<h3><?php echo esc_html( get_the_title( $id ) ); ?></h3>
-			<p class="work-row__meta"><?php echo esc_html( $meta( 'meta' ) ); ?></p>
-			<?php if ( $meta( 'role' ) ) : ?>
-				<p class="work-row__role"><strong>担当:</strong> <?php echo esc_html( $meta( 'role' ) ); ?></p>
-			<?php endif; ?>
-			<div class="work-row__desc"><?php echo wp_kses_post( wpautop( $post->post_content ) ); ?></div>
-			<div class="work-row__tags">
-				<?php foreach ( $techs as $tech ) : ?>
-					<span><?php echo esc_html( $tech ); ?></span>
+	<div class="work-detail">
+		<?php if ( $images ) : ?>
+			<div class="work-detail__gallery">
+				<?php foreach ( $images as $src ) : ?>
+					<img src="<?php echo esc_url( $src ); ?>" alt="<?php the_title_attribute( array( 'post' => $id ) ); ?>" loading="lazy">
 				<?php endforeach; ?>
 			</div>
+		<?php endif; ?>
+		<div class="work-detail__body">
+			<?php if ( $meta( 'role' ) ) : ?>
+				<p class="work-detail__role"><strong>担当:</strong> <?php echo esc_html( $meta( 'role' ) ); ?></p>
+			<?php endif; ?>
+			<?php if ( $body ) : ?>
+				<div class="work-detail__desc"><?php echo wp_kses_post( wpautop( $body ) ); ?></div>
+			<?php endif; ?>
+			<?php if ( $techs ) : ?>
+				<div class="work-detail__tags">
+					<?php foreach ( $techs as $tech ) : ?>
+						<span><?php echo esc_html( $tech ); ?></span>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
 			<?php if ( $icons ) : ?>
-				<div class="work-row__icons">
+				<div class="work-detail__icons">
 					<?php foreach ( $icons as $icon ) : ?>
 						<img src="<?php echo esc_url( takumi_skill_icon_url( $icon ) ); ?>" alt="<?php echo esc_attr( $icon ); ?>" loading="lazy">
 					<?php endforeach; ?>
 				</div>
 			<?php endif; ?>
-			<div class="work-row__links">
-				<?php if ( $meta( 'url' ) ) : ?>
-					<a class="btn" href="<?php echo esc_url( $meta( 'url' ) ); ?>" target="_blank" rel="noopener">Visit Site</a>
-				<?php endif; ?>
-				<?php if ( $meta( 'github' ) ) : ?>
-					<a class="btn btn--gold" href="<?php echo esc_url( $meta( 'github' ) ); ?>" target="_blank" rel="noopener">GitHub</a>
-				<?php endif; ?>
-			</div>
+			<?php if ( $meta( 'url' ) || $meta( 'github' ) ) : ?>
+				<div class="work-detail__links">
+					<?php if ( $meta( 'url' ) ) : ?>
+						<a class="btn" href="<?php echo esc_url( $meta( 'url' ) ); ?>" target="_blank" rel="noopener">Visit Site</a>
+					<?php endif; ?>
+					<?php if ( $meta( 'github' ) ) : ?>
+						<a class="btn btn--gold" href="<?php echo esc_url( $meta( 'github' ) ); ?>" target="_blank" rel="noopener">GitHub</a>
+					<?php endif; ?>
+				</div>
+			<?php endif; ?>
 		</div>
-	</article>
+	</div>
 	<?php
 }
 
@@ -484,21 +493,38 @@ function takumi_work_record_parts( $post ) {
 }
 
 /**
- * 制作実績インデックスの1行を出力する
+ * 制作実績インデックスの1行(見出し行 + 開閉パネル)を出力する
+ * JS が無い環境ではパネルが開いたまま読めるようにしておく。
  */
-function takumi_render_work_record( $post, $index, $base = '' ) {
+function takumi_render_work_record( $post, $index ) {
 	list( $label, $metric, $sub ) = takumi_work_record_parts( $post );
+	$anchor = takumi_work_anchor( $post );
+	$panel  = $anchor . '-panel';
+	$meta   = fn( $key ) => (string) get_post_meta( $post->ID, '_takumi_' . $key, true );
+	$list   = fn( $key ) => implode( ',', array_filter( array_map( 'trim', explode( ',', $meta( $key ) ) ) ) );
 	?>
-	<a class="work-record" href="<?php echo esc_url( $base . '#' . takumi_work_anchor( $post ) ); ?>">
-		<span class="record-index"><?php echo esc_html( sprintf( '%02d', $index ) ); ?></span>
-		<span class="record-title">
-			<small><?php echo esc_html( $label ); ?></small>
-			<strong><?php echo esc_html( get_the_title( $post ) ); ?></strong>
-			<?php if ( $sub ) : ?><em><?php echo esc_html( $sub ); ?></em><?php endif; ?>
-		</span>
-		<span class="record-metric"><?php echo esc_html( $metric ); ?></span>
-		<span class="record-arrow" aria-hidden="true"><?php takumi_arrow_icon(); ?></span>
-	</a>
+	<div class="work-record-item" id="<?php echo esc_attr( $anchor ); ?>"
+		data-year="<?php echo esc_attr( $meta( 'year' ) ); ?>"
+		data-tech="<?php echo esc_attr( $list( 'tech' ) ); ?>"
+		data-type="<?php echo esc_attr( $list( 'type' ) ); ?>"
+		data-category="<?php echo esc_attr( $list( 'category' ) ); ?>">
+		<?php // 詳細はモーダルで開く。JS 無効時はパネルがそのまま展開されたまま読める。 ?>
+		<button type="button" class="work-record" aria-haspopup="dialog">
+			<span class="record-index"><?php echo esc_html( sprintf( '%02d', $index ) ); ?></span>
+			<span class="record-title">
+				<small><?php echo esc_html( $label ); ?></small>
+				<strong><?php echo esc_html( get_the_title( $post ) ); ?></strong>
+				<?php if ( $sub ) : ?><em><?php echo esc_html( $sub ); ?></em><?php endif; ?>
+			</span>
+			<span class="record-metric"><?php echo esc_html( $metric ); ?></span>
+			<span class="record-arrow record-arrow--mark" aria-hidden="true"><?php takumi_plus_icon(); ?></span>
+		</button>
+		<div class="work-record__panel" id="<?php echo esc_attr( $panel ); ?>">
+			<div class="work-record__inner">
+				<?php takumi_render_work_detail( $post ); ?>
+			</div>
+		</div>
+	</div>
 	<?php
 }
 

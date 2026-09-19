@@ -23,7 +23,7 @@ $works = takumi_get_works();
 			<p class="page-hero__label"><span>03</span> Selected Work / 2024—2025</p>
 			<h1 class="page-hero__title">Work</h1>
 			<p class="page-hero__sub">制作実績</p>
-			<p class="page-hero__lead">これまでに手掛けた制作物をまとめています。インデックスから気になる番号を選ぶと、その詳細へ移動します。</p>
+			<p class="page-hero__lead">これまでに手掛けた制作物をまとめています。気になる番号を選ぶと、その場で詳細が開きます。</p>
 		</div>
 	</section>
 
@@ -39,36 +39,16 @@ $works = takumi_get_works();
 
 			<div class="works-heading" data-reveal>
 				<h2>実装の幅を、<br>結果で見せる。</h2>
-				<p>企業・個人・チーム制作を横断し、要件定義から運用まで必要な場所を担当してきました。気になる番号を選ぶと、下の詳細へ移動します。</p>
-			</div>
-
-			<div class="work-records" id="work-records" data-reveal<?php echo $works ? ' data-source="server"' : ''; ?>>
-				<?php
-				$record_index = 0;
-				foreach ( $works as $work ) {
-					takumi_render_work_record( $work, ++$record_index );
-				}
-				?>
-			</div>
-		</div>
-	</section>
-
-	<?php takumi_flow_line(); ?>
-
-	<section class="section" style="padding-top: 40px;">
-		<?php takumi_shape_field( 'work-detail' ); ?>
-		<div class="container">
-			<div class="section-head" data-reveal>
-				<span class="section-head__num">02</span>
-				<h2 class="section-head__en">Details</h2>
-				<p class="section-head__ja">作品詳細</p>
+				<p>企業・個人・チーム制作を横断し、要件定義から運用まで必要な場所を担当してきました。気になる番号を開くと、その場で詳細が読めます。</p>
 			</div>
 
 			<?php
-			// 絞り込みの選択肢は、実際に並ぶカードのデータから組み立てる。
+			// 絞り込みの選択肢は、実際に並ぶレコードのデータから組み立てる。
 			// ボタンを固定文字列で持つと、管理画面の入力とズレた瞬間に
 			// 「押しても 0 件」になるため、値そのものを拾う。
 			$facets = array(
+			'category' => array( 'label' => 'Category', 'values' => array() ),
+				// 既存の軸
 				'type' => array( 'label' => 'Type', 'values' => array() ),
 				'tech' => array( 'label' => 'Tech', 'values' => array() ),
 				'year' => array( 'label' => 'Year', 'values' => array() ),
@@ -115,7 +95,7 @@ $works = takumi_get_works();
 
 						<?php if ( 1 === $facet_row ) : ?>
 							<div class="records-filter__tools">
-								<?php // 件数は JS がカードから数えて入れる。 ?>
+								<?php // 件数は JS がレコードから数えて入れる。 ?>
 								<p class="records-count" aria-live="polite"><strong>--</strong> / <span class="records-count__total">--</span></p>
 								<button type="button" class="filter-reset">Reset</button>
 							</div>
@@ -126,17 +106,14 @@ $works = takumi_get_works();
 				<?php endforeach; ?>
 			</div>
 
-			<?php if ( $works ) : ?>
-				<!-- 制作実績(カスタム投稿)から描画 -->
-				<div class="works-grid" id="works-grid" data-source="server">
-					<?php foreach ( $works as $work ) {
-						takumi_render_work_card( $work );
-					} ?>
-				</div>
-			<?php else : ?>
-				<!-- 投稿が未登録の場合は works.js の同梱データで描画 -->
-				<div class="works-grid" id="works-grid"></div>
-			<?php endif; ?>
+			<div class="work-records" id="work-records" data-reveal<?php echo $works ? ' data-source="server"' : ''; ?>>
+				<?php
+				$record_index = 0;
+				foreach ( $works as $work ) {
+					takumi_render_work_record( $work, ++$record_index );
+				}
+				?>
+			</div>
 			<p class="works-empty">条件に一致する作品が見つかりませんでした。</p>
 		</div>
 	</section>

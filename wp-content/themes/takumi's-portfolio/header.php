@@ -16,7 +16,7 @@
 	?>
 	<meta name="description" content="<?php echo esc_attr( $takumi_seo_desc ); ?>">
 	<meta property="og:type" content="website">
-	<meta property="og:site_name" content="<?php bloginfo( 'name' ); ?>">
+	<meta property="og:site_name" content="<?php echo esc_attr( "Takumi's Portfolio" ); ?>">
 	<meta property="og:title" content="<?php echo esc_attr( wp_get_document_title() ); ?>">
 	<meta property="og:description" content="<?php echo esc_attr( $takumi_seo_desc ); ?>">
 	<meta property="og:url" content="<?php echo esc_url( $takumi_seo_url ); ?>">
@@ -29,13 +29,13 @@
 
 <!-- Loader -->
 <div class="loader">
-	<p class="loader__mark"><?php bloginfo( 'name' ); ?></p>
+	<p class="loader__mark"><?php echo esc_html( "Takumi's Portfolio" ); ?></p>
 	<div class="loader__bar"></div>
 </div>
 
 <!-- Header -->
 <header class="site-header">
-	<a class="site-header__logo" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php bloginfo( 'name' ); ?></a>
+	<a class="site-header__logo" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( "Takumi's Portfolio" ); ?></a>
 	<button class="nav-toggle" aria-label="メニューを開く">
 		<span></span><span></span><span></span>
 	</button>

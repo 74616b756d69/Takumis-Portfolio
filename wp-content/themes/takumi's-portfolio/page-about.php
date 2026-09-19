@@ -10,7 +10,7 @@ $name_ja = get_theme_mod( 'takumi_name_ja', '赤堀 匠海' );
 $name_en = get_theme_mod( 'takumi_name_en', 'Akahori Takumi' );
 $motto   = get_theme_mod( 'takumi_motto', 'Behind every smile lies effort' );
 $github  = get_theme_mod( 'takumi_github', 'https://github.com/74616b756d69' );
-$face    = get_theme_mod( 'takumi_face' ) ?: $uri . '/assets/img/My_face.jpeg';
+$face    = get_theme_mod( 'takumi_face' ) ?: $uri . '/assets/img/akahori-icon-512.png';
 
 // スキル・経歴は管理画面の「スキル」「経歴」から編集(投稿がなければ既定値)
 $skills   = takumi_get_skills_data();
@@ -47,7 +47,7 @@ $timeline = takumi_get_career_data();
 			</div>
 			<div class="profile-grid">
 				<div class="profile-photo" data-reveal>
-					<img src="<?php echo esc_url( $face ); ?>" alt="<?php echo esc_attr( $name_ja ); ?>の写真">
+					<img src="<?php echo esc_url( $face ); ?>" alt="<?php echo esc_attr( $name_ja ); ?>のイラスト">
 				</div>
 				<div class="profile-body" data-reveal>
 					<p class="name-ja"><?php echo esc_html( $name_ja ); ?></p>

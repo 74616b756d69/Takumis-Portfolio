@@ -7,7 +7,7 @@ get_header();
 $uri    = get_template_directory_uri();
 $email  = get_theme_mod( 'takumi_email', 'akahori.t.24kdgn@gmail.com' );
 $github = get_theme_mod( 'takumi_github', 'https://github.com/74616b756d69' );
-$face   = get_theme_mod( 'takumi_face' ) ?: $uri . '/assets/img/My_face.jpeg';
+$face   = get_theme_mod( 'takumi_face' ) ?: $uri . '/assets/img/akahori-icon-512.png';
 $works  = takumi_get_works();
 ?>
 
@@ -46,25 +46,6 @@ $works  = takumi_get_works();
 
 			<p class="home-hero__lead"><?php echo esc_html( get_theme_mod( 'takumi_top_tagline', 'フロントエンドからバックエンドまで、想いをかたちにする。' ) ); ?></p>
 
-			<!-- 実績サマリー -->
-			<?php
-			$career     = takumi_get_career_data();
-			$since      = $career ? preg_replace( '/[^0-9].*$/', '', (string) $career[0][0] ) : '2021';
-			$stats      = array(
-				array( sprintf( '%02d', count( $works ) ), 'Works' ),
-				array( sprintf( '%02d', count( takumi_get_skills_data() ) ), 'Skills' ),
-				array( $since, 'Since' ),
-			);
-			?>
-			<div class="home-stats">
-				<?php foreach ( $stats as $stat ) : ?>
-					<div class="home-stats__item">
-						<strong><?php echo esc_html( $stat[0] ); ?></strong>
-						<span><?php echo esc_html( $stat[1] ); ?></span>
-					</div>
-				<?php endforeach; ?>
-			</div>
-
 			<p class="home-hero__scroll">Scroll</p>
 		</div>
 	</section>
@@ -78,7 +59,7 @@ $works  = takumi_get_works();
 
 			<div class="profile-grid">
 				<div class="profile-photo" data-reveal>
-					<img src="<?php echo esc_url( $face ); ?>" alt="プロフィール写真">
+					<img src="<?php echo esc_url( $face ); ?>" alt="プロフィールイラスト">
 					<span class="profile-photo__tag">Web Developer</span>
 				</div>
 
@@ -214,7 +195,7 @@ $works  = takumi_get_works();
 		array( 'text', '要件定義から運用まで。' ),
 		array( 'shape', 'ring' ),
 		array( 'xl-grad2', 'とどける。' ),
-		array( 'text', 'チームで、最後まで。' ),
+		array( 'text', '使う人の、毎日へ。' ),
 		array( 'shape', 'star' ),
 	);
 
@@ -256,12 +237,11 @@ $works  = takumi_get_works();
 			</div>
 
 			<?php if ( $works ) : ?>
-				<div class="work-records" data-reveal>
+				<div class="work-records" data-reveal data-source="server">
 					<?php
-					$work_url = takumi_page_url( 'work' );
-					$index    = 0;
+					$index = 0;
 					foreach ( $works as $work ) {
-						takumi_render_work_record( $work, ++$index, $work_url );
+						takumi_render_work_record( $work, ++$index );
 					}
 					?>
 				</div>
