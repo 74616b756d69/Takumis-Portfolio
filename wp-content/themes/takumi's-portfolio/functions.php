@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TAKUMI_VERSION', '2.9.0' );
+define( 'TAKUMI_VERSION', '3.2.3' );
 
 /* ============================================================
    テーマサポート
@@ -472,11 +472,19 @@ function takumi_save_meta_fields( $post_id, $fields, $prefix ) {
 const TAKUMI_WORK_FIELDS = array(
 	'meta'  => array( 'サブタイトル', '例: 個人制作・2025' ),
 	'year'  => array( '制作年', '例: 2025' ),
+	'category' => array( '区分(カンマ区切り)', 'Work一覧の絞り込みに使う。personal / company / team / school' ),
 	'type'  => array( '種別(カンマ区切り)', 'front / back / design' ),
 	'tech'  => array( '技術(カンマ区切り)', '例: html/css,js,php' ),
+	'period'=> array( '制作期間', '詳細の「期間」欄。空欄なら行ごと出ない。例: 2024.09 – 2024.11' ),
+	'team'  => array( '体制', '詳細の「体制」欄。空欄なら行ごと出ない。例: 4人チーム(リーダー)' ),
 	'role'  => array( '担当', '例: デザイン・コーディング全て' ),
+	'status'=> array( '公開状態', '詳細の先頭にバッジで出る。空欄でリンクも無ければ「非公開」。例: 制作中 / 公開中 / 非公開' ),
+	'challenge' => array( '課題', '詳細の 01。何が問題だったか。空欄ならブロックごと出ない。', 'textarea' ),
+	'approach'  => array( 'やったこと', '詳細の 02。どう解いたか。', 'textarea' ),
+	'result'    => array( '結果・学び', '詳細の 03。どうなったか・何を得たか。', 'textarea' ),
 	'url'   => array( '公開URL', '空欄可' ),
 	'github'=> array( 'GitHub URL', '空欄可' ),
+	'note'  => array( 'リンクが無いときの補足', '公開URLもGitHubも無いときに詳細の末尾へ出す。例: 掲載のみ承認いただいた案件のため、詳細は面談時にご紹介します。', 'textarea' ),
 	'icons' => array( 'スキルアイコン(カンマ区切り)', 'skillicons.dev のID。例: html,css,js' ),
 	'label' => array( 'レコード見出し(英字)', 'Work一覧の索引に表示。空欄なら技術から自動生成。例: TEAM DEVELOPMENT' ),
 	'metric'=> array( 'レコード指標(英字)', 'Work一覧の索引に表示。空欄なら担当から自動生成。例: 8-PERSON TEAM' ),
@@ -527,8 +535,51 @@ add_action( 'save_post_build', function ( $post_id ) {
 
 /* ---------- 制作実績の取得・レコード出力 ---------- */
 
+/* 区分(category)の英字キーを、画面に出す日本語ラベルへ言い換える */
+const TAKUMI_WORK_CATEGORY_LABELS = array(
+	'personal' => '個人制作',
+	'company'  => '企業・実案件',
+	'team'     => 'チーム制作',
+	'school'   => '学校制作',
+);
+
+/**
+ * 区分キーの表示名を返す(未知のキーはそのまま出す)
+ */
+function takumi_work_category_label( $key ) {
+	$key = trim( (string) $key );
+	return TAKUMI_WORK_CATEGORY_LABELS[ strtolower( $key ) ] ?? $key;
+}
+
+/**
+ * 詳細の先頭に出すバッジを組み立てる
+ * 公開状態は「status に書かれていればそれ」「空ならリンクの有無から推定」。
+ * 本文の括弧書き(サイト公開なし 等)に頼らず、ひと目で分かる位置に出すのが狙い。
+ */
+function takumi_work_badges( $meta ) {
+	// 制作年はモーダル見出しのサブタイトルに出ているので、ここでは繰り返さない。
+	$badges = array();
+
+	foreach ( array_filter( array_map( 'trim', explode( ',', (string) $meta( 'category' ) ) ) ) as $cat ) {
+		$badges[] = array( 'category', takumi_work_category_label( $cat ) );
+	}
+
+	$status = trim( (string) $meta( 'status' ) );
+	if ( ! $status && ! $meta( 'url' ) && ! $meta( 'github' ) ) {
+		$status = '非公開';
+	}
+	if ( $status ) {
+		$badges[] = array( 'status', $status );
+	}
+
+	return $badges;
+}
+
 /**
  * 制作実績の詳細(レコードを開いたときに出る中身)を出力する
+ * 左に画像、右に「バッジ → 事実(期間・体制・担当) → 物語(課題・やったこと・結果) →
+ * 技術 → リンク」の順。開いた直後に案件の性格が読めるように、文章より先に
+ * 短い事実を置いている。
  */
 function takumi_render_work_detail( $post ) {
 	$id    = $post->ID;
@@ -537,11 +588,23 @@ function takumi_render_work_detail( $post ) {
 	$techs = array_filter( array_map( 'trim', explode( ',', (string) $meta( 'tech' ) ) ) );
 	$icons = array_filter( array_map( 'trim', explode( ',', (string) $meta( 'icons' ) ) ) );
 
-	// 本文内の画像 + アイキャッチをギャラリーに
-	$images = $thumb ? array( $thumb ) : array();
-	if ( preg_match_all( '/<img[^>]+src="([^"]+)"/', $post->post_content, $m ) ) {
-		$images = array_values( array_unique( array_merge( $images, $m[1] ) ) );
+	// 本文内の画像 + アイキャッチをギャラリーに。alt があれば拾って添える。
+	$images = $thumb ? array( array( 'src' => $thumb, 'alt' => '' ) ) : array();
+	if ( preg_match_all( '/<img[^>]+>/', $post->post_content, $tags ) ) {
+		foreach ( $tags[0] as $tag ) {
+			if ( ! preg_match( '/src="([^"]+)"/', $tag, $src ) ) {
+				continue;
+			}
+			$alt = preg_match( '/alt="([^"]*)"/', $tag, $m ) ? $m[1] : '';
+			$images[] = array( 'src' => $src[1], 'alt' => $alt );
+		}
 	}
+	// 同じ画像が二重に並ばないように src で畳む。
+	$unique = array();
+	foreach ( $images as $image ) {
+		$unique[ $image['src'] ] = $image;
+	}
+	$images = array_values( $unique );
 
 	// 画像はギャラリーで出すので、本文からは取り除く。
 	// 画像だけを並べた行が残ると空段落になるため、余った <br> と空白行も畳む。
@@ -550,36 +613,112 @@ function takumi_render_work_detail( $post ) {
 	$body = preg_replace( '/(<br\s*\/?>\s*){2,}/', '<br />', $body );
 	$body = preg_replace( '/(\s*<br\s*\/?>)+$/', '', $body );
 	$body = trim( preg_replace( '/\n{3,}/', "\n\n", $body ) );
+
+	$badges = takumi_work_badges( $meta );
+
+	// 事実の行。未入力の項目は行ごと出さない。
+	$facts = array_filter( array(
+		'期間' => (string) $meta( 'period' ),
+		'体制' => (string) $meta( 'team' ),
+		'担当' => (string) $meta( 'role' ),
+	) );
+
+	// 物語の3ブロック。ひとつも無ければ本文を Overview として出す。
+	$story = array_filter( array(
+		'課題'      => (string) $meta( 'challenge' ),
+		'やったこと' => (string) $meta( 'approach' ),
+		'結果・学び' => (string) $meta( 'result' ),
+	) );
+
+	$title = get_the_title( $id );
 	?>
 	<div class="work-detail">
 		<?php if ( $images ) : ?>
-			<div class="work-detail__gallery">
-				<?php foreach ( $images as $src ) : ?>
-					<img src="<?php echo esc_url( $src ); ?>" alt="<?php the_title_attribute( array( 'post' => $id ) ); ?>" loading="lazy">
-				<?php endforeach; ?>
-			</div>
+			<figure class="work-detail__visual">
+				<div class="work-detail__stage">
+					<img class="work-detail__main"
+						src="<?php echo esc_url( $images[0]['src'] ); ?>"
+						alt="<?php echo esc_attr( $images[0]['alt'] ? $images[0]['alt'] : $title . ' のメインビジュアル' ); ?>">
+				</div>
+				<?php if ( count( $images ) > 1 ) : ?>
+					<div class="work-detail__thumbs" role="tablist" aria-label="<?php echo esc_attr( $title ); ?> の画像">
+						<?php foreach ( $images as $i => $image ) : ?>
+							<button type="button" class="work-detail__thumb<?php echo 0 === $i ? ' is-active' : ''; ?>"
+								role="tab" aria-selected="<?php echo 0 === $i ? 'true' : 'false'; ?>"
+								data-src="<?php echo esc_url( $image['src'] ); ?>"
+								data-alt="<?php echo esc_attr( $image['alt'] ? $image['alt'] : sprintf( '%s の画像 %d', $title, $i + 1 ) ); ?>">
+								<img src="<?php echo esc_url( $image['src'] ); ?>"
+									alt="<?php echo esc_attr( $image['alt'] ? $image['alt'] : sprintf( '%s の画像 %d', $title, $i + 1 ) ); ?>"
+									loading="lazy">
+							</button>
+						<?php endforeach; ?>
+					</div>
+				<?php endif; ?>
+			</figure>
 		<?php endif; ?>
+
 		<div class="work-detail__body">
-			<?php if ( $meta( 'role' ) ) : ?>
-				<p class="work-detail__role"><strong>担当:</strong> <?php echo esc_html( $meta( 'role' ) ); ?></p>
-			<?php endif; ?>
-			<?php if ( $body ) : ?>
-				<div class="work-detail__desc"><?php echo wp_kses_post( wpautop( $body ) ); ?></div>
-			<?php endif; ?>
-			<?php if ( $techs ) : ?>
-				<div class="work-detail__tags">
-					<?php foreach ( $techs as $tech ) : ?>
-						<span><?php echo esc_html( $tech ); ?></span>
+			<?php if ( $badges ) : ?>
+				<div class="work-detail__badges">
+					<?php foreach ( $badges as $badge ) : ?>
+						<span class="work-badge work-badge--<?php echo esc_attr( $badge[0] ); ?>"><?php echo esc_html( $badge[1] ); ?></span>
 					<?php endforeach; ?>
 				</div>
 			<?php endif; ?>
-			<?php if ( $icons ) : ?>
-				<div class="work-detail__icons">
-					<?php foreach ( $icons as $icon ) : ?>
-						<img src="<?php echo esc_url( takumi_skill_icon_url( $icon ) ); ?>" alt="<?php echo esc_attr( $icon ); ?>" loading="lazy">
-					<?php endforeach; ?>
+
+			<?php if ( $icons || $techs ) : ?>
+				<div class="work-detail__stack">
+					<p class="work-detail__stack-label">Tech Stack</p>
+					<?php if ( $icons ) : ?>
+						<?php // アイコンがあるときはアイコンだけ。同じ内容をタグでも出すと二重になる。 ?>
+						<div class="work-detail__icons">
+							<?php foreach ( $icons as $icon ) : ?>
+								<img src="<?php echo esc_url( takumi_skill_icon_url( $icon ) ); ?>" alt="<?php echo esc_attr( $icon ); ?>" title="<?php echo esc_attr( $icon ); ?>" loading="lazy">
+							<?php endforeach; ?>
+						</div>
+					<?php else : ?>
+						<div class="work-detail__tags">
+							<?php foreach ( $techs as $tech ) : ?>
+								<span><?php echo esc_html( $tech ); ?></span>
+							<?php endforeach; ?>
+						</div>
+					<?php endif; ?>
 				</div>
 			<?php endif; ?>
+
+			<?php if ( $facts ) : ?>
+				<dl class="work-detail__facts">
+					<?php foreach ( $facts as $fact_label => $fact_value ) : ?>
+						<div class="work-detail__fact">
+							<dt><?php echo esc_html( $fact_label ); ?></dt>
+							<dd><?php echo esc_html( $fact_value ); ?></dd>
+						</div>
+					<?php endforeach; ?>
+				</dl>
+			<?php endif; ?>
+
+			<?php if ( $story ) : ?>
+				<div class="work-detail__story">
+					<?php foreach ( $story as $story_label => $story_text ) : ?>
+						<section class="work-story">
+							<h4 class="work-story__head"><?php echo esc_html( $story_label ); ?></h4>
+							<p class="work-story__text"><?php echo nl2br( esc_html( $story_text ) ); ?></p>
+						</section>
+					<?php endforeach; ?>
+				</div>
+				<?php if ( $body ) : ?>
+					<div class="work-detail__desc"><?php echo wp_kses_post( wpautop( $body ) ); ?></div>
+				<?php endif; ?>
+			<?php elseif ( $body ) : ?>
+				<?php // 章立てが無いときも、余白を持つ .work-detail__story で包む(上の事実リストと詰まるため) ?>
+				<div class="work-detail__story">
+					<section class="work-story">
+						<h4 class="work-story__head">概要</h4>
+						<div class="work-detail__desc"><?php echo wp_kses_post( wpautop( $body ) ); ?></div>
+					</section>
+				</div>
+			<?php endif; ?>
+
 			<?php if ( $meta( 'url' ) || $meta( 'github' ) ) : ?>
 				<div class="work-detail__links">
 					<?php if ( $meta( 'url' ) ) : ?>
@@ -589,6 +728,9 @@ function takumi_render_work_detail( $post ) {
 						<a class="btn btn--gold" href="<?php echo esc_url( $meta( 'github' ) ); ?>" target="_blank" rel="noopener">GitHub</a>
 					<?php endif; ?>
 				</div>
+			<?php else : ?>
+				<?php // リンクが無い案件で行き止まりにしない。理由を置いて次の行動につなげる。 ?>
+				<p class="work-detail__nolink"><?php echo esc_html( $meta( 'note' ) ? $meta( 'note' ) : '公開URLのない案件です。画面や実装の詳細は面談時にご紹介できます。' ); ?></p>
 			<?php endif; ?>
 		</div>
 	</div>

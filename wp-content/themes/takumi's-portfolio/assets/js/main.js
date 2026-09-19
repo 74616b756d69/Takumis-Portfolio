@@ -71,18 +71,28 @@ onScrollHeader();
 /* ---------- ハンバーガーメニュー ---------- */
 const navToggle = document.querySelector(".nav-toggle");
 const globalNav = document.querySelector(".global-nav");
-navToggle?.addEventListener("click", () => {
-  const open = navToggle.classList.toggle("is-open");
+// 開閉の副作用は1か所に集める。body のクラスは、開いている間だけ
+// ヘッダーの背景とぼかしを外すために CSS から参照している。
+function setNavOpen(open) {
+  navToggle?.classList.toggle("is-open", open);
   globalNav?.classList.toggle("is-open", open);
+  document.body.classList.toggle("is-nav-open", open);
   document.body.style.overflow = open ? "hidden" : "";
+  navToggle?.setAttribute("aria-expanded", String(open));
+  navToggle?.setAttribute("aria-label", open ? "メニューを閉じる" : "メニューを開く");
+}
+
+navToggle?.addEventListener("click", () => setNavOpen(!navToggle.classList.contains("is-open")));
+globalNav?.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => setNavOpen(false)));
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && navToggle?.classList.contains("is-open")) setNavOpen(false);
 });
-globalNav?.querySelectorAll("a").forEach((a) =>
-  a.addEventListener("click", () => {
-    navToggle?.classList.remove("is-open");
-    globalNav.classList.remove("is-open");
-    document.body.style.overflow = "";
-  })
-);
+
+// デスクトップ幅へ戻したときに、開いたままの状態を持ち越さない
+matchMedia("(max-width: 900px)").addEventListener("change", (e) => {
+  if (!e.matches) setNavOpen(false);
+});
 
 /* ---------- スクロールリビール ---------- */
 const revealObserver = new IntersectionObserver(

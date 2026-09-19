@@ -3,6 +3,17 @@
    Takumi's Portfolio — Pop Dark Theme
    ============================================================ */
 
+/* ------------------------------------------------------------
+   ブレイクポイント(この4段だけを使う)
+     901px〜  デスクトップ
+     ~900px   タブレット縦 … iPad 768 / 810 / 820、iPad Pro 11" 834、
+                             iPad Pro 12.9" 縦 1024 は2カラムのまま入る
+     ~720px   小型タブレット / 大きいスマホの横向き
+     ~600px   スマホ縦 … iPhone Pro Max 430–440 を含む
+   これとは別に (orientation: landscape) and (max-height: 560px) を
+   「背の低い横向き」用に使う。高さで決まる崩れは幅では拾えないため。
+   ------------------------------------------------------------ */
+
 :root {
   --bg: #0b0a10;
   --bg-2: #16141d;
@@ -206,16 +217,25 @@ a { color: inherit; text-decoration: none; }
 .nav-toggle.is-open span:nth-child(2) { opacity: 0; }
 .nav-toggle.is-open span:nth-child(3) { top: 22px; transform: rotate(-45deg); }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .nav-toggle { display: block; }
   .global-nav {
     position: fixed;
     inset: 0;
-    background: rgba(11, 11, 14, 0.97);
-    backdrop-filter: blur(20px);
+    /* ヘッダー(.is-scrolled)も backdrop-filter を持つため、ここで重ねると
+       WebKit では入れ子になり、内側の z-index(ハンバーガー)が潰れて描画が壊れる。
+       全面を覆う背景なのでぼかしは要らない。不透明色だけで塗る。 */
+    background: rgba(11, 11, 14, 0.985);
+    /* z-index は auto にせず明示する。ハンバーガー(110)より必ず下。 */
+    z-index: 105;
     display: flex;
     align-items: center;
     justify-content: center;
+    /* 項目が増えても、横向きで画面が低くても読めるように */
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: calc(var(--header-h) + env(safe-area-inset-top)) 20px
+             calc(24px + env(safe-area-inset-bottom));
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.4s ease, visibility 0.4s ease;
@@ -223,6 +243,27 @@ a { color: inherit; text-decoration: none; }
   .global-nav.is-open { opacity: 1; visibility: visible; }
   .global-nav ul { flex-direction: column; align-items: center; gap: 32px; }
   .global-nav a { font-size: 20px; }
+
+  /* メニューを開いている間はヘッダーの背景とぼかしを外す。
+     オーバーレイの上にヘッダーの半透明板が乗ると、ハンバーガーが濁って見える。 */
+  body.is-nav-open .site-header,
+  body.is-nav-open .site-header.is-scrolled {
+    background: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-bottom-color: transparent;
+  }
+}
+
+@media (max-width: 600px) {
+  .global-nav ul { gap: 26px; }
+  .global-nav a { font-size: 18px; }
+}
+
+/* 背の低い横向き。4項目 × gap 32px だと縦に収まらない。 */
+@media (orientation: landscape) and (max-height: 560px) {
+  .global-nav ul { gap: 18px; }
+  .global-nav a { font-size: 16px; padding: 4px 0; }
 }
 
 /* 星空パーティクル背景 (three-stars.js) */
@@ -386,7 +427,7 @@ a { color: inherit; text-decoration: none; }
   gap: 18px;
   margin-bottom: clamp(32px, 4.5vw, 56px);
 }
-@media (min-width: 900px) {
+@media (min-width: 901px) {
   .lead {
     grid-template-columns: 190px minmax(0, 1fr);
     gap: clamp(24px, 4vw, 64px);
@@ -404,7 +445,7 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase;
   color: var(--text-dim);
 }
-@media (min-width: 900px) {
+@media (min-width: 901px) {
   /* 見出し 1 行目のベースラインに合わせて少し下げる。 */
   .lead__meta { padding-top: 0.75em; }
 }
@@ -465,6 +506,16 @@ a { color: inherit; text-decoration: none; }
 /* 余白のリズムを変える。全セクションが同じ高さで刻まれるのを避ける。 */
 .section--tight { padding: clamp(56px, 7vw, 92px) 0; }
 .section--loose { padding: clamp(104px, 16vw, 190px) 0; }
+
+/* 430px では上の clamp() はすべて最小値に張り付く(12vw = 51px < 80px)。
+   つまり vw 項が効かず、デスクトップ用の固定値がそのまま出ている。
+   レイアウトは変えず、スマホ縦のときだけ縦のリズムを詰める。 */
+@media (max-width: 600px) {
+  .section { padding: 64px 0; }
+  .section--tight { padding: 48px 0; }
+  .section--loose { padding: 76px 0; }
+  .page-hero { padding: calc(var(--header-h) + 48px) 0 40px; }
+}
 
 
 /* Reveal animation (JS toggles .is-visible) */
@@ -600,7 +651,7 @@ a { color: inherit; text-decoration: none; }
 }
 .profile-actions .profile-sns { margin-top: 0; }
 
-@media (max-width: 820px) {
+@media (max-width: 900px) {
   .profile-facts__row { grid-template-columns: 92px minmax(0, 1fr); gap: 12px; }
 }
 
@@ -628,7 +679,7 @@ a { color: inherit; text-decoration: none; }
   height: 20px;
   filter: invert(0.92);
 }
-@media (max-width: 820px) {
+@media (max-width: 900px) {
   .profile-grid { grid-template-columns: 1fr; }
   .profile-photo { max-width: 300px; margin: 0 auto; }
 }
@@ -831,7 +882,7 @@ a { color: inherit; text-decoration: none; }
 .filter-reset:hover { color: var(--yellow); }
 .filter-reset:focus-visible { outline: 2px solid var(--yellow); outline-offset: 4px; }
 
-@media (max-width: 680px) {
+@media (max-width: 720px) {
   /* 幅が足りないのでラベルは行の上に逃がす */
   .records-filter__row { grid-template-columns: minmax(0, 1fr) auto; }
   .records-filter__label { grid-column: 1 / -1; padding-top: 14px; }
@@ -854,41 +905,194 @@ a { color: inherit; text-decoration: none; }
 
 /* ============================================================
    Work Detail — レコードを開いたときに出る中身
+   左に画像、右に「バッジ → 事実 → 課題/やったこと/結果 → 技術 → リンク」。
+   読み手が最初に知りたい短い事実を、長い文章より上に置く。
    ============================================================ */
 .work-detail {
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: clamp(22px, 3.5vw, 44px);
+  gap: clamp(22px, 3.5vw, 48px);
   align-items: start;
 }
-.work-detail__gallery {
+
+/* ---- 画像 ---- */
+.work-detail__visual {
+  margin: 0;
+  position: sticky;
+  top: 0;
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  border-radius: var(--radius);
 }
-.work-detail__gallery img {
-  width: 100%;
-  flex-shrink: 0;
-  scroll-snap-align: center;
+.work-detail__stage {
+  position: relative;
   border-radius: var(--radius);
   border: 1px solid var(--line);
+  background: var(--bg-2);
+  overflow: hidden;
 }
-.work-detail__role {
-  margin-top: 0;
-  font-size: 14.5px;
+/* 画像の縦横比がばらついても、並べたときの高さを揃える */
+.work-detail__main {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  transition: opacity 0.28s ease;
+}
+.work-detail__main.is-swapping { opacity: 0.25; }
+.work-detail__thumbs {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+.work-detail__thumb {
+  flex: 0 0 auto;
+  width: 84px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+.work-detail__thumb img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+.work-detail__thumb:hover,
+.work-detail__thumb:focus-visible { opacity: 1; transform: translateY(-2px); }
+.work-detail__thumb.is-active {
+  opacity: 1;
+  border-color: var(--accent);
+}
+
+/* ---- バッジ(年 / 区分 / 公開状態) ---- */
+.work-detail__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.work-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
   color: var(--text-dim);
 }
-.work-detail__role strong { color: var(--text); font-weight: 700; }
+.work-badge--category {
+  border-color: transparent;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+/* 公開状態はいちばん誤解されやすいので、色を分けて最後に置く */
+.work-badge--status {
+  border-style: dashed;
+  color: var(--yellow);
+  border-color: rgba(234, 255, 77, 0.45);
+}
+
+/* ---- 事実(期間 / 体制 / 担当) ---- */
+.work-detail__facts {
+  margin: clamp(22px, 2.8vw, 30px) 0 0;
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+.work-detail__fact {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+}
+.work-detail__fact dt {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  line-height: 2.2;
+}
+.work-detail__fact dd {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.75;
+  color: var(--text);
+}
+
+/* ---- 課題 / やったこと / 結果 ---- */
+.work-detail__story {
+  margin-top: clamp(22px, 3vw, 32px);
+  display: grid;
+  gap: clamp(20px, 2.6vw, 28px);
+}
+.work-story__head {
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+/* 見出しの右に細い罫を伸ばして、ブロックの区切りを見せる */
+.work-story__head::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.work-story__text {
+  margin: 0;
+  padding-left: 2px;
+  font-size: 15px;
+  line-height: 2.05;
+  color: var(--text-dim);
+}
+/* 章の中に置いた本文は、見出しとの間隔を work-story__text と揃える */
+.work-story .work-detail__desc { margin-top: 0; }
 .work-detail__desc {
-  margin-top: 12px;
+  margin-top: 16px;
   font-size: 15px;
   color: var(--text-dim);
   line-height: 2.05;
 }
+.work-detail__desc p { margin: 0 0 1em; }
+.work-detail__desc p:last-child { margin-bottom: 0; }
+
+/* ---- 技術 ---- */
+/* バッジの直下。担当などの事実より先に、何で作ったかを見せる。 */
+.work-detail__stack { margin-top: clamp(20px, 2.6vw, 28px); }
+.work-detail__stack-label {
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.work-detail__stack-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
 .work-detail__tags {
-  margin-top: 16px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -904,20 +1108,62 @@ a { color: inherit; text-decoration: none; }
   color: var(--yellow);
 }
 .work-detail__icons {
-  margin-top: 18px;
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
 .work-detail__icons img { width: 38px; height: 38px; }
+
+/* ---- リンク / リンクが無いときの補足 ---- */
 .work-detail__links {
-  margin-top: 22px;
+  margin-top: clamp(24px, 3vw, 32px);
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
 }
-@media (max-width: 820px) {
-  .work-detail { grid-template-columns: 1fr; }
+.work-detail__nolink {
+  margin: clamp(24px, 3vw, 32px) 0 0;
+  padding: 14px 18px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  line-height: 1.9;
+  color: var(--text-dim);
+}
+
+/* 2カラムのままだと画像も本文も痩せるので、タブレット縦から1カラムにする。
+   iPad Pro 11" の 834px がここに入る(以前は 820px 境界で漏れていた)。 */
+@media (max-width: 900px) {
+  .work-detail { grid-template-columns: 1fr; gap: clamp(20px, 3vw, 28px); }
+  .work-detail__visual { position: static; }
+  .work-detail__fact { grid-template-columns: 72px minmax(0, 1fr); gap: 14px; }
+}
+
+@media (max-width: 600px) {
+  .work-detail__main { aspect-ratio: 3 / 2; }
+  .work-detail__thumbs { scroll-snap-type: x proximity; }
+  .work-detail__thumb { width: 72px; scroll-snap-align: start; }
+  .work-detail__fact { grid-template-columns: 60px minmax(0, 1fr); gap: 12px; padding: 10px 0; }
+  .work-detail__fact dd { font-size: 14px; }
+  .work-detail__icons img { width: 34px; height: 34px; }
+  .work-story__text,
+  .work-detail__desc { font-size: 14.5px; line-height: 1.95; }
+  .work-detail__nolink { font-size: 13px; padding: 12px 14px; }
+  /* 指で押す前提なので、リンクは横並びをやめて全幅にする */
+  .work-detail__links { gap: 10px; }
+  .work-detail__links .btn { width: 100%; justify-content: center; }
+}
+
+/* 背の低い横向き。16:10 のままだと画像だけで画面が埋まる。 */
+@media (orientation: landscape) and (max-height: 560px) {
+  .work-detail__main { aspect-ratio: auto; height: 42dvh; }
+  .work-detail__thumb { width: 64px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-detail__main,
+  .work-detail__thumb { transition: none; }
+  .work-detail__main.is-swapping { opacity: 1; }
 }
 
 /* ============================================================
@@ -1014,7 +1260,7 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.95;
   color: var(--text-dim);
 }
-@media (max-width: 640px) {
+@media (max-width: 720px) {
   .timeline li { grid-template-columns: 1fr; gap: 8px; }
 }
 
@@ -1112,7 +1358,7 @@ a { color: inherit; text-decoration: none; }
 }
 /* 開いたら 45 度回して「×」にする。回転は GSAP と取り合わないよう CSS 側に置く。 */
 .contact-disclosure__toggle[aria-expanded="true"] .contact-disclosure__mark { transform: rotate(45deg); }
-@media (max-width: 860px) {
+@media (max-width: 900px) {
   .contact-channels__row {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 6px 16px;
@@ -1141,6 +1387,9 @@ a { color: inherit; text-decoration: none; }
 /* フォーム。囲まず、罫線と余白だけで区切る。
    幅は読みやすい 620px に絞り、左右中央へ。入力欄そのものは左揃えのまま。 */
 .contact-form {
+  /* 「必須」バッジの逃げ幅。ラベルの padding-right と、
+     入力欄を右へ戻す負マージンで同じ値を使う(ズレると下線の右端が揃わない)。 */
+  --label-gutter: 52px;
   width: min(620px, 100%);
   margin: 0 auto;
   padding: clamp(32px, 4.5vw, 52px) 0 clamp(40px, 5vw, 60px);
@@ -1158,7 +1407,7 @@ a { color: inherit; text-decoration: none; }
   position: relative;
   display: block;
   margin-bottom: 28px;
-  padding-right: 52px;
+  padding-right: var(--label-gutter);
   font-family: var(--font-mono);
   font-size: 11.5px;
   letter-spacing: 0.1em;
@@ -1184,6 +1433,9 @@ a { color: inherit; text-decoration: none; }
 .contact-form .wpcf7-form-control-wrap {
   display: block;
   margin-top: 8px;
+  /* ラベルの padding-right はラベル文字を逃がすためのもので、入力欄まで
+     狭める意図はない。同じ量だけ右へ戻し、下線の右端を「必須」の右端に揃える。 */
+  margin-right: calc(var(--label-gutter) * -1);
 }
 
 /* 入力欄は箱にせず、下線だけ。 */
@@ -1552,8 +1804,10 @@ a { color: inherit; text-decoration: none; }
    ============================================================ */
 .home-hero {
   position: relative;
+  min-height: 100vh;  /* svh 非対応ブラウザ向けの保険 */
   min-height: 100svh;
   display: flex;
+  /* 内容は上下中央。余りは上下へ均等に散る。 */
   align-items: center;
   padding: calc(var(--header-h) + 72px) 0 96px;
   overflow: hidden;
@@ -1563,6 +1817,19 @@ a { color: inherit; text-decoration: none; }
     radial-gradient(ellipse at 50% 130%, #1a1620 0%, var(--bg) 70%);
 }
 .home-hero__inner { position: relative; z-index: 1; }
+
+/* スマホ縦。中央寄せは保ったまま、上下の padding だけ詰める。
+   デスクトップ基準の 144px / 96px は 430px 幅だと画面の 25% を占める。 */
+@media (max-width: 600px) {
+  .home-hero { padding: calc(var(--header-h) + 40px) 0 56px; }
+  .home-hero__scroll { margin-top: clamp(32px, 5vh, 56px); }
+}
+
+/* 背の低い横向き(956×440 など)。ここは 600px 超なので上の段に入らない。 */
+@media (orientation: landscape) and (max-height: 560px) {
+  .home-hero { padding: calc(var(--header-h) + 28px) 0 40px; }
+  .home-hero__scroll { margin-top: clamp(20px, 4vh, 36px); }
+}
 
 /* ---- 散らす装飾図形（demo/hero-shapes.html 由来） ----
    役割を3段に分ける：
@@ -1858,6 +2125,7 @@ a { color: inherit; text-decoration: none; }
 }
 .statement__pin {
   min-height: 78vh;
+  min-height: 78svh; /* iOS: ツールバー表示中でも収める。スクロール中に値が動かない単位を使う */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -2105,7 +2373,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 @media (max-width: 720px) {
-  .statement__pin { min-height: 62vh; gap: 20px; }
+  .statement__pin { min-height: 62vh; min-height: 62svh; gap: 20px; }
   .statement__word--text { font-size: 16px; max-width: 18ch; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2117,6 +2385,7 @@ a { color: inherit; text-decoration: none; }
 .hscroll {
   position: relative;
   height: 100vh;
+  height: 100svh; /* 同上。ピン留めの高さが途中で変わらないようにする */
   overflow: hidden;
 }
 .hscroll__inner {
@@ -2316,12 +2585,12 @@ a { color: inherit; text-decoration: none; }
 }
 .home-thumbs a:hover img { transform: scale(1.06); }
 
-@media (max-width: 640px) {
+@media (max-width: 600px) {
   /* 長い英字見出しが画面からはみ出さないよう小さめに */
   .home-hero__title { font-size: 9.4vw; }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 900px) {
   .home-skills { grid-template-columns: 1fr; }
   .home-thumbs { grid-template-columns: 1fr; }
 }
@@ -2340,6 +2609,9 @@ a { color: inherit; text-decoration: none; }
   /* フッターのマスコットが重ならないよう、セクション本文を前面に出す */
   z-index: 2;
  }
+@media (max-width: 600px) {
+  .works-section { padding: 56px 0 72px; }
+}
 
 /* 見出し上のラベル行 */
 .section-kicker {
@@ -2657,14 +2929,43 @@ a { color: inherit; text-decoration: none; }
 /* モーダルの裏でページが動くと戻り位置を見失う */
 body.is-modal-open { overflow: hidden; }
 
-@media (max-width: 820px) {
-  .work-modal { width: calc(100vw - 20px); }
+@media (max-width: 900px) {
+  .work-modal { width: calc(100vw - 24px); }
   .work-modal__head { grid-template-columns: auto minmax(0, 1fr); row-gap: 10px; }
-  .work-modal__close { grid-column: 2; justify-self: end; grid-row: 1; width: 36px; height: 36px; }
+  /* 指で押せる最小サイズ(44px)を下回らせない */
+  .work-modal__close { grid-column: 2; justify-self: end; grid-row: 1; width: 44px; height: 44px; }
   .work-modal__heading { grid-column: 2; grid-row: 2; }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 600px) {
+  /* ノッチとホームインジケータを避ける。iOS 以外では env() が 0 になる。 */
+  .work-modal,
+  .work-modal__panel {
+    max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+  .work-modal {
+    width: calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right));
+  }
+  .work-modal__panel { border-radius: var(--radius-sm); }
+  .work-modal__head { padding: 16px 16px 14px; }
+  .work-modal__body { padding: 18px 16px calc(24px + env(safe-area-inset-bottom)); }
+  .work-modal__title { font-size: 20px; }
+  .work-modal__meta { font-size: 12.5px; }
+}
+
+/* 背の低い横向き。ヘッダーを薄くして本文の見える量を稼ぐ。 */
+@media (orientation: landscape) and (max-height: 560px) {
+  .work-modal,
+  .work-modal__panel { max-height: calc(100dvh - 16px); }
+  .work-modal {
+    width: calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right));
+  }
+  .work-modal__head { padding: 12px clamp(14px, 3vw, 24px); }
+  .work-modal__body { padding: 16px clamp(14px, 3vw, 24px) calc(20px + env(safe-area-inset-bottom)); }
+  .work-modal__title { font-size: 19px; }
+}
+
+@media (max-width: 900px) {
   .works-heading { grid-template-columns: 1fr; align-items: start; }
   .work-record {
     grid-template-columns: 44px minmax(0, 1fr) 40px;
@@ -2686,6 +2987,18 @@ body.is-modal-open { overflow: hidden; }
     height: 36px;
   }
   .record-title strong { font-size: 18px; }
+}
+
+@media (max-width: 600px) {
+  .work-record {
+    grid-template-columns: 34px minmax(0, 1fr) 36px;
+    column-gap: 10px;
+  }
+  .record-title strong { font-size: 16.5px; line-height: 1.5; }
+  .record-title small { font-size: 9.5px; }
+  .record-title em { font-size: 12px; }
+  .record-metric { font-size: 10px; }
+  .record-arrow { width: 32px; height: 32px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

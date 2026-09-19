@@ -11,8 +11,14 @@ const WORKS = [
     tech: ["html/css", "js"],
     type: ["front", "design"],
     role: "チームリーダー・フロントコーディング・デザイン",
-    description:
-      "文化祭の展示作品として「花詞データベース」を制作しました。約50種類の花について、花言葉だけでなく学名・由来・原産地などを自ら調査し、HTMLで整理しました。さらにJavaScriptを用いて「季節」「色」「神話由来」といったテーマごとに絞り込みができる仕組みを実装し、来場者が目的や興味に合わせて花を探せるようにしました。当時はデータベースの知識がなかったため、すべて手入力でデータを構築しましたが、情報の分類方法や検索軸を工夫することで「情報を活用しやすい形に整える」ことを意識しました。この経験は、のちのデータベース学習やUI設計の理解につながっています。(サイト公開なし)",
+    status: "非公開",
+    challenge:
+      "文化祭の展示作品として花詞データベースを作ることになりましたが、花言葉を並べるだけでは来場者が目的の花にたどり着けません。当時はデータベースの知識がなく、データはすべて手入力で組み立てるしかない状態でした。",
+    approach:
+      "約50種類の花について、花言葉だけでなく学名・由来・原産地まで自ら調査してHTMLに整理しました。そのうえでJavaScriptを使い、「季節」「色」「神話由来」といったテーマごとに絞り込める仕組みを実装しています。",
+    result:
+      "来場者が目的や興味に合わせて花を探せる形になりました。情報の分類方法と検索軸を工夫して「情報を活用しやすい形に整える」ことを意識した経験は、のちのデータベース学習とUI設計の理解につながっています。",
+    description: "",
     thumb: "img/YLMEMORIA/YL MEMORIA.png",
     images: ["img/YLMEMORIA/YL MEMORIA.png", "img/YLMEMORIA/Plumeria.png", "img/YLMEMORIA/list.png"],
     url: "",
@@ -28,8 +34,14 @@ const WORKS = [
     tech: ["html/css", "js"],
     type: ["front"],
     role: "チームリーダー・フロントコーディング",
-    description:
-      "株式会社若鯱家様との産学連携プロジェクトで、チーム制作としてWebサイトのリニューアルを担当しました。既存サイトは主に既存顧客向けの内容で、若年層の集客が課題でした。そこでチームでは、若年層を対象にアンケートを実施し、求められる情報や興味を引くアプローチを整理。その結果をもとに、デザイン・情報設計・機能面を考慮したWebサイトを制作しました。(Web公開なし)",
+    status: "非公開",
+    challenge:
+      "株式会社若鯱家様の既存サイトは既存顧客向けの内容が中心で、若年層の集客が課題になっていました。",
+    approach:
+      "チームで若年層を対象にアンケートを実施し、求められる情報と興味を引くアプローチを整理しました。その結果をもとにデザイン・情報設計・機能を決め、リーダーとして進行とフロントのコーディングを担当しています。",
+    result:
+      "調査で得た事実を根拠にデザインと情報設計を組み立てる進め方を、産学連携のチーム制作の中で実践できました。",
+    description: "",
     thumb: "img/wakasyatiya/若鯱家-top.png",
     images: ["img/wakasyatiya/若鯱家-top.png", "img/若鯱家会社概要.png"],
     url: "",
@@ -45,8 +57,14 @@ const WORKS = [
     tech: ["html/css", "js", "python"],
     type: ["front", "back"],
     role: "チームリーダー・要件定義・実装指揮",
-    description:
-      "企業様との産学連携プロジェクトでチームリーダーを担当したWebシステム開発です。要件定義・設計・実装・リリースまでのフルサイクルを指揮し、Django と Docker を用いてWebシステムを構築しました。企画からリリースまでを一貫して経験したことで、チーム開発の進行管理と技術選定の判断力を養いました。",
+    status: "非公開",
+    challenge:
+      "企業様との産学連携プロジェクトで、要件定義からリリースまでをチームで完走する必要がありました。",
+    approach:
+      "チームリーダーとして要件定義・設計・実装・リリースまでのフルサイクルを指揮し、Django と Docker を用いてWebシステムを構築しました。",
+    result:
+      "企画からリリースまでを一貫して経験したことで、チーム開発の進行管理と技術選定の判断力を養いました。",
+    description: "",
     thumb: "img/hikariwo/HiKaRiWo_LP.png",
     images: ["img/hikariwo/HiKaRiWo_LP.png"],
     url: "",
@@ -62,8 +80,10 @@ const WORKS = [
     tech: ["html/css", "js", "php"],
     type: ["front", "back"],
     role: "フロント・バックエンドコーディング",
+    status: "制作中",
     description:
-      "実案件として受注したコーポレートサイト制作です。WordPress をベースに、フロントエンドからバックエンドまでのコーディングを担当しています。(現在制作中)",
+      "実案件として受注したコーポレートサイト制作です。WordPress をベースに、フロントエンドからバックエンドまでのコーディングを担当しています。",
+    note: "制作中の案件のため、公開URLはまだありません。進捗や実装の中身は面談時にご紹介できます。",
     thumb: "img/icon/logo_img.png",
     images: ["img/icon/logo_img.png"],
     url: "",
@@ -79,6 +99,7 @@ const WORKS = [
     tech: ["html/css", "js"],
     type: ["front", "design"],
     role: "デザイン・コーディング全て",
+    status: "公開中",
     description:
       "本ポートフォリオサイトです。デザインからコーディングまですべて自身で制作しました。Three.js によるインタラクティブな3D演出や、GSAP を用いたスクロールアニメーションを取り入れ、WordPress テーマ化にも対応しています。",
     thumb: "img/img/portfolio.png",
@@ -96,8 +117,9 @@ const WORKS = [
     tech: ["html/css", "js"],
     type: ["front", "design"],
     role: "コーディング",
-    description:
-      "クライアント案件として制作に参加したWebサイトです。掲載のみ承認いただいている案件のため、詳細は面談時にご紹介できます。",
+    status: "掲載のみ承認",
+    description: "クライアント案件として制作に参加したWebサイトです。",
+    note: "掲載のみ承認いただいている案件のため、URLとソースは公開していません。担当範囲や実装の詳細は面談時にご紹介できます。",
     thumb: "img/Lapesca/Lapeseca_top.png",
     images: ["img/Lapesca/Lapeseca_top.png"],
     url: "",
@@ -113,6 +135,7 @@ const WORKS = [
     tech: ["html/css", "js", "php"],
     type: ["front", "back", "design"],
     role: "設計・実装すべて",
+    status: "非公開",
     description:
       "Laravel で制作したタスク管理アプリです。ユーザー認証・CRUD・フォームバリデーションを実装し、バックエンド開発の基礎を体系的に習得しました。",
     thumb: "img/TODO/todo-top.jpeg",
@@ -130,6 +153,7 @@ const WORKS = [
     tech: ["html/css", "js", "php"],
     type: ["front", "back"],
     role: "チーム開発・実装",
+    status: "非公開",
     description:
       "イベントでのチーム制作で開発したタイマーアプリケーションです。短期間のチーム開発を通じて、役割分担とスピード感のある実装を経験しました。",
     thumb: "img/SPOTtimer/SPOTtimer.png",
@@ -145,6 +169,17 @@ const ICON_BASE = "https://skillicons.dev/icons?i=";
 // WordPressテーマなど、サブディレクトリから読み込む場合のパス接頭辞
 // (テーマ側で window.TAKUMI_BASE を定義する)
 const BASE = window.TAKUMI_BASE || "";
+
+// 区分キーを画面に出す日本語へ。テンプレート側(functions.php)と同じ対応表。
+const CATEGORY_LABELS = {
+  personal: "個人制作",
+  company: "企業・実案件",
+  team: "チーム制作",
+  school: "学校制作",
+};
+
+const esc = (v) =>
+  String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 /* ---------- Workページ: Field Records(実績インデックス) ---------- */
 const PLUS_SVG =
@@ -168,20 +203,112 @@ if (recordLists.length) {
   recordLists.forEach(initRecords);
 }
 
-function recordMarkup(w, index) {
-  const id = `work-${w.id}`;
-  const gallery = (w.images || [])
-    .map((src) => `<img src="${BASE}${src}" alt="${w.title}" loading="lazy">`)
+/* 詳細の中身。テンプレート側の takumi_render_work_detail と同じ構造を書く。
+   左に画像、右は バッジ → 事実 → 課題/やったこと/結果 → 技術 → リンク の順。 */
+function detailMarkup(w) {
+  const images = w.images || [];
+  const altOf = (i) => `${w.title} の画像 ${i + 1}`;
+
+  const visual = images.length
+    ? `<figure class="work-detail__visual">
+         <div class="work-detail__stage">
+           <img class="work-detail__main" src="${BASE}${images[0]}" alt="${esc(w.title)} のメインビジュアル">
+         </div>
+         ${
+           images.length > 1
+             ? `<div class="work-detail__thumbs" role="tablist" aria-label="${esc(w.title)} の画像">
+                  ${images
+                    .map(
+                      (src, i) =>
+                        `<button type="button" class="work-detail__thumb${i === 0 ? " is-active" : ""}" role="tab" aria-selected="${i === 0}" data-src="${BASE}${src}" data-alt="${esc(altOf(i))}"><img src="${BASE}${src}" alt="${esc(altOf(i))}" loading="lazy"></button>`
+                    )
+                    .join("")}
+                </div>`
+             : ""
+         }
+       </figure>`
+    : "";
+
+  // 公開状態は status があればそれ、無ければリンクの有無から推定する。
+  const status = w.status || (!w.url && !w.github ? "非公開" : "");
+  // 制作年はモーダル見出しのサブタイトルに出ているので、ここでは繰り返さない。
+  const badges = [
+    w.category && ["category", CATEGORY_LABELS[w.category] || w.category],
+    status && ["status", status],
+  ]
+    .filter(Boolean)
+    .map(([kind, text]) => `<span class="work-badge work-badge--${kind}">${esc(text)}</span>`)
     .join("");
+
+  const facts = [
+    ["期間", w.period],
+    ["体制", w.team],
+    ["担当", w.role],
+  ]
+    .filter(([, v]) => v)
+    .map(([k, v]) => `<div class="work-detail__fact"><dt>${k}</dt><dd>${esc(v)}</dd></div>`)
+    .join("");
+
+  const chapters = [
+    ["課題", w.challenge],
+    ["やったこと", w.approach],
+    ["結果・学び", w.result],
+  ].filter(([, v]) => v);
+
+  // 課題/やったこと/結果 が一件も無ければ、説明文を「概要」として出す。
+  const blocks = chapters.length ? chapters : w.description ? [["概要", w.description]] : [];
+  const story = blocks
+    .map(
+      ([label, text]) =>
+        `<section class="work-story">
+           <h4 class="work-story__head">${label}</h4>
+           <p class="work-story__text">${esc(text)}</p>
+         </section>`
+    )
+    .join("");
+  const extra = chapters.length && w.description ? `<div class="work-detail__desc"><p>${esc(w.description)}</p></div>` : "";
+
+  // アイコンがあるときはアイコンだけ。同じ内容をタグでも出すと二重になる。
   const icons = (w.icons || [])
-    .map((i) => `<img src="${ICON_BASE}${i}" alt="${i}" loading="lazy">`)
+    .map((i) => `<img src="${ICON_BASE}${i}" alt="${esc(i)}" title="${esc(i)}" loading="lazy">`)
     .join("");
+  const tags = (w.tech || []).map((t) => `<span>${esc(t)}</span>`).join("");
+  const stack =
+    icons || tags
+      ? `<div class="work-detail__stack">
+           <p class="work-detail__stack-label">Tech Stack</p>
+           ${icons ? `<div class="work-detail__icons">${icons}</div>` : `<div class="work-detail__tags">${tags}</div>`}
+         </div>`
+      : "";
+
   const links = [
     w.url && `<a class="btn" href="${w.url}" target="_blank" rel="noopener">Visit Site</a>`,
     w.github && `<a class="btn btn--gold" href="${w.github}" target="_blank" rel="noopener">GitHub</a>`,
   ]
     .filter(Boolean)
     .join("");
+
+  // リンクが無い案件で行き止まりにしない。理由を置いて次の行動につなげる。
+  const footer = links
+    ? `<div class="work-detail__links">${links}</div>`
+    : `<p class="work-detail__nolink">${esc(w.note || "公開URLのない案件です。画面や実装の詳細は面談時にご紹介できます。")}</p>`;
+
+  return `
+    <div class="work-detail">
+      ${visual}
+      <div class="work-detail__body">
+        ${badges ? `<div class="work-detail__badges">${badges}</div>` : ""}
+        ${stack}
+        ${facts ? `<dl class="work-detail__facts">${facts}</dl>` : ""}
+        ${story ? `<div class="work-detail__story">${story}</div>` : ""}
+        ${extra}
+        ${footer}
+      </div>
+    </div>`;
+}
+
+function recordMarkup(w, index) {
+  const id = `work-${w.id}`;
 
   return `
     <div class="work-record-item" id="${id}"
@@ -198,16 +325,7 @@ function recordMarkup(w, index) {
       </button>
       <div class="work-record__panel" id="${id}-panel">
         <div class="work-record__inner">
-          <div class="work-detail">
-            ${gallery ? `<div class="work-detail__gallery">${gallery}</div>` : ""}
-            <div class="work-detail__body">
-              ${w.role ? `<p class="work-detail__role"><strong>担当:</strong> ${w.role}</p>` : ""}
-              <div class="work-detail__desc"><p>${w.description}</p></div>
-              <div class="work-detail__tags">${w.tech.map((t) => `<span>${t}</span>`).join("")}</div>
-              ${icons ? `<div class="work-detail__icons">${icons}</div>` : ""}
-              ${links ? `<div class="work-detail__links">${links}</div>` : ""}
-            </div>
-          </div>
+          ${detailMarkup(w)}
         </div>
       </div>
     </div>`;
@@ -525,3 +643,40 @@ function initFilters() {
   if (shownEl) shownEl.textContent = pad(items.length);
   refreshInk();
 }
+
+/* ---------- 詳細ギャラリー ----------
+   サムネイルを押すとメイン画像が差し替わる。詳細ノードはモーダルへ
+   出し入れされるので、個別に addEventListener せず document で受ける。 */
+document.addEventListener("click", (e) => {
+  const thumb = e.target.closest(".work-detail__thumb");
+  if (!thumb) return;
+
+  const detail = thumb.closest(".work-detail");
+  const main = detail?.querySelector(".work-detail__main");
+  if (!main) return;
+
+  detail.querySelectorAll(".work-detail__thumb").forEach((btn) => {
+    btn.classList.toggle("is-active", btn === thumb);
+    btn.setAttribute("aria-selected", btn === thumb ? "true" : "false");
+  });
+
+  // 差し替え時だけ軽くフェードさせる。読み込み済みなら即座に戻る。
+  main.classList.add("is-swapping");
+  main.src = thumb.dataset.src;
+  main.alt = thumb.dataset.alt || main.alt;
+  main.decode?.().catch(() => {}).finally(() => main.classList.remove("is-swapping"));
+});
+
+// tablist なので ← → でも選べるようにする。
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+
+  const thumb = e.target.closest?.(".work-detail__thumb");
+  if (!thumb) return;
+
+  const thumbs = [...thumb.closest(".work-detail__thumbs").querySelectorAll(".work-detail__thumb")];
+  const next = thumbs[(thumbs.indexOf(thumb) + (e.key === "ArrowRight" ? 1 : -1) + thumbs.length) % thumbs.length];
+  e.preventDefault();
+  next.focus();
+  next.click();
+});

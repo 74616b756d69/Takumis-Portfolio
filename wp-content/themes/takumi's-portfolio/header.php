@@ -36,10 +36,10 @@
 <!-- Header -->
 <header class="site-header">
 	<a class="site-header__logo" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( takumi_logo_text() ); ?></a>
-	<button class="nav-toggle" aria-label="メニューを開く">
+	<button class="nav-toggle" aria-label="メニューを開く" aria-expanded="false" aria-controls="global-nav">
 		<span></span><span></span><span></span>
 	</button>
-	<nav class="global-nav">
+	<nav class="global-nav" id="global-nav">
 		<?php
 		if ( has_nav_menu( 'global' ) ) {
 			wp_nav_menu( array(
