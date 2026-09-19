@@ -31,7 +31,7 @@ $timeline = takumi_get_career_data();
 		<div class="container page-hero__inner">
 			<p class="page-hero__label"><span>02</span> <?php echo esc_html( get_theme_mod( 'takumi_about_hero_label', 'Profile / Skill / Career' ) ); ?></p>
 			<h1 class="page-hero__title">About</h1>
-			<p class="page-hero__sub">私について</p>
+			<p class="page-hero__sub"><?php echo esc_html( get_theme_mod( 'takumi_about_hero_sub', '私について' ) ); ?></p>
 			<p class="page-hero__lead"><?php echo esc_html( $motto ); ?></p>
 		</div>
 	</section>
@@ -42,8 +42,8 @@ $timeline = takumi_get_career_data();
 		<div class="container">
 			<div class="section-head" data-reveal>
 				<span class="section-head__num">01</span>
-				<h2 class="section-head__en">Profile</h2>
-				<p class="section-head__ja">プロフィール</p>
+				<h2 class="section-head__en"><?php echo esc_html( get_theme_mod( 'takumi_about_profile_en', 'Profile' ) ); ?></h2>
+				<p class="section-head__ja"><?php echo esc_html( get_theme_mod( 'takumi_about_profile_ja', 'プロフィール' ) ); ?></p>
 			</div>
 			<div class="profile-grid">
 				<div class="profile-photo" data-reveal>
@@ -77,8 +77,8 @@ $timeline = takumi_get_career_data();
 		<div class="container">
 			<div class="section-head" data-reveal>
 				<span class="section-head__num">02</span>
-				<h2 class="section-head__en">Skill</h2>
-				<p class="section-head__ja">スキル</p>
+				<h2 class="section-head__en"><?php echo esc_html( get_theme_mod( 'takumi_about_skill_en', 'Skill' ) ); ?></h2>
+				<p class="section-head__ja"><?php echo esc_html( get_theme_mod( 'takumi_about_skill_ja', 'スキル' ) ); ?></p>
 			</div>
 			<div class="skill-grid">
 				<?php foreach ( $skills as $skill ) : ?>
@@ -103,8 +103,8 @@ $timeline = takumi_get_career_data();
 		<div class="container">
 			<div class="section-head" data-reveal>
 				<span class="section-head__num">03</span>
-				<h2 class="section-head__en">Career</h2>
-				<p class="section-head__ja">経歴</p>
+				<h2 class="section-head__en"><?php echo esc_html( get_theme_mod( 'takumi_about_career_en', 'Career' ) ); ?></h2>
+				<p class="section-head__ja"><?php echo esc_html( get_theme_mod( 'takumi_about_career_ja', '経歴' ) ); ?></p>
 			</div>
 			<ul class="timeline">
 				<?php foreach ( $timeline as $item ) : ?>
@@ -127,8 +127,8 @@ $timeline = takumi_get_career_data();
 		<div class="container contact-box">
 			<p data-reveal><?php echo esc_html( get_theme_mod( 'takumi_about_cta_text', '制作実績もぜひご覧ください。' ) ); ?></p>
 			<div class="contact-links" data-reveal>
-				<a class="btn" href="<?php echo esc_url( takumi_page_url( 'work' ) ); ?>">View Works</a>
-				<a class="btn btn--gold" href="<?php echo esc_url( home_url( '/#contact' ) ); ?>">Contact</a>
+				<a class="btn" href="<?php echo esc_url( takumi_page_url( 'work' ) ); ?>"><?php echo esc_html( get_theme_mod( 'takumi_about_btn_work', 'View Works' ) ); ?></a>
+				<a class="btn btn--gold" href="<?php echo esc_url( home_url( '/#contact' ) ); ?>"><?php echo esc_html( get_theme_mod( 'takumi_about_btn_contact', 'Contact' ) ); ?></a>
 			</div>
 		</div>
 	</section>

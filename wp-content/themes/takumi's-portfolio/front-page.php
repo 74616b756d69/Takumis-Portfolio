@@ -8,7 +8,7 @@ $uri    = get_template_directory_uri();
 $email  = get_theme_mod( 'takumi_email', 'akahori.t.24kdgn@gmail.com' );
 $github = get_theme_mod( 'takumi_github', 'https://github.com/74616b756d69' );
 $face   = get_theme_mod( 'takumi_face' ) ?: $uri . '/assets/img/akahori-icon-512.png';
-$works  = takumi_get_works();
+$works  = takumi_get_home_works(); // 掲載する実績は管理画面「制作実績」の「トップページに掲載する」で選ぶ
 ?>
 
 <main class="home">
@@ -46,7 +46,7 @@ $works  = takumi_get_works();
 
 			<p class="home-hero__lead"><?php echo esc_html( get_theme_mod( 'takumi_top_tagline', 'フロントエンドからバックエンドまで、想いをかたちにする。' ) ); ?></p>
 
-			<p class="home-hero__scroll">Scroll</p>
+			<p class="home-hero__scroll"><?php echo esc_html( get_theme_mod( 'takumi_hero_scroll', 'Scroll' ) ); ?></p>
 		</div>
 	</section>
 
@@ -55,12 +55,12 @@ $works  = takumi_get_works();
 		<?php takumi_shape_field( 'profile' ); ?>
 		<div class="container">
 			<?php // 見出しは置かない。すぐ下の名前がこのセクションの見出しになる。 ?>
-			<p class="lead__meta lead__meta--solo" data-reveal><span>01</span>Profile <i>私について</i></p>
+			<p class="lead__meta lead__meta--solo" data-reveal><span>01</span><?php echo esc_html( get_theme_mod( 'takumi_top_profile_en', 'Profile' ) ); ?> <i><?php echo esc_html( get_theme_mod( 'takumi_top_profile_ja', '私について' ) ); ?></i></p>
 
 			<div class="profile-grid">
 				<div class="profile-photo" data-reveal>
 					<img src="<?php echo esc_url( $face ); ?>" alt="プロフィールイラスト">
-					<span class="profile-photo__tag">Web Developer</span>
+					<span class="profile-photo__tag"><?php echo esc_html( get_theme_mod( 'takumi_profile_photo_tag', 'Web Developer' ) ); ?></span>
 				</div>
 
 				<div class="profile-body" data-reveal>
@@ -75,7 +75,7 @@ $works  = takumi_get_works();
 					<?php takumi_render_profile_facts(); ?>
 
 					<div class="profile-actions">
-						<a class="btn" href="<?php echo esc_url( takumi_page_url( 'about' ) ); ?>">More About Me</a>
+						<a class="btn" href="<?php echo esc_url( takumi_page_url( 'about' ) ); ?>"><?php echo esc_html( get_theme_mod( 'takumi_top_profile_btn', 'More About Me' ) ); ?></a>
 						<div class="profile-sns">
 							<a href="<?php echo esc_url( $github ); ?>" target="_blank" rel="noopener" aria-label="GitHub"><img src="<?php echo esc_url( $uri ); ?>/assets/img/github-brands.svg" alt="GitHub"></a>
 						</div>
@@ -90,7 +90,7 @@ $works  = takumi_get_works();
 		<?php takumi_shape_field( 'skill' ); ?>
 		<div class="container">
 			<div class="lead" data-reveal>
-				<p class="lead__meta"><span>02</span>Skill <i>できること</i></p>
+				<p class="lead__meta"><span>02</span><?php echo esc_html( get_theme_mod( 'takumi_top_skill_en', 'Skill' ) ); ?> <i><?php echo esc_html( get_theme_mod( 'takumi_top_skill_ja', 'できること' ) ); ?></i></p>
 				<div class="lead__body">
 					<h2 class="lead__title"><?php echo takumi_heading_html( get_theme_mod( 'takumi_skill_heading', "触れる技術を、\n増やしている途中です。" ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 行ごとにエスケープ済み ?></h2>
 					<p class="lead__lede"><?php echo esc_html( get_theme_mod( 'takumi_top_skill_desc', 'フロントエンドからバックエンドまで。HTML/CSSでの制作経験を軸に、React・Spring Boot・ASP.NET Core まで、実際に動くものを作りながら幅を広げています。' ) ); ?></p>
@@ -128,7 +128,7 @@ $works  = takumi_get_works();
 								</div>
 							</div>
 							<a class="hpanel__link" href="<?php echo esc_url( $build['url'] ); ?>" target="_blank" rel="noopener">
-								GitHub で見る<span class="visually-hidden">(<?php echo esc_html( $build['cat'] ); ?>・新しいタブで開きます)</span>
+								<?php echo esc_html( get_theme_mod( 'takumi_builds_link_text', 'GitHub で見る' ) ); ?><span class="visually-hidden">(<?php echo esc_html( $build['cat'] ); ?>・新しいタブで開きます)</span>
 							</a>
 						</div>
 					<?php endforeach; ?>
@@ -138,7 +138,7 @@ $works  = takumi_get_works();
 
 		<div class="container">
 			<p class="section-more" data-reveal>
-				<a href="<?php echo esc_url( takumi_page_url( 'about' ) ); ?>#skill">スキルの一覧を見る</a>
+				<a href="<?php echo esc_url( takumi_page_url( 'about' ) ); ?>#skill"><?php echo esc_html( get_theme_mod( 'takumi_top_skill_more', 'スキルの一覧を見る' ) ); ?></a>
 			</p>
 		</div>
 	</section>
@@ -159,7 +159,7 @@ $works  = takumi_get_works();
 	<section class="statement" id="statement">
 		<p class="visually-hidden"><?php echo esc_html( $plain ); ?></p>
 		<div class="statement__pin" aria-hidden="true">
-			<p class="statement__label">Scroll — 横に流れます</p>
+			<p class="statement__label"><?php echo esc_html( get_theme_mod( 'takumi_statement_label', 'Scroll — 横に流れます' ) ); ?></p>
 			<div class="statement__track" id="statement-track">
 				<?php foreach ( $statement as $item ) : ?>
 					<?php if ( 'shape' === $item[0] ) : ?>
@@ -178,7 +178,7 @@ $works  = takumi_get_works();
 		<?php takumi_shape_field( 'work' ); ?>
 		<div class="container">
 			<div class="lead" data-reveal>
-				<p class="lead__meta"><span>03</span>Work <i>制作実績</i></p>
+				<p class="lead__meta"><span>03</span><?php echo esc_html( get_theme_mod( 'takumi_top_work_en', 'Work' ) ); ?> <i><?php echo esc_html( get_theme_mod( 'takumi_top_work_ja', '制作実績' ) ); ?></i></p>
 				<div class="lead__body">
 					<h2 class="lead__title"><?php echo takumi_heading_html( get_theme_mod( 'takumi_work_heading', "実装の幅を、\n結果で見せる。" ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 行ごとにエスケープ済み ?></h2>
 					<p class="lead__lede"><?php echo esc_html( get_theme_mod( 'takumi_top_work_desc', '個人制作から産学連携・実案件まで。チームリーダーとして指揮したプロジェクトも紹介しています。' ) ); ?></p>
@@ -209,7 +209,7 @@ $works  = takumi_get_works();
 			<?php endif; ?>
 
 			<p class="section-more" data-reveal>
-				<a href="<?php echo esc_url( takumi_page_url( 'work' ) ); ?>">実績の一覧を見る</a>
+				<a href="<?php echo esc_url( takumi_page_url( 'work' ) ); ?>"><?php echo esc_html( get_theme_mod( 'takumi_top_work_more', '実績の一覧を見る' ) ); ?></a>
 			</p>
 		</div>
 	</section>
@@ -219,7 +219,7 @@ $works  = takumi_get_works();
 		<?php takumi_shape_field( 'contact' ); ?>
 		<div class="container">
 			<div class="lead" data-reveal>
-				<p class="lead__meta"><span>04</span>Contact <i>お問い合わせ</i></p>
+				<p class="lead__meta"><span>04</span><?php echo esc_html( get_theme_mod( 'takumi_top_contact_en', 'Contact' ) ); ?> <i><?php echo esc_html( get_theme_mod( 'takumi_top_contact_ja', 'お問い合わせ' ) ); ?></i></p>
 				<div class="lead__body">
 					<h2 class="lead__title"><?php echo takumi_heading_html( get_theme_mod( 'takumi_contact_heading', "話を聞くところから、\nはじめさせてください。" ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 行ごとにエスケープ済み ?></h2>
 					<p class="lead__lede"><?php echo wp_kses_post( get_theme_mod( 'takumi_top_contact_text', '最後までご覧いただきありがとうございました。制作のご依頼・ご相談など、お気軽にご連絡ください。' ) ); ?></p>
@@ -267,7 +267,7 @@ $works  = takumi_get_works();
 						<button type="button" class="contact-channels__row contact-disclosure__toggle"
 							aria-expanded="false" aria-controls="contact-form-panel">
 							<span class="contact-channels__key">Form</span>
-							<span class="contact-channels__val">フォームから送る</span>
+							<span class="contact-channels__val"><?php echo esc_html( get_theme_mod( 'takumi_contact_form_label', 'フォームから送る' ) ); ?></span>
 							<span class="contact-channels__arrow contact-disclosure__mark" aria-hidden="true"><?php takumi_plus_icon(); ?></span>
 						</button>
 
@@ -280,7 +280,7 @@ $works  = takumi_get_works();
 						</div>
 					<?php else : ?>
 						<?php // CF7 が無効なとき。開く中身が無いので、行は出さずに一言だけ。 ?>
-						<p class="contact-form__fallback">フォームは準備中です。上のアドレスへ直接お送りください。</p>
+						<p class="contact-form__fallback"><?php echo esc_html( get_theme_mod( 'takumi_contact_form_fallback', 'フォームは準備中です。上のアドレスへ直接お送りください。' ) ); ?></p>
 					<?php endif; ?>
 				</li>
 

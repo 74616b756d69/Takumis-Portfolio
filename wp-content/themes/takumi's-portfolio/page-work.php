@@ -22,7 +22,7 @@ $works = takumi_get_works();
 		<div class="container page-hero__inner">
 			<p class="page-hero__label"><span>03</span> <?php echo esc_html( get_theme_mod( 'takumi_work_hero_label', 'Selected Work / 2024—2025' ) ); ?></p>
 			<h1 class="page-hero__title">Work</h1>
-			<p class="page-hero__sub">制作実績</p>
+			<p class="page-hero__sub"><?php echo esc_html( get_theme_mod( 'takumi_work_hero_sub', '制作実績' ) ); ?></p>
 			<p class="page-hero__lead"><?php echo esc_html( get_theme_mod( 'takumi_work_hero_lead', 'これまでに手掛けた制作物をまとめています。気になる番号を選ぶと、その場で詳細が開きます。' ) ); ?></p>
 		</div>
 	</section>
@@ -43,68 +43,47 @@ $works = takumi_get_works();
 			</div>
 
 			<?php
-			// 絞り込みの選択肢は、実際に並ぶレコードのデータから組み立てる。
-			// ボタンを固定文字列で持つと、管理画面の入力とズレた瞬間に
-			// 「押しても 0 件」になるため、値そのものを拾う。
-			$facets = array(
-			'category' => array( 'label' => 'Category', 'values' => array() ),
-				// 既存の軸
-				'type' => array( 'label' => 'Type', 'values' => array() ),
-				'tech' => array( 'label' => 'Tech', 'values' => array() ),
-				'year' => array( 'label' => 'Year', 'values' => array() ),
-			);
-			if ( $works ) {
-				foreach ( $works as $facet_work ) {
-					foreach ( array_keys( $facets ) as $facet_key ) {
-						$facet_raw = (string) get_post_meta( $facet_work->ID, '_takumi_' . $facet_key, true );
-						foreach ( array_filter( array_map( 'trim', explode( ',', $facet_raw ) ) ) as $facet_value ) {
-							$facets[ $facet_key ]['values'][ $facet_value ] = true;
-						}
-					}
-				}
-			} else {
-				// 投稿が未登録のときは works.js 同梱データの語彙に合わせる。
-				$facets['type']['values'] = array_fill_keys( array( 'front', 'back', 'design' ), true );
-				$facets['tech']['values'] = array_fill_keys( array( 'html/css', 'js', 'php', 'python' ), true );
-				$facets['year']['values'] = array_fill_keys( array( '2025', '2024' ), true );
-			}
-			$facet_row = 0;
+			// 絞り込みの軸・ラベル・選択肢はカスタマイザー「Work: 絞り込み設定」と
+			// 各実績の入力から組み立てる（takumi_get_work_facets）。
+			$facets      = takumi_get_work_facets( $works );
+			$all_label   = get_theme_mod( 'takumi_work_filter_all', 'All' );
+			$reset_label = get_theme_mod( 'takumi_work_filter_reset', 'Reset' );
+			$facet_row   = 0;
 			?>
 
 			<!-- Filters -->
-			<div class="records-filter" role="toolbar" aria-label="作品の絞り込み">
-				<?php
-				foreach ( $facets as $facet_key => $facet ) :
-					if ( ! $facet['values'] ) {
-						continue;
-					}
-					$facet_row++;
-					?>
-					<div class="records-filter__row">
-						<span class="records-filter__label"><?php echo esc_html( $facet['label'] ); ?></span>
+			<?php if ( $facets ) : ?>
+				<div class="records-filter" role="toolbar" aria-label="作品の絞り込み">
+					<?php
+					foreach ( $facets as $facet_key => $facet ) :
+						$facet_row++;
+						?>
+						<div class="records-filter__row">
+							<span class="records-filter__label"><?php echo esc_html( $facet['label'] ); ?></span>
 
-						<div class="records-filter__track" data-group="<?php echo esc_attr( $facet_key ); ?>">
-							<button type="button" class="filter-btn is-active" data-group="<?php echo esc_attr( $facet_key ); ?>" data-value="all" aria-pressed="true">All</button>
-							<?php foreach ( array_keys( $facet['values'] ) as $facet_value ) : ?>
-								<button type="button" class="filter-btn" data-group="<?php echo esc_attr( $facet_key ); ?>" data-value="<?php echo esc_attr( $facet_value ); ?>" aria-pressed="false" tabindex="-1"><?php echo esc_html( $facet_value ); ?><span class="filter-btn__num"></span></button>
-							<?php endforeach; ?>
+							<div class="records-filter__track" data-group="<?php echo esc_attr( $facet_key ); ?>">
+								<button type="button" class="filter-btn is-active" data-group="<?php echo esc_attr( $facet_key ); ?>" data-value="all" aria-pressed="true"><?php echo esc_html( $all_label ); ?></button>
+								<?php foreach ( array_keys( $facet['values'] ) as $facet_value ) : ?>
+									<button type="button" class="filter-btn" data-group="<?php echo esc_attr( $facet_key ); ?>" data-value="<?php echo esc_attr( $facet_value ); ?>" aria-pressed="false" tabindex="-1"><?php echo esc_html( takumi_work_facet_value_label( $facet_key, $facet_value ) ); ?><span class="filter-btn__num"></span></button>
+								<?php endforeach; ?>
 
-							<?php // 選択中を示す下線。位置と幅は JS が transform で動かす。 ?>
-							<span class="records-filter__ink" aria-hidden="true"></span>
-						</div>
-
-						<?php if ( 1 === $facet_row ) : ?>
-							<div class="records-filter__tools">
-								<?php // 件数は JS がレコードから数えて入れる。 ?>
-								<p class="records-count" aria-live="polite"><strong>--</strong> / <span class="records-count__total">--</span></p>
-								<button type="button" class="filter-reset">Reset</button>
+								<?php // 選択中を示す下線。位置と幅は JS が transform で動かす。 ?>
+								<span class="records-filter__ink" aria-hidden="true"></span>
 							</div>
-						<?php else : ?>
-							<span aria-hidden="true"></span>
-						<?php endif; ?>
-					</div>
-				<?php endforeach; ?>
-			</div>
+
+							<?php if ( 1 === $facet_row ) : ?>
+								<div class="records-filter__tools">
+									<?php // 件数は JS がレコードから数えて入れる。 ?>
+									<p class="records-count" aria-live="polite"><strong>--</strong> / <span class="records-count__total">--</span></p>
+									<button type="button" class="filter-reset"><?php echo esc_html( $reset_label ); ?></button>
+								</div>
+							<?php else : ?>
+								<span aria-hidden="true"></span>
+							<?php endif; ?>
+						</div>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
 
 			<div class="work-records" id="work-records" data-reveal<?php echo $works ? ' data-source="server"' : ''; ?>>
 				<?php
@@ -114,7 +93,7 @@ $works = takumi_get_works();
 				}
 				?>
 			</div>
-			<p class="works-empty">条件に一致する作品が見つかりませんでした。</p>
+			<p class="works-empty"><?php echo esc_html( get_theme_mod( 'takumi_work_empty', '条件に一致する作品が見つかりませんでした。' ) ); ?></p>
 		</div>
 	</section>
 </main>

@@ -76,6 +76,25 @@ function takumi_page_url( $slug ) {
 	return $page ? get_permalink( $page ) : home_url( '/#' . $slug );
 }
 
+/**
+ * 「キー|値」を1行ずつ並べた設定値を連想配列にする。
+ * 空行と、| を含まない行は読み飛ばす。前後の空白は落とす。
+ */
+function takumi_parse_pair_lines( $raw ) {
+	$pairs = array();
+	foreach ( preg_split( '/\r\n|\r|\n/', (string) $raw ) as $line ) {
+		$line = trim( $line );
+		if ( '' === $line || false === strpos( $line, '|' ) ) {
+			continue;
+		}
+		list( $key, $value ) = array_map( 'trim', explode( '|', $line, 2 ) );
+		if ( '' !== $key ) {
+			$pairs[ $key ] = $value;
+		}
+	}
+	return $pairs;
+}
+
 /* ============================================================
    カスタマイザー(プロフィール設定)
    ============================================================ */
@@ -92,6 +111,23 @@ shape|ring
 xl-grad2|とどける。
 text|使う人の、毎日へ。
 shape|star";
+
+/**
+ * Work インデックスの絞り込み軸の既定値。
+ * 1行 = 「キー|ラベル」。3つめに「値1,値2」を足すと選択肢を固定できる。
+ */
+const TAKUMI_WORK_FACETS_DEFAULT = "category|Category
+type|Type
+tech|Tech
+year|Year";
+
+/**
+ * 区分(category)の英字キーと、画面に出す日本語ラベルの対応の既定値。
+ */
+const TAKUMI_WORK_CATEGORY_LABELS_DEFAULT = "personal|個人制作
+company|企業・実案件
+team|チーム制作
+school|学校制作";
 
 add_action( 'customize_register', function ( $wp_customize ) {
 	$wp_customize->add_section( 'takumi_profile', array(
@@ -226,6 +262,20 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'type'    => 'textarea',
 	) );
 
+	$wp_customize->add_setting( 'takumi_home_work_limit', array(
+		'default'           => 0,
+		'sanitize_callback' => 'absint',
+	) );
+	$wp_customize->add_control( 'takumi_home_work_limit', array(
+		'label'       => 'トップに出す実績の件数(上限)',
+		'description' => 'トップページの Work セクションに並べる件数の上限です。0 にすると上限なし。'
+			. '出す実績そのものは、管理画面「制作実績」の各記事にある「トップページに掲載する」で選べます。'
+			. '並び順は制作実績一覧の並び順(順序)に従います。',
+		'section'     => 'takumi_top_texts',
+		'type'        => 'number',
+		'input_attrs' => array( 'min' => 0, 'step' => 1 ),
+	) );
+
 	$wp_customize->add_setting( 'takumi_top_work_desc', array(
 		'default'           => '個人制作から産学連携・実案件まで。チームリーダーとして指揮したプロジェクトも紹介しています。',
 		'sanitize_callback' => 'sanitize_textarea_field',
@@ -258,6 +308,27 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'title'       => 'About / Work ページ文言設定',
 		'description' => '下層ページの見出しや説明文を編集できます。',
 		'priority'    => 34,
+	) );
+
+	$wp_customize->add_section( 'takumi_section_labels', array(
+		'title'       => 'セクションラベル設定',
+		'description' => '各セクションに添える英字ラベルと日本語ラベルを編集できます。',
+		'priority'    => 35,
+	) );
+
+	$wp_customize->add_section( 'takumi_work_filter', array(
+		'title'       => 'Work: 絞り込み設定',
+		'description' => '実績インデックスの絞り込みの軸・ラベル・選択肢を編集できます。',
+		'priority'    => 36,
+	) );
+
+	$wp_customize->add_section( 'takumi_code', array(
+		'title'       => '追加コード(head / footer)',
+		'description' => '全ページの &lt;head&gt; 内と &lt;/body&gt; 直前に、そのまま差し込むコードです。'
+			. '解析タグ・フォントの読み込み・ちょっとしたスクリプトなどに使います。'
+			. 'CSS は WordPress 本体の「追加CSS」に書くほうが、プレビューしながら調整できます。'
+			. 'PHP は書けません(そのまま文字として出ます)。',
+		'priority'    => 37,
 	) );
 
 	// key => array( セクション, ラベル, 既定値, 入力欄の種類, 補足説明 )
@@ -310,6 +381,106 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'takumi_work_index_desc' => array(
 			'takumi_page_texts', 'Work: 索引の説明文', '企業・個人・チーム制作を横断し、要件定義から運用まで必要な場所を担当してきました。気になる番号を開くと、その場で詳細が読めます。', 'textarea', '',
 		),
+
+		/* --- トップページのリンク・小さな文言 --- */
+		'takumi_hero_scroll' => array(
+			'takumi_headings', 'トップ: ヒーロー下のスクロール案内', 'Scroll', 'text', '',
+		),
+		'takumi_profile_photo_tag' => array(
+			'takumi_headings', 'トップ: プロフィール写真のタグ', 'Web Developer', 'text', '',
+		),
+		'takumi_statement_label' => array(
+			'takumi_headings', 'トップ: 横に流れる文字のラベル', 'Scroll — 横に流れます', 'text', '',
+		),
+		'takumi_top_profile_btn' => array(
+			'takumi_top_texts', 'トップ: Profile のボタン文言', 'More About Me', 'text', '',
+		),
+		'takumi_top_skill_more' => array(
+			'takumi_top_texts', 'トップ: Skill 下のリンク文言', 'スキルの一覧を見る', 'text', '',
+		),
+		'takumi_builds_link_text' => array(
+			'takumi_top_texts', 'トップ: 個人開発カードのリンク文言', 'GitHub で見る', 'text', '',
+		),
+		'takumi_top_work_more' => array(
+			'takumi_top_texts', 'トップ: Work 下のリンク文言', '実績の一覧を見る', 'text', '',
+		),
+		'takumi_contact_form_label' => array(
+			'takumi_top_texts', 'トップ: Contact のフォーム行の文言', 'フォームから送る', 'text', '',
+		),
+		'takumi_contact_form_fallback' => array(
+			'takumi_top_texts', 'トップ: フォームが使えないときの一文', 'フォームは準備中です。上のアドレスへ直接お送りください。', 'textarea',
+			'Contact Form 7 が無効、またはフォームIDが空欄のときに代わりに表示されます。',
+		),
+
+		/* --- 下層ページのボタン・文言 --- */
+		'takumi_about_btn_work' => array(
+			'takumi_page_texts', 'About: 下部ボタン(実績へ)', 'View Works', 'text', '',
+		),
+		'takumi_about_btn_contact' => array(
+			'takumi_page_texts', 'About: 下部ボタン(問い合わせへ)', 'Contact', 'text', '',
+		),
+		'takumi_work_empty' => array(
+			'takumi_page_texts', 'Work: 該当が無いときの文言', '条件に一致する作品が見つかりませんでした。', 'text',
+			'絞り込みの結果が0件になったときに表示されます。',
+		),
+
+		/* --- セクションのラベル(英字 / 日本語) --- */
+		'takumi_top_profile_en' => array(
+			'takumi_section_labels', 'トップ: 01 の英字ラベル', 'Profile', 'text', '',
+		),
+		'takumi_top_profile_ja' => array(
+			'takumi_section_labels', 'トップ: 01 の日本語ラベル', '私について', 'text', '',
+		),
+		'takumi_top_skill_en' => array(
+			'takumi_section_labels', 'トップ: 02 の英字ラベル', 'Skill', 'text', '',
+		),
+		'takumi_top_skill_ja' => array(
+			'takumi_section_labels', 'トップ: 02 の日本語ラベル', 'できること', 'text', '',
+		),
+		'takumi_top_work_en' => array(
+			'takumi_section_labels', 'トップ: 03 の英字ラベル', 'Work', 'text', '',
+		),
+		'takumi_top_work_ja' => array(
+			'takumi_section_labels', 'トップ: 03 の日本語ラベル', '制作実績', 'text', '',
+		),
+		'takumi_top_contact_en' => array(
+			'takumi_section_labels', 'トップ: 04 の英字ラベル', 'Contact', 'text', '',
+		),
+		'takumi_top_contact_ja' => array(
+			'takumi_section_labels', 'トップ: 04 の日本語ラベル', 'お問い合わせ', 'text', '',
+		),
+		'takumi_about_hero_sub' => array(
+			'takumi_section_labels', 'About: ヒーローの日本語ラベル', '私について', 'text', '',
+		),
+		'takumi_about_profile_en' => array(
+			'takumi_section_labels', 'About: 01 の英字見出し', 'Profile', 'text', '',
+		),
+		'takumi_about_profile_ja' => array(
+			'takumi_section_labels', 'About: 01 の日本語見出し', 'プロフィール', 'text', '',
+		),
+		'takumi_about_skill_en' => array(
+			'takumi_section_labels', 'About: 02 の英字見出し', 'Skill', 'text', '',
+		),
+		'takumi_about_skill_ja' => array(
+			'takumi_section_labels', 'About: 02 の日本語見出し', 'スキル', 'text', '',
+		),
+		'takumi_about_career_en' => array(
+			'takumi_section_labels', 'About: 03 の英字見出し', 'Career', 'text', '',
+		),
+		'takumi_about_career_ja' => array(
+			'takumi_section_labels', 'About: 03 の日本語見出し', '経歴', 'text', '',
+		),
+		'takumi_work_hero_sub' => array(
+			'takumi_section_labels', 'Work: ヒーローの日本語ラベル', '制作実績', 'text', '',
+		),
+
+		/* --- 絞り込みのボタン文言 --- */
+		'takumi_work_filter_all' => array(
+			'takumi_work_filter', '「すべて」ボタンの文言', 'All', 'text', '各軸の先頭に出る、絞り込みを解除するボタンです。',
+		),
+		'takumi_work_filter_reset' => array(
+			'takumi_work_filter', 'リセットボタンの文言', 'Reset', 'text', '',
+		),
 	);
 
 	foreach ( $takumi_text_controls as $key => $conf ) {
@@ -339,7 +510,88 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'section'     => 'takumi_headings',
 		'type'        => 'textarea',
 	) );
+
+	/* ---------- Work: 絞り込みの軸と区分ラベル ---------- */
+	$wp_customize->add_setting( 'takumi_work_facets', array(
+		'default'           => TAKUMI_WORK_FACETS_DEFAULT,
+		'sanitize_callback' => 'sanitize_textarea_field',
+	) );
+	$wp_customize->add_control( 'takumi_work_facets', array(
+		'label'       => '絞り込みの軸',
+		'description' => '1行に1つ、「キー|ラベル」の形式で書きます。書いた順に上から並び、行を消すとその軸は表示されません。'
+			. '使えるキーは category(区分) / type(種別) / tech(技術) / year(制作年) です。'
+			. '選択肢は各実績の入力から自動で集まります（制作年は新しい順）。'
+			. '「キー|ラベル|値1,値2」と3つめを書くと、その並びで選択肢を固定できます。',
+		'section'     => 'takumi_work_filter',
+		'type'        => 'textarea',
+	) );
+
+	$wp_customize->add_setting( 'takumi_work_category_labels', array(
+		'default'           => TAKUMI_WORK_CATEGORY_LABELS_DEFAULT,
+		'sanitize_callback' => 'sanitize_textarea_field',
+	) );
+	$wp_customize->add_control( 'takumi_work_category_labels', array(
+		'label'       => '区分(category)の表示名',
+		'description' => '1行に1つ、「キー|表示名」の形式で書きます。実績の「区分」に書いた英字キーを、'
+			. '絞り込みボタンと詳細のバッジで日本語に言い換えます。ここに無いキーはそのまま表示されます。'
+			. '区分を増やすときは、ここに1行足してから実績の「区分」にそのキーを入力してください。',
+		'section'     => 'takumi_work_filter',
+		'type'        => 'textarea',
+	) );
+
+	/* ---------- 追加コード ---------- */
+	$code_fields = array(
+		'takumi_code_head' => array(
+			'&lt;head&gt; 内に追加するコード',
+			'全ページの &lt;/head&gt; の直前に出力されます。meta タグや外部スクリプトの読み込みなど。',
+		),
+		'takumi_code_footer' => array(
+			'&lt;/body&gt; の直前に追加するコード',
+			'全ページの最後に出力されます。読み込みを遅らせたいスクリプトはこちらへ。',
+		),
+	);
+	foreach ( $code_fields as $key => $conf ) {
+		$wp_customize->add_setting( $key, array(
+			'default'           => '',
+			'sanitize_callback' => 'takumi_sanitize_code',
+		) );
+		$wp_customize->add_control( $key, array(
+			'label'       => $conf[0],
+			'description' => $conf[1],
+			'section'     => 'takumi_code',
+			'type'        => 'textarea',
+			'input_attrs' => array( 'rows' => 8, 'style' => 'font-family:monospace;' ),
+		) );
+	}
 } );
+
+/**
+ * 追加コードの保存前チェック
+ * 未加工の HTML を保存できるのは、その権限を持つ利用者(既定では管理者)だけ。
+ * 権限が無ければ投稿本文と同じ範囲まで削る。
+ */
+function takumi_sanitize_code( $value ) {
+	$value = (string) $value;
+	return current_user_can( 'unfiltered_html' ) ? $value : wp_kses_post( $value );
+}
+
+/**
+ * 追加コードを head / footer に出力する
+ * テーマ自身の出力を邪魔しないよう、どちらも最後(優先度99)に回す。
+ */
+add_action( 'wp_head', function () {
+	$code = trim( (string) get_theme_mod( 'takumi_code_head', '' ) );
+	if ( $code ) {
+		echo "\n" . $code . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 管理者が入力したコードをそのまま出す
+	}
+}, 99 );
+
+add_action( 'wp_footer', function () {
+	$code = trim( (string) get_theme_mod( 'takumi_code_footer', '' ) );
+	if ( $code ) {
+		echo "\n" . $code . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 管理者が入力したコードをそのまま出す
+	}
+}, 99 );
 
 /* ============================================================
    カスタム投稿タイプ: 制作実績 (works)
@@ -429,6 +681,19 @@ function takumi_meta_box_renderer( $fields, $prefix ) {
 		foreach ( $fields as $key => $conf ) {
 			$value = get_post_meta( $post->ID, '_takumi_' . $key, true );
 			$type  = isset( $conf[2] ) ? $conf[2] : 'text';
+
+			// チェックボックスはラベルを右に置きたいので、他の型とは組み方を分ける。
+			if ( 'checkbox' === $type ) {
+				printf(
+					'<p><label for="takumi_%1$s"><input type="checkbox" id="takumi_%1$s" name="takumi_%1$s" value="1"%2$s> <strong>%3$s</strong></label><br><small>%4$s</small></p>',
+					esc_attr( $key ),
+					checked( $value, '1', false ),
+					esc_html( $conf[0] ),
+					esc_html( $conf[1] )
+				);
+				continue;
+			}
+
 			printf(
 				'<p><label for="takumi_%1$s"><strong>%2$s</strong><br><small>%3$s</small></label><br>',
 				esc_attr( $key ),
@@ -460,8 +725,16 @@ function takumi_save_meta_fields( $post_id, $fields, $prefix ) {
 		return;
 	}
 	foreach ( $fields as $key => $conf ) {
+		$type = isset( $conf[2] ) ? $conf[2] : 'text';
+
+		// 未チェックのチェックボックスは POST に含まれないため、
+		// 「来ていない = 外された」とみなして保存する。
+		if ( 'checkbox' === $type ) {
+			update_post_meta( $post_id, '_takumi_' . $key, empty( $_POST[ 'takumi_' . $key ] ) ? '' : '1' );
+			continue;
+		}
+
 		if ( isset( $_POST[ 'takumi_' . $key ] ) ) {
-			$type  = isset( $conf[2] ) ? $conf[2] : 'text';
 			$value = wp_unslash( $_POST[ 'takumi_' . $key ] );
 			update_post_meta( $post_id, '_takumi_' . $key, 'textarea' === $type ? sanitize_textarea_field( $value ) : sanitize_text_field( $value ) );
 		}
@@ -470,9 +743,13 @@ function takumi_save_meta_fields( $post_id, $fields, $prefix ) {
 
 /* ---------- 制作実績メタボックス ---------- */
 const TAKUMI_WORK_FIELDS = array(
+	'home'  => array( 'トップページに掲載する', 'トップページの Work セクションに出す実績を選びます。'
+		. '1件もチェックが無いときは、Workページと同じ並びで自動的に表示されます。'
+		. '並び順と表示件数の上限は「外観 > カスタマイズ > トップページ文言設定」から。', 'checkbox' ),
 	'meta'  => array( 'サブタイトル', '例: 個人制作・2025' ),
-	'year'  => array( '制作年', '例: 2025' ),
-	'category' => array( '区分(カンマ区切り)', 'Work一覧の絞り込みに使う。personal / company / team / school' ),
+	'year'  => array( '制作年', 'Work一覧の Year 絞り込みに使う。新しい年を入れると選択肢が自動で増える。例: 2025' ),
+	'category' => array( '区分(カンマ区切り)', 'Work一覧の絞り込みに使う。既定は personal / company / team / school。'
+		. '区分の追加や表示名の変更は「外観 > カスタマイズ > Work: 絞り込み設定」から。' ),
 	'type'  => array( '種別(カンマ区切り)', 'front / back / design' ),
 	'tech'  => array( '技術(カンマ区切り)', '例: html/css,js,php' ),
 	'period'=> array( '制作期間', '詳細の「期間」欄。空欄なら行ごと出ない。例: 2024.09 – 2024.11' ),
@@ -533,22 +810,136 @@ add_action( 'save_post_build', function ( $post_id ) {
 	takumi_save_meta_fields( $post_id, TAKUMI_BUILD_FIELDS, 'build' );
 } );
 
+/* ---------- 制作実績の一覧画面(管理側) ---------- */
+
+/**
+ * 実績一覧に「トップ掲載」列を足す。どれをトップに出しているか一覧で分かるように。
+ */
+add_filter( 'manage_works_posts_columns', function ( $columns ) {
+	$new = array();
+	foreach ( $columns as $key => $label ) {
+		$new[ $key ] = $label;
+		if ( 'title' === $key ) {
+			$new['takumi_home'] = 'トップ掲載';
+		}
+	}
+	return $new;
+} );
+
+add_action( 'manage_works_posts_custom_column', function ( $column, $post_id ) {
+	if ( 'takumi_home' !== $column ) {
+		return;
+	}
+	$on = '1' === (string) get_post_meta( $post_id, '_takumi_home', true );
+	printf(
+		'<span style="color:%s" title="%s">%s</span>',
+		$on ? '#2271b1' : '#a7aaad',
+		esc_attr( $on ? 'トップページに掲載中' : 'トップページには出していません' ),
+		$on ? '●' : '—'
+	);
+}, 10, 2 );
+
 /* ---------- 制作実績の取得・レコード出力 ---------- */
 
-/* 区分(category)の英字キーを、画面に出す日本語ラベルへ言い換える */
-const TAKUMI_WORK_CATEGORY_LABELS = array(
-	'personal' => '個人制作',
-	'company'  => '企業・実案件',
-	'team'     => 'チーム制作',
-	'school'   => '学校制作',
-);
+/**
+ * 区分(category)の英字キー => 日本語ラベル の対応を返す
+ * (カスタマイザー「Work: 絞り込み設定」で編集できる)
+ */
+function takumi_work_category_map() {
+	return takumi_parse_pair_lines( get_theme_mod( 'takumi_work_category_labels', TAKUMI_WORK_CATEGORY_LABELS_DEFAULT ) );
+}
 
 /**
  * 区分キーの表示名を返す(未知のキーはそのまま出す)
  */
 function takumi_work_category_label( $key ) {
 	$key = trim( (string) $key );
-	return TAKUMI_WORK_CATEGORY_LABELS[ strtolower( $key ) ] ?? $key;
+	$map = takumi_work_category_map();
+	return $map[ strtolower( $key ) ] ?? ( $map[ $key ] ?? $key );
+}
+
+/**
+ * 絞り込みボタンに出す選択肢の表示名
+ * 区分だけは英字キーを日本語へ言い換え、他の軸は入力値をそのまま見せる。
+ */
+function takumi_work_facet_value_label( $group, $value ) {
+	return 'category' === $group ? takumi_work_category_label( $value ) : $value;
+}
+
+/**
+ * Work インデックスの絞り込み軸を組み立てる
+ *
+ * 軸の並びとラベルはカスタマイザー、選択肢は実際のレコードの入力値から拾う。
+ * 選択肢を固定文字列で持つと、管理画面の入力とズレた瞬間に
+ * 「押しても 0 件」のボタンが出てしまうため、値そのものを集めている。
+ *
+ * @param WP_Post[] $works 表示する実績。
+ * @return array キー => array( 'label' => 表示名, 'values' => 値の配列 )
+ */
+function takumi_get_work_facets( $works ) {
+	// data-属性として出している軸だけを受け付ける(takumi_render_work_record を参照)
+	$allowed = array( 'category', 'type', 'tech', 'year' );
+	$facets  = array();
+
+	foreach ( preg_split( '/\r\n|\r|\n/', (string) get_theme_mod( 'takumi_work_facets', TAKUMI_WORK_FACETS_DEFAULT ) ) as $line ) {
+		$line = trim( $line );
+		if ( '' === $line ) {
+			continue;
+		}
+		$parts = array_map( 'trim', explode( '|', $line, 3 ) );
+		$key   = strtolower( $parts[0] );
+		if ( ! in_array( $key, $allowed, true ) || isset( $facets[ $key ] ) ) {
+			continue;
+		}
+		// 3つめに値を書いた軸は、その並びで固定する(自動収集しない)
+		$fixed = isset( $parts[2] ) ? array_filter( array_map( 'trim', explode( ',', $parts[2] ) ) ) : array();
+
+		$facets[ $key ] = array(
+			'label'  => '' !== ( $parts[1] ?? '' ) ? $parts[1] : ucfirst( $key ),
+			'values' => array_fill_keys( $fixed, true ),
+			'fixed'  => (bool) $fixed,
+		);
+	}
+	if ( ! $facets ) {
+		return array();
+	}
+
+	if ( $works ) {
+		foreach ( $works as $work ) {
+			foreach ( $facets as $key => $facet ) {
+				if ( $facet['fixed'] ) {
+					continue;
+				}
+				$raw = (string) get_post_meta( $work->ID, '_takumi_' . $key, true );
+				foreach ( array_filter( array_map( 'trim', explode( ',', $raw ) ) ) as $value ) {
+					$facets[ $key ]['values'][ $value ] = true;
+				}
+			}
+		}
+	} else {
+		// 実績が未登録のときは works.js 同梱のサンプルデータの語彙に合わせる。
+		$samples = array(
+			'category' => array_keys( takumi_work_category_map() ),
+			'type'     => array( 'front', 'back', 'design' ),
+			'tech'     => array( 'html/css', 'js', 'php', 'python' ),
+			'year'     => array( '2025', '2024' ),
+		);
+		foreach ( $facets as $key => $facet ) {
+			if ( ! $facet['fixed'] ) {
+				$facets[ $key ]['values'] = array_fill_keys( $samples[ $key ], true );
+			}
+		}
+	}
+
+	// 制作年は入力順に並ぶと読みにくいので、新しい順に整える。
+	if ( isset( $facets['year'] ) && ! $facets['year']['fixed'] ) {
+		$years = array_keys( $facets['year']['values'] );
+		rsort( $years, SORT_NATURAL );
+		$facets['year']['values'] = array_fill_keys( $years, true );
+	}
+
+	// 選択肢が1つも無い軸は行ごと出さない。
+	return array_filter( $facets, fn( $facet ) => (bool) $facet['values'] );
 }
 
 /**
@@ -1321,6 +1712,24 @@ function takumi_get_works() {
 		'orderby'        => 'menu_order date',
 		'order'          => 'DESC',
 	) );
+}
+
+/**
+ * トップページの Work セクションに出す実績を取得する
+ *
+ * 「トップページに掲載する」にチェックした実績だけを出す。
+ * 1件もチェックが無ければ、Work ページと同じ並びをそのまま使う
+ * (チェックを付け忘れてもトップが空にならないようにするため)。
+ * 件数の上限はカスタマイザーで指定。0 なら上限なし。
+ */
+function takumi_get_home_works() {
+	$works  = takumi_get_works();
+	$picked = array_values( array_filter( $works, fn( $work ) => '1' === (string) get_post_meta( $work->ID, '_takumi_home', true ) ) );
+	$list   = $picked ? $picked : $works;
+
+	$limit = (int) get_theme_mod( 'takumi_home_work_limit', 0 );
+
+	return $limit > 0 ? array_slice( $list, 0, $limit ) : $list;
 }
 
 /* ---------- スキル・経歴の取得 ---------- */
