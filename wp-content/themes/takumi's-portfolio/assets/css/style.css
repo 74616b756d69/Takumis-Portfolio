@@ -313,7 +313,7 @@ a { color: inherit; text-decoration: none; }
 /* Sub-page hero (About / Work) — 左寄せの表紙 */
 .page-hero {
   position: relative;
-  padding: calc(var(--header-h) + clamp(72px, 12vw, 132px)) 0 clamp(48px, 7vw, 84px);
+  padding: calc(var(--header-h) + clamp(36px, 6vw, 72px)) 0 clamp(40px, 6vw, 68px);
   overflow: hidden;
   border-bottom: 1px solid var(--line);
   background:
@@ -548,10 +548,10 @@ a { color: inherit; text-decoration: none; }
    つまり vw 項が効かず、デスクトップ用の固定値がそのまま出ている。
    レイアウトは変えず、スマホ縦のときだけ縦のリズムを詰める。 */
 @media (max-width: 600px) {
-  .section { padding: 64px 0; }
-  .section--tight { padding: 48px 0; }
-  .section--loose { padding: 76px 0; }
-  .page-hero { padding: calc(var(--header-h) + 48px) 0 40px; }
+  .section { padding: 48px 0; }
+  .section--tight { padding: 36px 0; }
+  .section--loose { padding: 60px 0; }
+  .page-hero { padding: calc(var(--header-h) + 12px) 0 28px; }
 }
 
 
@@ -1862,7 +1862,7 @@ a { color: inherit; text-decoration: none; }
 /* スマホ縦。中央寄せは保ったまま、上下の padding だけ詰める。
    デスクトップ基準の 144px / 96px は 430px 幅だと画面の 25% を占める。 */
 @media (max-width: 600px) {
-  .home-hero { padding: calc(var(--header-h) + 40px) 0 56px; }
+  .home-hero { padding: calc(var(--header-h) + 16px) 0 40px; }
   .home-hero__scroll { margin-top: clamp(32px, 5vh, 56px); }
 }
 
