@@ -20,10 +20,10 @@ $works = takumi_get_works();
 		<span class="blob blob--5" aria-hidden="true"></span>
 
 		<div class="container page-hero__inner">
-			<p class="page-hero__label"><span>03</span> Selected Work / 2024—2025</p>
+			<p class="page-hero__label"><span>03</span> <?php echo esc_html( get_theme_mod( 'takumi_work_hero_label', 'Selected Work / 2024—2025' ) ); ?></p>
 			<h1 class="page-hero__title">Work</h1>
 			<p class="page-hero__sub">制作実績</p>
-			<p class="page-hero__lead">これまでに手掛けた制作物をまとめています。気になる番号を選ぶと、その場で詳細が開きます。</p>
+			<p class="page-hero__lead"><?php echo esc_html( get_theme_mod( 'takumi_work_hero_lead', 'これまでに手掛けた制作物をまとめています。気になる番号を選ぶと、その場で詳細が開きます。' ) ); ?></p>
 		</div>
 	</section>
 
@@ -34,12 +34,12 @@ $works = takumi_get_works();
 		<div class="container">
 			<div class="section-kicker" data-reveal>
 				<span><?php echo esc_html( $works ? sprintf( '01—%02d', count( $works ) ) : '01—08' ); ?></span>
-				<p>WORK INDEX / FIELD RECORDS</p>
+				<p><?php echo esc_html( get_theme_mod( 'takumi_work_kicker', 'WORK INDEX / FIELD RECORDS' ) ); ?></p>
 			</div>
 
 			<div class="works-heading" data-reveal>
-				<h2>実装の幅を、<br>結果で見せる。</h2>
-				<p>企業・個人・チーム制作を横断し、要件定義から運用まで必要な場所を担当してきました。気になる番号を開くと、その場で詳細が読めます。</p>
+				<h2><?php echo takumi_heading_html( get_theme_mod( 'takumi_work_heading', "実装の幅を、\n結果で見せる。" ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 行ごとにエスケープ済み ?></h2>
+				<p><?php echo esc_html( get_theme_mod( 'takumi_work_index_desc', '企業・個人・チーム制作を横断し、要件定義から運用まで必要な場所を担当してきました。気になる番号を開くと、その場で詳細が読めます。' ) ); ?></p>
 			</div>
 
 			<?php

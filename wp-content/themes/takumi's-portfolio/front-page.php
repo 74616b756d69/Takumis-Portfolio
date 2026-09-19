@@ -22,7 +22,7 @@ $works  = takumi_get_works();
 		<span class="blob blob--4" aria-hidden="true"></span>
 		<span class="blob blob--5" aria-hidden="true"></span>
 		<div class="container home-hero__inner">
-			<p class="page-hero__label"><span>—</span> Portfolio / Web Developer</p>
+			<p class="page-hero__label"><span>—</span> <?php echo esc_html( get_theme_mod( 'takumi_hero_label', 'Portfolio / Web Developer' ) ); ?></p>
 
 			<h1 class="home-hero__title">
 				<?php
@@ -92,7 +92,7 @@ $works  = takumi_get_works();
 			<div class="lead" data-reveal>
 				<p class="lead__meta"><span>02</span>Skill <i>できること</i></p>
 				<div class="lead__body">
-					<h2 class="lead__title">触れる技術を、<br>増やしている途中です。</h2>
+					<h2 class="lead__title"><?php echo takumi_heading_html( get_theme_mod( 'takumi_skill_heading', "触れる技術を、\n増やしている途中です。" ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 行ごとにエスケープ済み ?></h2>
 					<p class="lead__lede"><?php echo esc_html( get_theme_mod( 'takumi_top_skill_desc', 'フロントエンドからバックエンドまで。HTML/CSSでの制作経験を軸に、React・Spring Boot・ASP.NET Core まで、実際に動くものを作りながら幅を広げています。' ) ); ?></p>
 				</div>
 			</div>
@@ -100,57 +100,16 @@ $works  = takumi_get_works();
 
 		<?php
 		// 横スクロールのパネル＝個人開発。1枚につき1リポジトリ。
-		// 学校/チームの制作は 03 Work、技術の一覧は About に載せる。ここは「勝手に作っているもの」だけ。
-		$repo = 'https://github.com/74616b756d69/';
-		$builds = array(
-			array(
-				'cat'   => 'APOGEE',
-				'title' => '宇宙の打ち上げを、<br>日々の予定に並べる',
-				'text'  => '次の打ち上げまでのカウントダウン、機関の検索、打ち上げ統計。Apple Calendar と連携して、自分の予定として取り込めるところまで作りました。',
-				'meta'  => '設計・API・UI すべて一人で / Spring Boot 3 + React 18 + MySQL',
-				'icons' => array( 'java', 'spring', 'react', 'mysql', 'docker' ),
-				'url'   => $repo . 'Apogee',
-			),
-			array(
-				'cat'   => 'TABE MAP',
-				'title' => '食べたものを、<br>地図と順位で残す',
-				'text'  => '味・コスパ・雰囲気・接客・また行きたいかの5軸で評価して、地図のピンとランキングに貯めていく記録アプリ。招待コード制のログイン付きです。',
-				'meta'  => 'ASP.NET Core 9 + React 19 / EF Core・Identity・Leaflet',
-				'icons' => array( 'cs', 'dotnet', 'react', 'vite', 'docker' ),
-				'url'   => $repo . 'gourmet-Maps',
-			),
-			array(
-				'cat'   => 'CRYSTALLOGRAPHY',
-				'title' => '結晶構造を、<br>ブラウザで覗く',
-				'text'  => '公開データベース COD の API から CIF を取ってきて、そのまま 3D で表示する試作。フロントも API も TypeScript で書いています。',
-				'meta'  => 'Express 5 + TypeScript + Vite / Docker Compose',
-				'icons' => array( 'ts', 'vite', 'nodejs', 'express', 'docker' ),
-				'url'   => $repo . 'crystallography',
-			),
-			array(
-				'cat'   => 'CODE NOTE',
-				'title' => '書いたコードを、<br>あとから引き出す',
-				'text'  => 'Markdown のリアルタイムプレビュー、ラベルでの分類、画像の埋め込み。自分がほしかったものをそのまま作ったノートアプリです。',
-				'meta'  => 'Laravel + MySQL / CodeMirror・commonmark',
-				'icons' => array( 'php', 'laravel', 'mysql', 'js' ),
-				'url'   => $repo . 'Code_Note',
-			),
-			array(
-				'cat'   => 'FUMI',
-				'title' => 'Mac で、<br>宛名を印刷したかった',
-				'text'  => '筆まめのようなソフトが Mac に無かったので、自分で作り始めました。年賀状の宛名面を組んで、そのまま印刷に回すための個人ツールです。',
-				'meta'  => '制作中 / TypeScript + Vite + Tailwind CSS',
-				'icons' => array( 'ts', 'vite', 'tailwind', 'css' ),
-				'url'   => $repo . 'FUMI',
-			),
-		);
+		// 中身は管理画面の「個人開発」で編集する（未登録なら既定の5件）。
+		// 学校/チームの制作は 03 Work、技術の一覧は About に載せる。
+		$builds = takumi_get_builds_data();
 		?>
 		<div class="hscroll" id="hscroll">
 			<div class="hscroll__inner">
 				<div class="hscroll__head">
 					<div class="hscroll__headings">
-						<p class="hscroll__label">Personal builds — scroll sideways</p>
-						<p class="hscroll__note">学校やチームでの制作とは別に、個人で作っているものです。</p>
+						<p class="hscroll__label"><?php echo esc_html( get_theme_mod( 'takumi_builds_label', 'Personal builds — scroll sideways' ) ); ?></p>
+						<p class="hscroll__note"><?php echo esc_html( get_theme_mod( 'takumi_builds_note', '学校やチームでの制作とは別に、個人で作っているものです。' ) ); ?></p>
 					</div>
 					<p class="hscroll__count"><?php echo esc_html( sprintf( '%02d', count( $builds ) ) ); ?> projects</p>
 				</div>
@@ -159,7 +118,7 @@ $works  = takumi_get_works();
 						<div class="hpanel">
 							<span class="hpanel__num"><?php echo esc_html( sprintf( '%02d', $i + 1 ) ); ?> / <?php echo esc_html( $build['cat'] ); ?></span>
 							<div class="hpanel__body">
-								<h3><?php echo wp_kses( $build['title'], array( 'br' => array() ) ); ?></h3>
+								<h3><?php echo takumi_heading_html( $build['title'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 行ごとにエスケープ済み ?></h3>
 								<p><?php echo esc_html( $build['text'] ); ?></p>
 								<p class="hpanel__meta"><?php echo esc_html( $build['meta'] ); ?></p>
 								<div class="hpanel__icons">
@@ -186,18 +145,8 @@ $works  = takumi_get_works();
 
 	<!-- Statement — スクロールでピン留めし、巨大テキストが横に流れる -->
 	<?php
-	// [種別, テキスト] 種別: xl-grad / xl-outline / xl-grad2 / text / shape
-	$statement = array(
-		array( 'xl-grad', 'つくる。' ),
-		array( 'text', '手を動かして、形にする。' ),
-		array( 'shape', 'diamond' ),
-		array( 'xl-outline', 'うごかす。' ),
-		array( 'text', '要件定義から運用まで。' ),
-		array( 'shape', 'ring' ),
-		array( 'xl-grad2', 'とどける。' ),
-		array( 'text', '使う人の、毎日へ。' ),
-		array( 'shape', 'star' ),
-	);
+	// 横に流れる大きな文字。内容は管理画面「セクション見出し設定」で編集する。
+	$statement = takumi_get_statement_items();
 
 	$plain = '';
 	foreach ( $statement as $item ) {
@@ -231,7 +180,7 @@ $works  = takumi_get_works();
 			<div class="lead" data-reveal>
 				<p class="lead__meta"><span>03</span>Work <i>制作実績</i></p>
 				<div class="lead__body">
-					<h2 class="lead__title">実装の幅を、<br>結果で見せる。</h2>
+					<h2 class="lead__title"><?php echo takumi_heading_html( get_theme_mod( 'takumi_work_heading', "実装の幅を、\n結果で見せる。" ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 行ごとにエスケープ済み ?></h2>
 					<p class="lead__lede"><?php echo esc_html( get_theme_mod( 'takumi_top_work_desc', '個人制作から産学連携・実案件まで。チームリーダーとして指揮したプロジェクトも紹介しています。' ) ); ?></p>
 				</div>
 			</div>
@@ -272,7 +221,7 @@ $works  = takumi_get_works();
 			<div class="lead" data-reveal>
 				<p class="lead__meta"><span>04</span>Contact <i>お問い合わせ</i></p>
 				<div class="lead__body">
-					<h2 class="lead__title">話を聞くところから、<br>はじめさせてください。</h2>
+					<h2 class="lead__title"><?php echo takumi_heading_html( get_theme_mod( 'takumi_contact_heading', "話を聞くところから、\nはじめさせてください。" ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 行ごとにエスケープ済み ?></h2>
 					<p class="lead__lede"><?php echo wp_kses_post( get_theme_mod( 'takumi_top_contact_text', '最後までご覧いただきありがとうございました。制作のご依頼・ご相談など、お気軽にご連絡ください。' ) ); ?></p>
 				</div>
 			</div>
@@ -312,8 +261,9 @@ $works  = takumi_get_works();
 				// フォームだけは外部に飛ばさず、その場で開く。
 				// JS が無い環境では開いたまま表示される（下の is-collapsible を JS が付ける）。
 				?>
+				<?php $form_id = get_theme_mod( 'takumi_contact_form_id', '3b0857e' ); ?>
 				<li class="contact-disclosure">
-					<?php if ( shortcode_exists( 'contact-form-7' ) ) : ?>
+					<?php if ( $form_id && shortcode_exists( 'contact-form-7' ) ) : ?>
 						<button type="button" class="contact-channels__row contact-disclosure__toggle"
 							aria-expanded="false" aria-controls="contact-form-panel">
 							<span class="contact-channels__key">Form</span>
@@ -324,7 +274,7 @@ $works  = takumi_get_works();
 						<div class="contact-disclosure__panel" id="contact-form-panel">
 							<div class="contact-disclosure__inner">
 								<div class="contact-form">
-									<?php echo do_shortcode( '[contact-form-7 id="3b0857e" title="Contact form 1"]' ); ?>
+									<?php echo do_shortcode( sprintf( '[contact-form-7 id="%s"]', esc_attr( $form_id ) ) ); ?>
 								</div>
 							</div>
 						</div>

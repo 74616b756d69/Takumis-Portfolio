@@ -29,7 +29,7 @@ $timeline = takumi_get_career_data();
 		<span class="blob blob--5" aria-hidden="true"></span>
 
 		<div class="container page-hero__inner">
-			<p class="page-hero__label"><span>02</span> Profile / Skill / Career</p>
+			<p class="page-hero__label"><span>02</span> <?php echo esc_html( get_theme_mod( 'takumi_about_hero_label', 'Profile / Skill / Career' ) ); ?></p>
 			<h1 class="page-hero__title">About</h1>
 			<p class="page-hero__sub">私について</p>
 			<p class="page-hero__lead"><?php echo esc_html( $motto ); ?></p>
@@ -125,7 +125,7 @@ $timeline = takumi_get_career_data();
 		<?php takumi_shape_field( 'about-cta' ); ?>
 		<?php takumi_section_art( 'star', array( 'x' => '9%', 'y' => '52%', 'size' => 'clamp(110px, 12vw, 180px)' ) ); ?>
 		<div class="container contact-box">
-			<p data-reveal>制作実績もぜひご覧ください。</p>
+			<p data-reveal><?php echo esc_html( get_theme_mod( 'takumi_about_cta_text', '制作実績もぜひご覧ください。' ) ); ?></p>
 			<div class="contact-links" data-reveal>
 				<a class="btn" href="<?php echo esc_url( takumi_page_url( 'work' ) ); ?>">View Works</a>
 				<a class="btn btn--gold" href="<?php echo esc_url( home_url( '/#contact' ) ); ?>">Contact</a>

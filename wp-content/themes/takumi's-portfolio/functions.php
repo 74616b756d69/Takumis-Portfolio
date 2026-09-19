@@ -79,6 +79,20 @@ function takumi_page_url( $slug ) {
 /* ============================================================
    カスタマイザー(プロフィール設定)
    ============================================================ */
+/**
+ * Statement セクション（横に流れる大きな文字）の既定値。
+ * 1行 = 「種類|文字」。種類の一覧は takumi_get_statement_items() を参照。
+ */
+const TAKUMI_STATEMENT_DEFAULT = "xl-grad|つくる。
+text|手を動かして、形にする。
+shape|diamond
+xl-outline|うごかす。
+text|要件定義から運用まで。
+shape|ring
+xl-grad2|とどける。
+text|使う人の、毎日へ。
+shape|star";
+
 add_action( 'customize_register', function ( $wp_customize ) {
 	$wp_customize->add_section( 'takumi_profile', array(
 		'title'    => 'プロフィール設定',
@@ -232,6 +246,99 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'section'     => 'takumi_top_texts',
 		'type'        => 'textarea',
 	) );
+
+	/* ---------- セクション見出し・共通文言 ---------- */
+	$wp_customize->add_section( 'takumi_headings', array(
+		'title'       => 'セクション見出し設定',
+		'description' => 'トップページ各セクションの見出しやラベルを編集できます。',
+		'priority'    => 33,
+	) );
+
+	$wp_customize->add_section( 'takumi_page_texts', array(
+		'title'       => 'About / Work ページ文言設定',
+		'description' => '下層ページの見出しや説明文を編集できます。',
+		'priority'    => 34,
+	) );
+
+	// key => array( セクション, ラベル, 既定値, 入力欄の種類, 補足説明 )
+	// 種類が textarea のものは改行が意味を持つ（見出しは改行位置で行が分かれる）。
+	$takumi_text_controls = array(
+		'takumi_logo_text' => array(
+			'takumi_headings', 'サイトロゴの文字', "Takumi's Portfolio", 'text',
+			'ヘッダー左上とローディング画面に表示されます。',
+		),
+		'takumi_hero_label' => array(
+			'takumi_headings', 'トップ: ヒーロー上部のラベル', 'Portfolio / Web Developer', 'text', '',
+		),
+		'takumi_skill_heading' => array(
+			'takumi_headings', 'トップ: Skill の見出し', "触れる技術を、\n増やしている途中です。", 'textarea',
+			'改行した位置で行が分かれます。',
+		),
+		'takumi_builds_label' => array(
+			'takumi_headings', 'トップ: 個人開発スライダーのラベル', 'Personal builds — scroll sideways', 'text', '',
+		),
+		'takumi_builds_note' => array(
+			'takumi_headings', 'トップ: 個人開発スライダーの補足', '学校やチームでの制作とは別に、個人で作っているものです。', 'text', '',
+		),
+		'takumi_work_heading' => array(
+			'takumi_headings', 'Work の見出し', "実装の幅を、\n結果で見せる。", 'textarea',
+			'トップページの Work セクションと Work ページの両方で使われます。改行した位置で行が分かれます。',
+		),
+		'takumi_contact_heading' => array(
+			'takumi_headings', 'トップ: Contact の見出し', "話を聞くところから、\nはじめさせてください。", 'textarea',
+			'改行した位置で行が分かれます。',
+		),
+		'takumi_contact_form_id' => array(
+			'takumi_headings', 'Contact Form 7 のフォームID', '3b0857e', 'text',
+			'Contact Form 7 の一覧に出るショートコード [contact-form-7 id="…"] の id の値です。空欄にするとフォーム行を表示しません。',
+		),
+		'takumi_about_hero_label' => array(
+			'takumi_page_texts', 'About: ヒーローのラベル', 'Profile / Skill / Career', 'text', '',
+		),
+		'takumi_about_cta_text' => array(
+			'takumi_page_texts', 'About: ページ下部の案内文', '制作実績もぜひご覧ください。', 'text', '',
+		),
+		'takumi_work_hero_label' => array(
+			'takumi_page_texts', 'Work: ヒーローのラベル', 'Selected Work / 2024—2025', 'text', '',
+		),
+		'takumi_work_hero_lead' => array(
+			'takumi_page_texts', 'Work: ヒーローの説明文', 'これまでに手掛けた制作物をまとめています。気になる番号を選ぶと、その場で詳細が開きます。', 'textarea', '',
+		),
+		'takumi_work_kicker' => array(
+			'takumi_page_texts', 'Work: 索引の小見出し(英字)', 'WORK INDEX / FIELD RECORDS', 'text', '',
+		),
+		'takumi_work_index_desc' => array(
+			'takumi_page_texts', 'Work: 索引の説明文', '企業・個人・チーム制作を横断し、要件定義から運用まで必要な場所を担当してきました。気になる番号を開くと、その場で詳細が読めます。', 'textarea', '',
+		),
+	);
+
+	foreach ( $takumi_text_controls as $key => $conf ) {
+		list( $section, $label, $default, $type, $description ) = $conf;
+		$wp_customize->add_setting( $key, array(
+			'default'           => $default,
+			'sanitize_callback' => 'textarea' === $type ? 'sanitize_textarea_field' : 'sanitize_text_field',
+		) );
+		$wp_customize->add_control( $key, array(
+			'label'       => $label,
+			'description' => $description,
+			'section'     => $section,
+			'type'        => $type,
+		) );
+	}
+
+	/* ---------- Statement(横に流れる大きな文字) ---------- */
+	$wp_customize->add_setting( 'takumi_statement', array(
+		'default'           => TAKUMI_STATEMENT_DEFAULT,
+		'sanitize_callback' => 'sanitize_textarea_field',
+	) );
+	$wp_customize->add_control( 'takumi_statement', array(
+		'label'       => 'トップ: 横に流れる大きな文字',
+		'description' => '1行に1つ、「種類|文字」の形式で書きます。'
+			. '種類は xl-grad(グラデーションの大文字) / xl-outline(白抜きの大文字) / xl-grad2(グラデーション2) / text(小さめの文章) / shape(図形) です。'
+			. 'shape のときは文字の代わりに diamond・ring・star のいずれかを書きます。',
+		'section'     => 'takumi_headings',
+		'type'        => 'textarea',
+	) );
 } );
 
 /* ============================================================
@@ -268,6 +375,25 @@ add_action( 'init', function () {
 		'has_archive'        => false,
 		'menu_icon'          => 'dashicons-awards',
 		'menu_position'      => 6,
+		'supports'           => array( 'title', 'page-attributes' ),
+		'show_in_rest'       => true,
+	) );
+
+	register_post_type( 'build', array(
+		'labels' => array(
+			'name'          => '個人開発',
+			'singular_name' => '個人開発',
+			'add_new_item'  => '個人開発を追加',
+			'edit_item'     => '個人開発を編集',
+		),
+		'public'             => false,
+		'show_ui'            => true,
+		'show_in_menu'       => true,
+		'exclude_from_search'=> true,
+		'publicly_queryable' => false,
+		'has_archive'        => false,
+		'menu_icon'          => 'dashicons-hammer',
+		'menu_position'      => 8,
 		'supports'           => array( 'title', 'page-attributes' ),
 		'show_in_rest'       => true,
 	) );
@@ -370,10 +496,20 @@ const TAKUMI_CAREER_FIELDS = array(
 	'description' => array( '説明', '例: 高校在学中に自身のブログサイトの制作を経験。', 'textarea' ),
 );
 
+/* ---------- 個人開発メタボックス ---------- */
+const TAKUMI_BUILD_FIELDS = array(
+	'headline' => array( '見出し', '例: 宇宙の打ち上げを、日々の予定に並べる / 改行した位置で行が分かれます', 'textarea' ),
+	'text'     => array( '説明文', '2〜3行程度の紹介文', 'textarea' ),
+	'meta'     => array( '技術・体制のメモ', '例: 設計・API・UI すべて一人で / Spring Boot 3 + React 18 + MySQL' ),
+	'icons'    => array( 'スキルアイコン(カンマ区切り)', 'skillicons.dev のID。例: java,spring,react,mysql,docker' ),
+	'url'      => array( 'リンクURL', '例: https://github.com/74616b756d69/Apogee' ),
+);
+
 add_action( 'add_meta_boxes', function () {
 	add_meta_box( 'takumi_work_meta', '実績情報', takumi_meta_box_renderer( TAKUMI_WORK_FIELDS, 'work' ), 'works', 'normal', 'high' );
 	add_meta_box( 'takumi_skill_meta', 'スキル情報', takumi_meta_box_renderer( TAKUMI_SKILL_FIELDS, 'skill' ), 'skill', 'normal', 'high' );
 	add_meta_box( 'takumi_career_meta', '経歴情報', takumi_meta_box_renderer( TAKUMI_CAREER_FIELDS, 'career' ), 'career', 'normal', 'high' );
+	add_meta_box( 'takumi_build_meta', '個人開発の情報', takumi_meta_box_renderer( TAKUMI_BUILD_FIELDS, 'build' ), 'build', 'normal', 'high' );
 } );
 
 add_action( 'save_post_works', function ( $post_id ) {
@@ -384,6 +520,9 @@ add_action( 'save_post_skill', function ( $post_id ) {
 } );
 add_action( 'save_post_career', function ( $post_id ) {
 	takumi_save_meta_fields( $post_id, TAKUMI_CAREER_FIELDS, 'career' );
+} );
+add_action( 'save_post_build', function ( $post_id ) {
+	takumi_save_meta_fields( $post_id, TAKUMI_BUILD_FIELDS, 'build' );
 } );
 
 /* ---------- 制作実績の取得・レコード出力 ---------- */
@@ -1146,3 +1285,127 @@ function takumi_get_top_skill_icons( $limit = 6 ) {
 	return array_slice( $icons, 0, $limit );
 }
 
+
+/* ============================================================
+   管理画面から編集できる文言・データの取り出し
+   ============================================================ */
+
+/**
+ * 改行入りの見出しを <br> 区切りのHTMLに変換する（各行はエスケープ済み）
+ */
+function takumi_heading_html( $text ) {
+	$lines = preg_split( '/\r\n|\r|\n/', (string) $text );
+	$lines = array_filter( array_map( 'trim', $lines ), 'strlen' );
+	return implode( '<br>', array_map( 'esc_html', $lines ) );
+}
+
+/**
+ * Statement セクションの項目を取得する
+ * 各要素: array( 種類, 文字 ) 種類: xl-grad / xl-outline / xl-grad2 / text / shape
+ */
+function takumi_get_statement_items() {
+	$raw   = (string) get_theme_mod( 'takumi_statement', TAKUMI_STATEMENT_DEFAULT );
+	$kinds = array( 'xl-grad', 'xl-outline', 'xl-grad2', 'text', 'shape' );
+	$shapes = array( 'diamond', 'ring', 'star' );
+	$items = array();
+
+	foreach ( preg_split( '/\r\n|\r|\n/', $raw ) as $line ) {
+		$line = trim( $line );
+		if ( '' === $line || false === strpos( $line, '|' ) ) {
+			continue;
+		}
+		list( $kind, $value ) = array_map( 'trim', explode( '|', $line, 2 ) );
+		// 種類の綴り間違いはそのまま出すとCSSクラスが崩れるので、既定の種類に寄せる。
+		if ( ! in_array( $kind, $kinds, true ) ) {
+			$kind = 'text';
+		}
+		if ( 'shape' === $kind && ! in_array( $value, $shapes, true ) ) {
+			continue;
+		}
+		if ( '' === $value ) {
+			continue;
+		}
+		$items[] = array( $kind, $value );
+	}
+
+	return $items;
+}
+
+/**
+ * 個人開発一覧を取得（管理画面「個人開発」に投稿がなければ既定値を返す）
+ * 各要素: array( 'cat' => 英字ラベル, 'title' => 見出し(改行可), 'text' => 説明, 'meta' => メモ, 'icons' => array, 'url' => URL )
+ */
+function takumi_get_builds_data() {
+	$posts = get_posts( array(
+		'post_type'      => 'build',
+		'posts_per_page' => -1,
+		'orderby'        => 'menu_order',
+		'order'          => 'ASC',
+	) );
+
+	if ( ! $posts ) {
+		$repo = trailingslashit( get_theme_mod( 'takumi_github', 'https://github.com/74616b756d69' ) );
+		return array(
+			array(
+				'cat'   => 'APOGEE',
+				'title' => "宇宙の打ち上げを、\n日々の予定に並べる",
+				'text'  => '次の打ち上げまでのカウントダウン、機関の検索、打ち上げ統計。Apple Calendar と連携して、自分の予定として取り込めるところまで作りました。',
+				'meta'  => '設計・API・UI すべて一人で / Spring Boot 3 + React 18 + MySQL',
+				'icons' => array( 'java', 'spring', 'react', 'mysql', 'docker' ),
+				'url'   => $repo . 'Apogee',
+			),
+			array(
+				'cat'   => 'TABE MAP',
+				'title' => "食べたものを、\n地図と順位で残す",
+				'text'  => '味・コスパ・雰囲気・接客・また行きたいかの5軸で評価して、地図のピンとランキングに貯めていく記録アプリ。招待コード制のログイン付きです。',
+				'meta'  => 'ASP.NET Core 9 + React 19 / EF Core・Identity・Leaflet',
+				'icons' => array( 'cs', 'dotnet', 'react', 'vite', 'docker' ),
+				'url'   => $repo . 'gourmet-Maps',
+			),
+			array(
+				'cat'   => 'CRYSTALLOGRAPHY',
+				'title' => "結晶構造を、\nブラウザで覗く",
+				'text'  => '公開データベース COD の API から CIF を取ってきて、そのまま 3D で表示する試作。フロントも API も TypeScript で書いています。',
+				'meta'  => 'Express 5 + TypeScript + Vite / Docker Compose',
+				'icons' => array( 'ts', 'vite', 'nodejs', 'express', 'docker' ),
+				'url'   => $repo . 'crystallography',
+			),
+			array(
+				'cat'   => 'CODE NOTE',
+				'title' => "書いたコードを、\nあとから引き出す",
+				'text'  => 'Markdown のリアルタイムプレビュー、ラベルでの分類、画像の埋め込み。自分がほしかったものをそのまま作ったノートアプリです。',
+				'meta'  => 'Laravel + MySQL / CodeMirror・commonmark',
+				'icons' => array( 'php', 'laravel', 'mysql', 'js' ),
+				'url'   => $repo . 'Code_Note',
+			),
+			array(
+				'cat'   => 'FUMI',
+				'title' => "Mac で、\n宛名を印刷したかった",
+				'text'  => '筆まめのようなソフトが Mac に無かったので、自分で作り始めました。年賀状の宛名面を組んで、そのまま印刷に回すための個人ツールです。',
+				'meta'  => '制作中 / TypeScript + Vite + Tailwind CSS',
+				'icons' => array( 'ts', 'vite', 'tailwind', 'css' ),
+				'url'   => $repo . 'FUMI',
+			),
+		);
+	}
+
+	return array_map( function ( $post ) {
+		$meta = fn( $key ) => (string) get_post_meta( $post->ID, '_takumi_' . $key, true );
+		return array(
+			'cat'   => get_the_title( $post ),
+			// 見出し未入力ならタイトルをそのまま見出しに使う。
+			'title' => '' !== $meta( 'headline' ) ? $meta( 'headline' ) : get_the_title( $post ),
+			'text'  => $meta( 'text' ),
+			'meta'  => $meta( 'meta' ),
+			'icons' => array_filter( array_map( 'trim', explode( ',', $meta( 'icons' ) ) ) ),
+			'url'   => $meta( 'url' ),
+		);
+	}, $posts );
+}
+
+/**
+ * サイトロゴに表示する文字
+ */
+function takumi_logo_text() {
+	return get_theme_mod( 'takumi_logo_text', "Takumi's Portfolio" );
+}
