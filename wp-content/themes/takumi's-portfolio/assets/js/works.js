@@ -188,21 +188,6 @@ const PLUS_SVG =
 const CLOSE_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>';
 
-// トップと Work ページの両方に置かれる。ID ではなくクラスで拾う。
-const recordLists = [...document.querySelectorAll(".work-records")];
-
-if (recordLists.length) {
-  recordLists.forEach((list) => {
-    // サーバー側(WordPress)で描画済みならクライアント描画をスキップ
-    if (list.dataset.source === "server") return;
-    list.innerHTML = WORKS.map((w, i) => recordMarkup(w, i + 1)).join("");
-  });
-
-  // 先にフィルタを組み立てる。ハッシュ着地で Reset を押す場合があるため。
-  initFilters();
-  recordLists.forEach(initRecords);
-}
-
 /* 詳細の中身。テンプレート側の takumi_render_work_detail と同じ構造を書く。
    左に画像、右は バッジ → 事実 → 課題/やったこと/結果 → 技術 → リンク の順。 */
 function detailMarkup(w) {
@@ -386,17 +371,20 @@ function ensureModal() {
 
 function openModal(entry) {
   const modal = ensureModal();
-  const detail = entry.panel.querySelector(".work-detail");
-  if (!detail) return;
 
-  // すでに別のレコードが開いていれば、閉じ切ってから開き直す。
+  // すでに何か開いていれば、閉じ切ってから開き直す。
   // close イベントは非同期に飛ぶので、片付けを待たずに差し替えると
   // 新しい中身のほうが元の位置へ戻されてしまう。
+  // 中身(.work-detail)を探すのはこの後。開いている間その中身はモーダル側へ
+  // 移っていて元の位置には無いので、先に探すと同じ行を開き直せなくなる。
   if (modal.open) {
     modal.addEventListener("close", () => openModal(entry), { once: true });
     modal.close();
     return;
   }
+
+  const detail = entry.panel.querySelector(".work-detail");
+  if (!detail) return;
 
   const title = entry.toggle.querySelector(".record-title");
   const set = (sel, text) => {
@@ -680,3 +668,26 @@ document.addEventListener("keydown", (e) => {
   next.focus();
   next.click();
 });
+
+/* ---------- 起動 ----------
+   ここはファイルのいちばん最後に置くこと。
+   関数宣言は巻き上げられるが、let で持っているモーダルの状態(modalEl など)は
+   宣言の行を通るまで初期化されない。上のほうで起動すると、ハッシュ付きで着地した
+   ときだけ openFromHash → openModal → ensureModal と辿って modalEl に触れてしまい、
+   「Cannot access 'modalEl' before initialization」でモジュールの評価ごと止まる。
+   そうなると hashchange の登録もされず、以降そのページではクリックしても開かない。 */
+
+// トップと Work ページの両方に置かれる。ID ではなくクラスで拾う。
+const recordLists = [...document.querySelectorAll(".work-records")];
+
+if (recordLists.length) {
+  recordLists.forEach((list) => {
+    // サーバー側(WordPress)で描画済みならクライアント描画をスキップ
+    if (list.dataset.source === "server") return;
+    list.innerHTML = WORKS.map((w, i) => recordMarkup(w, i + 1)).join("");
+  });
+
+  // 先にフィルタを組み立てる。ハッシュ着地で Reset を押す場合があるため。
+  initFilters();
+  recordLists.forEach(initRecords);
+}

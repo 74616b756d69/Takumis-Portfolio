@@ -108,14 +108,40 @@ $works  = takumi_get_home_works(); // 掲載する実績は管理画面「制作
 			<div class="hscroll__inner">
 				<div class="hscroll__head">
 					<div class="hscroll__headings">
-						<p class="hscroll__label"><?php echo esc_html( get_theme_mod( 'takumi_builds_label', 'Personal builds — scroll sideways' ) ); ?></p>
-						<p class="hscroll__note"><?php echo esc_html( get_theme_mod( 'takumi_builds_note', '学校やチームでの制作とは別に、個人で作っているものです。' ) ); ?></p>
+						<p class="hscroll__label"><?php echo esc_html( get_theme_mod( 'takumi_builds_label', 'Skills & builds — scroll sideways' ) ); ?></p>
 					</div>
 					<p class="hscroll__count"><?php echo esc_html( sprintf( '%02d', count( $builds ) ) ); ?> projects</p>
 				</div>
 				<div class="hscroll__track" id="hscroll-track">
+					<?php // 前半は「どれくらい使えるか」、後半は「実際に作ったもの」。同じカードの形で続けて見せる。 ?>
+					<?php $group_index = 0; ?>
+					<?php foreach ( takumi_get_skill_groups() as $group ) : ?>
+						<?php ++$group_index; ?>
+						<div class="hpanel hpanel--skill">
+							<span class="hpanel__num">Skill / <?php echo esc_html( sprintf( '%02d', $group_index ) ); ?></span>
+							<div class="hpanel__body">
+								<h3><?php echo esc_html( $group['title'] ); ?></h3>
+								<p><?php echo esc_html( $group['text'] ); ?></p>
+								<ul class="hpanel__skills">
+									<?php foreach ( $group['items'] as $skill ) : ?>
+										<li>
+											<img src="<?php echo esc_url( takumi_skill_icon_url( $skill[0] ) ); ?>" alt="" loading="lazy">
+											<span class="hpanel__skill-name"><?php echo esc_html( $skill[1] ); ?></span>
+											<span class="hpanel__skill-exp"><?php echo esc_html( $skill[2] ); ?></span>
+										</li>
+									<?php endforeach; ?>
+								</ul>
+							</div>
+						</div>
+					<?php endforeach; ?>
+
 					<?php foreach ( $builds as $i => $build ) : ?>
-						<div class="hpanel">
+						<?php // 背景色は5色の繰り返し。スキルカードを前に足しても色がずれないよう、番号から直接決める。 ?>
+						<?php $shot = ! empty( $build['image'] ) ? $build['image'] : ''; ?>
+						<div class="hpanel hpanel--build hpanel--c<?php echo esc_attr( $i % 5 + 1 ); ?><?php echo $shot ? ' hpanel--shot' : ''; ?>">
+							<?php if ( $shot ) : ?>
+								<img class="hpanel__shot" src="<?php echo esc_url( $shot ); ?>" alt="<?php echo esc_attr( $build['cat'] ); ?> の画面" loading="lazy">
+							<?php endif; ?>
 							<span class="hpanel__num"><?php echo esc_html( sprintf( '%02d', $i + 1 ) ); ?> / <?php echo esc_html( $build['cat'] ); ?></span>
 							<div class="hpanel__body">
 								<h3><?php echo takumi_heading_html( $build['title'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 行ごとにエスケープ済み ?></h3>
@@ -184,6 +210,9 @@ $works  = takumi_get_home_works(); // 掲載する実績は管理画面「制作
 					<p class="lead__lede"><?php echo esc_html( get_theme_mod( 'takumi_top_work_desc', '個人制作から産学連携・実案件まで。チームリーダーとして指揮したプロジェクトも紹介しています。' ) ); ?></p>
 				</div>
 			</div>
+
+			<?php // 実績の写真を円周に並べた棚。見出しは上の 03 Work をそのまま使うので bare で出す。 ?>
+			<?php takumi_card_ring( array( 'bare' => true ) ); ?>
 
 			<?php if ( $works ) : ?>
 				<div class="work-records" data-reveal data-source="server">

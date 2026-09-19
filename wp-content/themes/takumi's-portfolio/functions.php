@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TAKUMI_VERSION', '3.3.1' );
+define( 'TAKUMI_VERSION', '3.6.0' );
 
 /* ============================================================
    テーマサポート
@@ -51,6 +51,9 @@ add_action( 'wp_enqueue_scripts', function () {
 		'window.TAKUMI_BASE = ' . wp_json_encode( $uri . '/assets/' ) . ';',
 		'before'
 	);
+
+	// カードリング(円周に並べた写真をドラッグで回す)
+	wp_enqueue_script( 'takumi-card-ring', $uri . '/assets/js/card-ring.js', array(), TAKUMI_VERSION, true );
 
 	// Three.js 星空背景(全ページ)
 	wp_enqueue_script( 'takumi-three-stars', $uri . '/assets/js/three-stars.js', array(), TAKUMI_VERSION, true );
@@ -276,6 +279,20 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'input_attrs' => array( 'min' => 0, 'step' => 1 ),
 	) );
 
+	$wp_customize->add_setting( 'takumi_ring_limit', array(
+		'default'           => 8,
+		'sanitize_callback' => 'absint',
+	) );
+	$wp_customize->add_control( 'takumi_ring_limit', array(
+		'label'       => 'カードリングに並べる枚数(上限)',
+		'description' => '円周に並べる写真の枚数です。0 にすると上限なし。'
+			. '写真は「制作実績」のアイキャッチから順に集めます。'
+			. '枚数が多いほど円が大きくなるので、6〜10枚くらいが見やすいです。',
+		'section'     => 'takumi_top_texts',
+		'type'        => 'number',
+		'input_attrs' => array( 'min' => 0, 'step' => 1 ),
+	) );
+
 	$wp_customize->add_setting( 'takumi_top_work_desc', array(
 		'default'           => '個人制作から産学連携・実案件まで。チームリーダーとして指揮したプロジェクトも紹介しています。',
 		'sanitize_callback' => 'sanitize_textarea_field',
@@ -346,10 +363,25 @@ add_action( 'customize_register', function ( $wp_customize ) {
 			'改行した位置で行が分かれます。',
 		),
 		'takumi_builds_label' => array(
-			'takumi_headings', 'トップ: 個人開発スライダーのラベル', 'Personal builds — scroll sideways', 'text', '',
+			'takumi_headings', 'トップ: 横スクロールのラベル', 'Skills & builds — scroll sideways', 'text', '',
 		),
-		'takumi_builds_note' => array(
-			'takumi_headings', 'トップ: 個人開発スライダーの補足', '学校やチームでの制作とは別に、個人で作っているものです。', 'text', '',
+		'takumi_skill_group_main' => array(
+			'takumi_headings', 'トップ: スキルカード1の見出し', 'よく使う', 'text', '',
+		),
+		'takumi_skill_group_main_text' => array(
+			'takumi_headings', 'トップ: スキルカード1の説明', '日常的に書いているもの。制作の土台になっています。', 'text', '',
+		),
+		'takumi_skill_group_sub' => array(
+			'takumi_headings', 'トップ: スキルカード2の見出し', '経験あり', 'text', '',
+		),
+		'takumi_skill_group_sub_text' => array(
+			'takumi_headings', 'トップ: スキルカード2の説明', '個人開発や授業で実際に動くものを作ったことがあるもの。', 'text', '',
+		),
+		'takumi_skill_group_tool' => array(
+			'takumi_headings', 'トップ: スキルカード3の見出し', '環境・ツール', 'text', '',
+		),
+		'takumi_skill_group_tool_text' => array(
+			'takumi_headings', 'トップ: スキルカード3の説明', '言語そのものではなく、開発を回すために使っている道具。', 'text', '',
 		),
 		'takumi_work_heading' => array(
 			'takumi_headings', 'Work の見出し', "実装の幅を、\n結果で見せる。", 'textarea',
@@ -480,6 +512,23 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		),
 		'takumi_work_filter_reset' => array(
 			'takumi_work_filter', 'リセットボタンの文言', 'Reset', 'text', '',
+		),
+		'takumi_top_ring_en' => array(
+			'takumi_section_labels', 'トップ: カードリングの英字ラベル', 'Gallery', 'text', '',
+		),
+		'takumi_top_ring_ja' => array(
+			'takumi_section_labels', 'トップ: カードリングの日本語ラベル', '作品の棚', 'text', '',
+		),
+		'takumi_ring_heading' => array(
+			'takumi_headings', 'トップ: カードリングの見出し', "つくったものを、\n並べて置いています。", 'textarea',
+			'改行した位置で行が分かれます。2行目が差し色になります。',
+		),
+		'takumi_top_ring_desc' => array(
+			'takumi_top_texts', 'トップ: カードリングの説明文',
+			'横にドラッグすると棚が回ります。正面の1枚を押すと、その制作実績へ移動します。', 'textarea', '',
+		),
+		'takumi_ring_link_text' => array(
+			'takumi_section_labels', 'トップ: カードリングのリンク文言', '詳しく見る', 'text', '',
 		),
 	);
 
@@ -646,7 +695,7 @@ add_action( 'init', function () {
 		'has_archive'        => false,
 		'menu_icon'          => 'dashicons-hammer',
 		'menu_position'      => 8,
-		'supports'           => array( 'title', 'page-attributes' ),
+		'supports'           => array( 'title', 'thumbnail', 'page-attributes' ),
 		'show_in_rest'       => true,
 	) );
 
@@ -770,6 +819,8 @@ const TAKUMI_WORK_FIELDS = array(
 /* ---------- スキルメタボックス ---------- */
 const TAKUMI_SKILL_FIELDS = array(
 	'icon'       => array( 'アイコン(skillicons.dev のID)', '例: html' ),
+	'genre'      => array( 'ジャンル', 'トップのスキルカードの振り分けに使う。main / sub / tool のいずれか。'
+		. '空欄なら習熟度から自動で振り分ける。' ),
 	'experience' => array( '経験', '例: 4 yrs / Learning' ),
 	'percent'    => array( '習熟度(0-100)', '例: 90' ),
 	'note'       => array( '補足', '例: Webサイト制作で使用' ),
@@ -1413,6 +1464,12 @@ function takumi_shape_deco( $shape, $args = array() ) {
 		'cross'    => array( '-40 -40 80 80', '<path class="line-ink" d="M0,-30 V30 M-30,0 H30"/>', 'spin' ),
 		'square'   => array( '-40 -40 80 80', '<rect class="fill-3" x="-30" y="-30" width="60" height="60" rx="16"/>', 'spin' ),
 		'zigzag'   => array( '-55 -28 110 56', '<path class="line-3" d="M-45,14 L-22,-14 L0,14 L22,-14 L45,14"/>', 'wobble' ),
+		// --- ここから下は後から足したぶん。上の7つと同じ書き方（原点中心・クラスで着色）。 ---
+		'spark'    => array( '-52 -52 104 104', '<path class="fill-2" d="M0,-46 C5,-19 19,-5 46,0 C19,5 5,19 0,46 C-5,19 -19,5 -46,0 C-19,-5 -5,-19 0,-46 Z"/>', 'spin' ),
+		'donut'    => array( '-48 -48 96 96', '<circle class="line-3" r="30"/>', 'spin' ),
+		'pill'     => array( '-50 -30 100 60', '<rect class="fill-1" x="-38" y="-17" width="76" height="34" rx="17"/>', 'spin' ),
+		'arc'      => array( '-52 -38 104 76', '<path class="line-2" d="M-40,26 A40,40 0 0 1 40,26"/>', 'wobble' ),
+		'dots'     => array( '-48 -48 96 96', '<g class="fill-1"><circle cx="-30" cy="-30" r="7.5"/><circle cx="0" cy="-30" r="7.5"/><circle cx="30" cy="-30" r="7.5"/><circle cx="-30" cy="0" r="7.5"/><circle cx="0" cy="0" r="7.5"/><circle cx="30" cy="0" r="7.5"/><circle cx="-30" cy="30" r="7.5"/><circle cx="0" cy="30" r="7.5"/><circle cx="30" cy="30" r="7.5"/></g>', 'wobble' ),
 	);
 
 	if ( ! isset( $shapes[ $shape ] ) ) {
@@ -1493,21 +1550,29 @@ function takumi_shape_field( $variant ) {
 			array( 'circle', array( 'x' => '4%',  'y' => '18%', 'size' => 'clamp(40px, 6vw, 86px)', 'depth' => 26, 'delay' => '-0.4s' ) ),
 			array( 'cross',  array( 'x' => '95%', 'y' => '12%', 'size' => 'clamp(26px, 3.4vw, 48px)', 'depth' => 34, 'delay' => '-3.9s' ) ),
 			array( 'zigzag', array( 'x' => '90%', 'y' => '78%', 'size' => 'clamp(44px, 6vw, 82px)', 'depth' => 48, 'delay' => '-4.3s', 'class' => 'is-sm-hidden' ) ),
+			array( 'spark',  array( 'x' => '93%', 'y' => '46%', 'size' => 'clamp(24px, 3.2vw, 44px)', 'depth' => 38, 'delay' => '-5.6s' ) ),
+			array( 'dots',   array( 'x' => '7%',  'y' => '88%', 'size' => 'clamp(28px, 3.6vw, 50px)', 'depth' => 22, 'delay' => '-2.1s', 'class' => 'is-sm-hidden' ) ),
 		),
 		'skill' => array(
 			array( 'square',   array( 'x' => '6%',  'y' => '74%', 'size' => 'clamp(32px, 4.4vw, 62px)', 'depth' => 20, 'delay' => '-6.5s' ) ),
 			array( 'triangle', array( 'x' => '94%', 'y' => '22%', 'size' => 'clamp(36px, 5vw, 72px)', 'depth' => 34, 'delay' => '-2.7s' ) ),
 			array( 'wave',     array( 'x' => '12%', 'y' => '8%',  'size' => 'clamp(56px, 8vw, 116px)', 'depth' => 16, 'delay' => '-5.1s', 'class' => 'is-sm-hidden' ) ),
+			array( 'arc',    array( 'x' => '96%', 'y' => '84%', 'size' => 'clamp(34px, 4.6vw, 64px)', 'depth' => 30, 'delay' => '-3.3s' ) ),
+			array( 'donut',  array( 'x' => '3%',  'y' => '30%', 'size' => 'clamp(26px, 3.4vw, 48px)', 'depth' => 44, 'delay' => '-7.8s', 'class' => 'is-sm-hidden' ) ),
 		),
 		'work' => array(
 			array( 'ring',   array( 'x' => '3%',  'y' => '34%', 'size' => 'clamp(34px, 4.6vw, 66px)', 'depth' => 42, 'delay' => '-1.2s' ) ),
 			array( 'circle', array( 'x' => '96%', 'y' => '66%', 'size' => 'clamp(30px, 4vw, 58px)', 'depth' => 26, 'delay' => '-2.8s' ) ),
 			array( 'cross',  array( 'x' => '88%', 'y' => '6%',  'size' => 'clamp(24px, 3vw, 42px)', 'depth' => 30, 'delay' => '-6s', 'class' => 'is-sm-hidden' ) ),
+			array( 'pill',   array( 'x' => '7%',  'y' => '90%', 'size' => 'clamp(34px, 4.4vw, 62px)', 'depth' => 24, 'delay' => '-1.9s' ) ),
+			array( 'spark',  array( 'x' => '94%', 'y' => '14%', 'size' => 'clamp(22px, 2.8vw, 40px)', 'depth' => 38, 'delay' => '-4.6s', 'class' => 'is-sm-hidden' ) ),
 		),
 		'contact' => array(
 			array( 'triangle', array( 'x' => '5%',  'y' => '62%', 'size' => 'clamp(34px, 4.6vw, 66px)', 'depth' => 34, 'delay' => '-7.4s' ) ),
 			array( 'zigzag',   array( 'x' => '93%', 'y' => '28%', 'size' => 'clamp(42px, 5.6vw, 78px)', 'depth' => 48, 'delay' => '-2.2s' ) ),
 			array( 'square',   array( 'x' => '80%', 'y' => '86%', 'size' => 'clamp(26px, 3.4vw, 48px)', 'depth' => 20, 'delay' => '-4.8s', 'class' => 'is-sm-hidden' ) ),
+			array( 'donut',    array( 'x' => '95%', 'y' => '8%',  'size' => 'clamp(26px, 3.4vw, 48px)', 'depth' => 44, 'delay' => '-0.9s' ) ),
+			array( 'dots',     array( 'x' => '9%',  'y' => '16%', 'size' => 'clamp(26px, 3.4vw, 48px)', 'depth' => 22, 'delay' => '-6.2s', 'class' => 'is-sm-hidden' ) ),
 		),
 		// --- 下層ページ（About / Work）---
 		// トップと同じ絵面にならないよう、形と位置を変えてある。
@@ -1516,25 +1581,30 @@ function takumi_shape_field( $variant ) {
 			array( 'ring',     array( 'x' => '4%',  'y' => '24%', 'size' => 'clamp(30px, 4.2vw, 58px)', 'depth' => 42, 'delay' => '-1.2s' ) ),
 			array( 'triangle', array( 'x' => '93%', 'y' => '14%', 'size' => 'clamp(28px, 3.8vw, 54px)', 'depth' => 34, 'delay' => '-2.7s', 'class' => 'is-sm-hidden' ) ),
 			array( 'square',   array( 'x' => '96%', 'y' => '80%', 'size' => 'clamp(24px, 3.2vw, 46px)', 'depth' => 20, 'delay' => '-6.5s' ) ),
+			array( 'arc',      array( 'x' => '6%',  'y' => '64%', 'size' => 'clamp(30px, 4vw, 56px)', 'depth' => 30, 'delay' => '-3.3s', 'class' => 'is-sm-hidden' ) ),
 		),
 		'about-career' => array(
 			array( 'wave',   array( 'x' => '8%',  'y' => '10%', 'size' => 'clamp(46px, 6vw, 92px)', 'depth' => 16, 'delay' => '-5.1s', 'class' => 'is-sm-hidden' ) ),
 			array( 'circle', array( 'x' => '95%', 'y' => '44%', 'size' => 'clamp(28px, 3.8vw, 54px)', 'depth' => 26, 'delay' => '-0.4s' ) ),
 			array( 'cross',  array( 'x' => '4%',  'y' => '84%', 'size' => 'clamp(22px, 2.8vw, 38px)', 'depth' => 30, 'delay' => '-3.9s' ) ),
+			array( 'spark',  array( 'x' => '92%', 'y' => '82%', 'size' => 'clamp(22px, 2.8vw, 40px)', 'depth' => 38, 'delay' => '-5.6s' ) ),
 		),
 		'about-cta' => array(
 			array( 'zigzag', array( 'x' => '90%', 'y' => '22%', 'size' => 'clamp(40px, 5.2vw, 74px)', 'depth' => 48, 'delay' => '-4.3s' ) ),
 			array( 'circle', array( 'x' => '6%',  'y' => '72%', 'size' => 'clamp(26px, 3.4vw, 48px)', 'depth' => 26, 'delay' => '-2.8s', 'class' => 'is-sm-hidden' ) ),
+			array( 'pill',   array( 'x' => '95%', 'y' => '64%', 'size' => 'clamp(30px, 4vw, 56px)', 'depth' => 24, 'delay' => '-1.9s' ) ),
 		),
 		'work-index' => array(
 			array( 'cross',  array( 'x' => '5%',  'y' => '18%', 'size' => 'clamp(22px, 2.8vw, 40px)', 'depth' => 30, 'delay' => '-6s' ) ),
 			array( 'ring',   array( 'x' => '94%', 'y' => '32%', 'size' => 'clamp(32px, 4.4vw, 62px)', 'depth' => 42, 'delay' => '-1.2s' ) ),
 			array( 'square', array( 'x' => '9%',  'y' => '86%', 'size' => 'clamp(26px, 3.4vw, 48px)', 'depth' => 20, 'delay' => '-6.5s', 'class' => 'is-sm-hidden' ) ),
+			array( 'donut',  array( 'x' => '96%', 'y' => '70%', 'size' => 'clamp(26px, 3.4vw, 46px)', 'depth' => 44, 'delay' => '-7.8s' ) ),
 		),
 		'work-detail' => array(
 			array( 'triangle', array( 'x' => '95%', 'y' => '10%', 'size' => 'clamp(30px, 4vw, 58px)', 'depth' => 34, 'delay' => '-7.4s' ) ),
 			array( 'wave',     array( 'x' => '5%',  'y' => '52%', 'size' => 'clamp(44px, 5.6vw, 86px)', 'depth' => 16, 'delay' => '-5.1s', 'class' => 'is-sm-hidden' ) ),
 			array( 'circle',   array( 'x' => '91%', 'y' => '88%', 'size' => 'clamp(24px, 3.2vw, 44px)', 'depth' => 26, 'delay' => '-0.4s' ) ),
+			array( 'dots',     array( 'x' => '7%',  'y' => '18%', 'size' => 'clamp(26px, 3.4vw, 46px)', 'depth' => 22, 'delay' => '-6.2s', 'class' => 'is-sm-hidden' ) ),
 		),
 		// フッターだけは「散らす」よりも「紛れさせる」のが目的。
 		// マスコット2体の周りに寄せて、クリーム色の丸い地を図形の一部に見せる。
@@ -1545,6 +1615,8 @@ function takumi_shape_field( $variant ) {
 			array( 'ring',   array( 'x' => '82%', 'y' => '30%', 'size' => 'clamp(28px, 3.8vw, 52px)', 'depth' => 42, 'delay' => '-1.2s' ) ),
 			array( 'square', array( 'x' => '97%', 'y' => '62%', 'size' => 'clamp(24px, 3.2vw, 44px)', 'depth' => 20, 'delay' => '-6.5s' ) ),
 			array( 'wave',   array( 'x' => '88%', 'y' => '84%', 'size' => 'clamp(44px, 6vw, 88px)', 'depth' => 16, 'delay' => '-5.1s', 'class' => 'is-sm-hidden' ) ),
+			array( 'spark',  array( 'x' => '9%',  'y' => '12%', 'size' => 'clamp(22px, 2.8vw, 40px)', 'depth' => 38, 'delay' => '-5.6s' ) ),
+			array( 'arc',    array( 'x' => '93%', 'y' => '10%', 'size' => 'clamp(30px, 4vw, 56px)', 'depth' => 30, 'delay' => '-3.3s', 'class' => 'is-sm-hidden' ) ),
 		),
 	);
 
@@ -1748,27 +1820,27 @@ function takumi_get_skills_data() {
 
 	if ( ! $posts ) {
 		return array(
-			array( 'html', 'HTML', '4 yrs', 90, 'LP・WordPressテーマの制作で使用' ),
-			array( 'css', 'CSS', '4 yrs', 85, 'レスポンシブとアニメーション実装で使用' ),
-			array( 'js', 'JavaScript', '2 yrs', 70, 'UI実装とスクロール演出(GSAP)で使用' ),
-			array( 'ts', 'TypeScript', '1 yr', 65, 'crystallography / FUMI をTypeScriptで構築' ),
-			array( 'react', 'React', '1 yr', 60, 'gourmet-Maps(React 19)・Apogee(React 18)で使用' ),
-			array( 'vite', 'Vite', '1 yr', 60, 'フロントエンドのビルド環境として常用' ),
-			array( 'tailwind', 'Tailwind CSS', '1 yr', 55, 'アプリのUIスタイリングで使用' ),
-			array( 'php', 'PHP', '2 yrs', 65, 'Laravel・WordPressテーマ開発で使用' ),
-			array( 'laravel', 'Laravel', '1 yr', 55, 'Code_Note・Laravel_ToDo を制作' ),
-			array( 'java', 'Java', '1 yr', 55, 'Apogee を Spring Boot 3 で構築' ),
-			array( 'spring', 'Spring Boot', '1 yr', 50, '認証(Spring Security / OAuth2)まで実装' ),
-			array( 'cs', 'C#', '1 yr', 45, 'gourmet-Maps を ASP.NET Core で制作' ),
-			array( 'python', 'Python', '2 yrs', 60, '産学連携のDjango開発と基本構文の習得' ),
-			array( 'django', 'Django', 'Learning', 35, '産学連携プロジェクトで制作経験あり' ),
-			array( 'nodejs', 'Node.js', '1 yr', 55, 'Express 5 + TypeScript でREST APIを実装' ),
-			array( 'mysql', 'MySQL', '1 yr', 55, 'Apogee・Code_Note のテーブル設計とJPA経由の操作' ),
-			array( 'docker', 'Docker', '1 yr', 55, 'docker compose で開発環境を構築' ),
-			array( 'git', 'Git', '2 yrs', 70, 'ブランチ運用を含めた日常的なバージョン管理' ),
-			array( 'github', 'GitHub', '2 yrs', 70, 'チーム開発とGitHub Actionsでの自動化' ),
-			array( 'wordpress', 'WordPress', '4 yrs', 90, 'オリジナルテーマの制作で使用' ),
-			array( 'threejs', 'Three.js', 'Learning', 30, '本サイトの3D演出で使用' ),
+			array( 'html', 'HTML', '4 yrs', 90, 'LP・WordPressテーマの制作で使用', 'main' ),
+			array( 'css', 'CSS', '4 yrs', 85, 'レスポンシブとアニメーション実装で使用', 'main' ),
+			array( 'js', 'JavaScript', '2 yrs', 70, 'UI実装とスクロール演出(GSAP)で使用', 'main' ),
+			array( 'ts', 'TypeScript', '1 yr', 65, 'crystallography / FUMI をTypeScriptで構築', 'main' ),
+			array( 'react', 'React', '1 yr', 60, 'gourmet-Maps(React 19)・Apogee(React 18)で使用', 'sub' ),
+			array( 'vite', 'Vite', '1 yr', 60, 'フロントエンドのビルド環境として常用', 'tool' ),
+			array( 'tailwind', 'Tailwind CSS', '1 yr', 55, 'アプリのUIスタイリングで使用', 'sub' ),
+			array( 'php', 'PHP', '2 yrs', 65, 'Laravel・WordPressテーマ開発で使用', 'main' ),
+			array( 'laravel', 'Laravel', '1 yr', 55, 'Code_Note・Laravel_ToDo を制作', 'sub' ),
+			array( 'java', 'Java', '1 yr', 55, 'Apogee を Spring Boot 3 で構築', 'sub' ),
+			array( 'spring', 'Spring Boot', '1 yr', 50, '認証(Spring Security / OAuth2)まで実装', 'sub' ),
+			array( 'cs', 'C#', '1 yr', 45, 'gourmet-Maps を ASP.NET Core で制作', 'sub' ),
+			array( 'python', 'Python', '2 yrs', 60, '産学連携のDjango開発と基本構文の習得', 'sub' ),
+			array( 'django', 'Django', 'Learning', 35, '産学連携プロジェクトで制作経験あり', 'sub' ),
+			array( 'nodejs', 'Node.js', '1 yr', 55, 'Express 5 + TypeScript でREST APIを実装', 'sub' ),
+			array( 'mysql', 'MySQL', '1 yr', 55, 'Apogee・Code_Note のテーブル設計とJPA経由の操作', 'tool' ),
+			array( 'docker', 'Docker', '1 yr', 55, 'docker compose で開発環境を構築', 'tool' ),
+			array( 'git', 'Git', '2 yrs', 70, 'ブランチ運用を含めた日常的なバージョン管理', 'tool' ),
+			array( 'github', 'GitHub', '2 yrs', 70, 'チーム開発とGitHub Actionsでの自動化', 'tool' ),
+			array( 'wordpress', 'WordPress', '4 yrs', 90, 'オリジナルテーマの制作で使用', 'main' ),
+			array( 'threejs', 'Three.js', 'Learning', 30, '本サイトの3D演出で使用', 'sub' ),
 		);
 	}
 
@@ -1779,6 +1851,7 @@ function takumi_get_skills_data() {
 			get_post_meta( $post->ID, '_takumi_experience', true ),
 			(int) get_post_meta( $post->ID, '_takumi_percent', true ),
 			get_post_meta( $post->ID, '_takumi_note', true ),
+			get_post_meta( $post->ID, '_takumi_genre', true ),
 		);
 	}, $posts );
 }
@@ -1831,6 +1904,42 @@ function takumi_skill_icon_url( $icon ) {
 /**
  * トップページ Skill セクション用の上位アイコンを取得
  */
+/**
+ * トップの横スクロールに出すスキルカードを組み立てる。
+ * 「何の分野か」ではなく「どれくらい使えるか」で分ける。見る人が知りたいのはそちらなので。
+ * ジャンル欄が空のスキルは習熟度から振り分ける(ツールだけは自動で判別できないので手入力)。
+ */
+function takumi_get_skill_groups() {
+	$groups = array(
+		'main' => array(
+			'title' => get_theme_mod( 'takumi_skill_group_main', 'よく使う' ),
+			'text'  => get_theme_mod( 'takumi_skill_group_main_text', '日常的に書いているもの。制作の土台になっています。' ),
+			'items' => array(),
+		),
+		'sub'  => array(
+			'title' => get_theme_mod( 'takumi_skill_group_sub', '経験あり' ),
+			'text'  => get_theme_mod( 'takumi_skill_group_sub_text', '個人開発や授業で実際に動くものを作ったことがあるもの。' ),
+			'items' => array(),
+		),
+		'tool' => array(
+			'title' => get_theme_mod( 'takumi_skill_group_tool', '環境・ツール' ),
+			'text'  => get_theme_mod( 'takumi_skill_group_tool_text', '言語そのものではなく、開発を回すために使っている道具。' ),
+			'items' => array(),
+		),
+	);
+
+	foreach ( takumi_get_skills_data() as $skill ) {
+		$genre = isset( $skill[5] ) ? $skill[5] : '';
+		if ( ! isset( $groups[ $genre ] ) ) {
+			$genre = ( (int) $skill[3] >= 65 ) ? 'main' : 'sub';
+		}
+		$groups[ $genre ]['items'][] = $skill;
+	}
+
+	// 中身が1つも無いジャンルはカードごと出さない。
+	return array_filter( $groups, fn( $group ) => (bool) $group['items'] );
+}
+
 function takumi_get_top_skill_icons( $limit = 6 ) {
 	$icons = array_filter( array_column( takumi_get_skills_data(), 0 ) );
 	return array_slice( $icons, 0, $limit );
@@ -1904,6 +2013,7 @@ function takumi_get_builds_data() {
 				'meta'  => '設計・API・UI すべて一人で / Spring Boot 3 + React 18 + MySQL',
 				'icons' => array( 'java', 'spring', 'react', 'mysql', 'docker' ),
 				'url'   => $repo . 'Apogee',
+				'image' => '',
 			),
 			array(
 				'cat'   => 'TABE MAP',
@@ -1912,6 +2022,7 @@ function takumi_get_builds_data() {
 				'meta'  => 'ASP.NET Core 9 + React 19 / EF Core・Identity・Leaflet',
 				'icons' => array( 'cs', 'dotnet', 'react', 'vite', 'docker' ),
 				'url'   => $repo . 'gourmet-Maps',
+				'image' => '',
 			),
 			array(
 				'cat'   => 'CRYSTALLOGRAPHY',
@@ -1920,6 +2031,7 @@ function takumi_get_builds_data() {
 				'meta'  => 'Express 5 + TypeScript + Vite / Docker Compose',
 				'icons' => array( 'ts', 'vite', 'nodejs', 'express', 'docker' ),
 				'url'   => $repo . 'crystallography',
+				'image' => '',
 			),
 			array(
 				'cat'   => 'CODE NOTE',
@@ -1928,6 +2040,7 @@ function takumi_get_builds_data() {
 				'meta'  => 'Laravel + MySQL / CodeMirror・commonmark',
 				'icons' => array( 'php', 'laravel', 'mysql', 'js' ),
 				'url'   => $repo . 'Code_Note',
+				'image' => '',
 			),
 			array(
 				'cat'   => 'FUMI',
@@ -1936,6 +2049,7 @@ function takumi_get_builds_data() {
 				'meta'  => '制作中 / TypeScript + Vite + Tailwind CSS',
 				'icons' => array( 'ts', 'vite', 'tailwind', 'css' ),
 				'url'   => $repo . 'FUMI',
+				'image' => '',
 			),
 		);
 	}
@@ -1950,8 +2064,192 @@ function takumi_get_builds_data() {
 			'meta'  => $meta( 'meta' ),
 			'icons' => array_filter( array_map( 'trim', explode( ',', $meta( 'icons' ) ) ) ),
 			'url'   => $meta( 'url' ),
+			// アイキャッチ画像。未設定ならカードは今までどおり差し色ベタのまま。
+			'image' => (string) get_the_post_thumbnail_url( $post, 'large' ),
 		);
 	}, $posts );
+}
+
+/* ---------- カードリング(円周に並べた写真) ---------- */
+
+/**
+ * カードリングに並べる写真を集める
+ *
+ * 出どころは「制作実績」のアイキャッチが第一。1枚も無ければ「個人開発」の
+ * アイキャッチ、それも無ければテーマ同梱の画像で埋める(空のリングを出さない)。
+ * 各要素: array( image, title, label, url, external )
+ */
+function takumi_get_card_ring_items() {
+	$items = array();
+
+	foreach ( takumi_get_works() as $work ) {
+		$image = (string) get_the_post_thumbnail_url( $work, 'large' );
+		if ( ! $image ) {
+			continue;
+		}
+		list( $label ) = takumi_work_record_parts( $work );
+		$items[] = array(
+			'image'    => $image,
+			'title'    => get_the_title( $work ),
+			'label'    => $label,
+			'url'      => takumi_page_url( 'work' ) . '#' . takumi_work_anchor( $work ),
+			'external' => false,
+		);
+	}
+
+	if ( ! $items ) {
+		foreach ( takumi_get_builds_data() as $build ) {
+			if ( empty( $build['image'] ) ) {
+				continue;
+			}
+			$items[] = array(
+				'image'    => $build['image'],
+				'title'    => $build['cat'],
+				'label'    => $build['meta'],
+				'url'      => $build['url'],
+				'external' => true,
+			);
+		}
+	}
+
+	if ( ! $items ) {
+		// 同梱画像での既定。実績にアイキャッチを設定すれば自動で差し替わる。
+		$uri      = get_template_directory_uri() . '/assets/img/';
+		$fallback = array(
+			array( 'YLMEMORIA/YL MEMORIA.png', 'YL MEMORIA', 'WEB SITE' ),
+			array( 'hikariwo/HiKaRiWo_LP.png', 'HiKaRiWo', 'LANDING PAGE' ),
+			array( 'Lapesca/Lapeseca_top.png', 'Lapesca', 'WEB SITE' ),
+			array( 'SPOTtimer/SPOTtimer.png', 'SPOT timer', 'APP' ),
+			array( 'TODO/todo-top.jpeg', 'TODO', 'APP' ),
+			array( 'img/portfolio.png', "Takumi's Portfolio", 'WORDPRESS' ),
+			array( '若鯱家-top.png', '若鯱家', 'WEB SITE' ),
+			array( 'YLMEMORIA/Plumeria.png', 'Plumeria', 'WEB SITE' ),
+		);
+		foreach ( $fallback as $row ) {
+			$items[] = array(
+				'image'    => $uri . $row[0],
+				'title'    => $row[1],
+				'label'    => $row[2],
+				'url'      => takumi_page_url( 'work' ),
+				'external' => false,
+			);
+		}
+	}
+
+	$limit = (int) get_theme_mod( 'takumi_ring_limit', 8 );
+	if ( $limit > 0 && count( $items ) > $limit ) {
+		$items = array_slice( $items, 0, $limit );
+	}
+
+	return $items;
+}
+
+/**
+ * カードリングのセクションを出力する
+ *
+ * 写真は円周の接線を向いて立っている(本棚に並んだ背表紙と同じ向き)。
+ * 手前に来た1枚だけが正面を向き、ドラッグ・スワイプで回して選ぶ。
+ * JS が無いときは横スクロールの一列として、そのまま見られる。
+ *
+ * bare を true にすると、棚そのものだけを出す(section も見出しも付けない)。
+ * Work のように見出しが既にあるセクションの中へ入れるときに使う。
+ * 見出しが二重になるのを避けるため、その場合 num / en / ja / heading / lede は使われない。
+ *
+ * @param array $args bare / num / en / ja / heading / lede / id を上書きしたいときに渡す。
+ */
+function takumi_card_ring( $args = array() ) {
+	$items = takumi_get_card_ring_items();
+	if ( count( $items ) < 2 ) {
+		return; // 1枚では回すものが無いので出さない
+	}
+
+	$args = wp_parse_args( $args, array(
+		'bare'    => false,
+		'id'      => 'gallery',
+		'num'     => '—',
+		'en'      => get_theme_mod( 'takumi_top_ring_en', 'Gallery' ),
+		'ja'      => get_theme_mod( 'takumi_top_ring_ja', '作品の棚' ),
+		'heading' => get_theme_mod( 'takumi_ring_heading', "つくったものを、\n並べて置いています。" ),
+		'lede'    => get_theme_mod( 'takumi_top_ring_desc', '横にドラッグすると棚が回ります。正面の1枚を押すと、その制作実績へ移動します。' ),
+	) );
+
+	// 棚を指す名前。見出しを出さない置き方でも、読み上げ用のラベルとしては要る。
+	$ring_label = $args['en'];
+	?>
+	<?php if ( ! $args['bare'] ) : ?>
+	<section class="section section--tight card-ring-section" id="<?php echo esc_attr( $args['id'] ); ?>">
+		<div class="container">
+			<div class="lead" data-reveal>
+				<p class="lead__meta"><span><?php echo esc_html( $args['num'] ); ?></span><?php echo esc_html( $args['en'] ); ?> <i><?php echo esc_html( $args['ja'] ); ?></i></p>
+				<div class="lead__body">
+					<h2 class="lead__title"><?php echo takumi_heading_html( $args['heading'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 行ごとにエスケープ済み ?></h2>
+					<p class="lead__lede"><?php echo esc_html( $args['lede'] ); ?></p>
+				</div>
+			</div>
+		</div>
+	<?php endif; ?>
+
+		<div class="card-ring<?php echo $args['bare'] ? ' card-ring--bare' : ''; ?>" data-reveal>
+			<?php
+			// 見出しを出さない置き方では、説明文の行き場が無くなる。
+			// 「ドラッグで回る」と分かる手がかりは要るので、一行だけ添える。
+			?>
+			<?php if ( $args['bare'] && $args['lede'] ) : ?>
+				<p class="card-ring__hint"><?php echo esc_html( $args['lede'] ); ?></p>
+			<?php endif; ?>
+
+			<?php // tabindex を持たせて、矢印キーでも回せるようにする ?>
+			<div class="card-ring__viewport" tabindex="0" role="group"
+				aria-label="<?php echo esc_attr( $ring_label ); ?>（左右にドラッグ、または矢印キーで回せます）">
+				<div class="card-ring__stage">
+					<?php foreach ( $items as $i => $item ) : ?>
+						<article class="card-ring__card" style="--i:<?php echo esc_attr( $i ); ?>"
+							data-title="<?php echo esc_attr( $item['title'] ); ?>"
+							data-label="<?php echo esc_attr( $item['label'] ); ?>"
+							data-url="<?php echo esc_url( $item['url'] ); ?>"
+							data-external="<?php echo $item['external'] ? '1' : '0'; ?>">
+							<?php // draggable="false" は必須。<a> の既定のドラッグが始まると回転が奪われる。 ?>
+							<a class="card-ring__link" draggable="false" href="<?php echo esc_url( $item['url'] ); ?>"<?php echo $item['external'] ? ' target="_blank" rel="noopener"' : ''; ?>>
+								<img src="<?php echo esc_url( $item['image'] ); ?>" alt="<?php echo esc_attr( $item['title'] ); ?>" loading="lazy" draggable="false">
+								<span class="card-ring__gloss" aria-hidden="true"></span>
+								<span class="card-ring__plate">
+									<small><?php echo esc_html( $item['label'] ); ?></small>
+									<strong><?php echo esc_html( $item['title'] ); ?></strong>
+								</span>
+							</a>
+						</article>
+					<?php endforeach; ?>
+				</div>
+				<span class="card-ring__shelf" aria-hidden="true"></span>
+			</div>
+
+			<div class="card-ring__hud">
+				<button type="button" class="card-ring__arrow" data-ring-step="-1" aria-label="前の作品へ">
+					<span aria-hidden="true">←</span>
+				</button>
+
+				<div class="card-ring__caption" aria-live="polite">
+					<p class="card-ring__caption-label"></p>
+					<p class="card-ring__caption-title"></p>
+					<a href="#"><?php echo esc_html( get_theme_mod( 'takumi_ring_link_text', '詳しく見る' ) ); ?></a>
+				</div>
+
+				<button type="button" class="card-ring__arrow" data-ring-step="1" aria-label="次の作品へ">
+					<span aria-hidden="true">→</span>
+				</button>
+			</div>
+
+			<div class="card-ring__dots">
+				<p class="card-ring__count"></p>
+				<?php foreach ( $items as $i => $item ) : ?>
+					<button type="button" class="card-ring__dot" aria-label="<?php echo esc_attr( $item['title'] ); ?>"></button>
+				<?php endforeach; ?>
+			</div>
+		</div>
+	<?php if ( ! $args['bare'] ) : ?>
+	</section>
+	<?php endif; ?>
+	<?php
 }
 
 /**

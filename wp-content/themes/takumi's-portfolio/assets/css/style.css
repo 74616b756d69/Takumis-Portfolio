@@ -1995,6 +1995,21 @@ a { color: inherit; text-decoration: none; }
 .shape-deco--zigzag .shape__float   { animation-duration: calc(var(--float-duration) * 1.58); animation-name: deco-float-x; }
 .shape-deco--zigzag .shape__wobble  { animation-duration: calc(var(--spin-duration) * 0.33); }
 
+/* 後から足した図形。線の太さは形ごとに変える（--stroke の既定は 6）。 */
+.shape-deco--donut { --stroke: 17; }   /* 太く引いてドーナツの輪に見せる */
+.shape-deco--arc   { --stroke: 8; }
+
+.shape-deco--spark .shape__float    { animation-duration: calc(var(--float-duration) * 0.78); }
+.shape-deco--spark .shape__spin     { animation-duration: calc(var(--spin-duration) * 0.62); }
+.shape-deco--donut .shape__float    { animation-duration: calc(var(--float-duration) * 1.26); animation-name: deco-float-x; }
+.shape-deco--donut .shape__spin     { animation-duration: calc(var(--spin-duration) * 1.15); animation-direction: reverse; }
+.shape-deco--pill .shape__float     { animation-duration: calc(var(--float-duration) * 1.08); }
+.shape-deco--pill .shape__spin      { animation-duration: calc(var(--spin-duration) * 1.55); }
+.shape-deco--arc .shape__float      { animation-duration: calc(var(--float-duration) * 1.38); animation-name: deco-float-x; }
+.shape-deco--arc .shape__wobble     { animation-duration: calc(var(--spin-duration) * 0.46); }
+.shape-deco--dots .shape__float     { animation-duration: calc(var(--float-duration) * 0.92); }
+.shape-deco--dots .shape__wobble    { animation-duration: calc(var(--spin-duration) * 0.52); animation-direction: reverse; }
+
 /* 狭い画面では本文に重なるので、内側寄りのものを落として密度も下げる */
 @media (max-width: 900px) {
   .shape-deco.is-sm-hidden { display: none; }
@@ -2447,11 +2462,6 @@ a { color: inherit; text-decoration: none; }
   display: grid;
   gap: 6px;
 }
-.hscroll__note {
-  font-size: 0.9rem;
-  line-height: 1.7;
-  color: var(--text-dim);
-}
 .hscroll__count {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -2572,13 +2582,98 @@ a { color: inherit; text-decoration: none; }
   border-radius: 8px;
   background: rgba(11, 10, 16, 0.08);
 }
-.hpanel:nth-child(5n + 1) { background: var(--yellow); }
-.hpanel:nth-child(5n + 2) { background: var(--accent); }
-.hpanel:nth-child(5n + 3) { background: var(--violet); }
-.hpanel:nth-child(5n + 4) { background: #7de0c8; }
-.hpanel:nth-child(5n + 5) { background: var(--text); }
+.hpanel--c1 { background: var(--yellow); }
+.hpanel--c2 { background: var(--accent); }
+.hpanel--c3 { background: var(--violet); }
+.hpanel--c4 { background: #7de0c8; }
+.hpanel--c5 { background: var(--text); }
+
+/* スクショ入りのカード。画像が無ければこの指定は一切効かず、差し色ベタのままになる */
+.hpanel__shot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hpanel--shot { color: var(--text); }
+.hpanel--shot::after {
+  /* 既存の光沢グラデを、文字を読ませるための暗いスクリムに差し替える */
+  background: linear-gradient(180deg, rgba(11, 10, 16, 0.2) 0%, rgba(11, 10, 16, 0.72) 48%, rgba(11, 10, 16, 0.94) 100%);
+}
+.hpanel--shot > *:not(.hpanel__shot) {
+  position: relative;
+  z-index: 1;
+}
+.hpanel--shot .hpanel__num { color: rgba(246, 243, 236, 0.65); }
+.hpanel--shot p { color: rgba(246, 243, 236, 0.78); }
+.hpanel--shot .hpanel__meta {
+  border-top-color: rgba(246, 243, 236, 0.22);
+  color: rgba(246, 243, 236, 0.66);
+}
+.hpanel--shot .hpanel__icons img { background: rgba(246, 243, 236, 0.14); }
+.hpanel--shot .hpanel__link {
+  border-color: rgba(246, 243, 236, 0.4);
+  color: var(--text);
+}
+.hpanel--shot .hpanel__link:hover,
+.hpanel--shot .hpanel__link:focus-visible {
+  background: rgba(246, 243, 236, 0.16);
+  border-color: rgba(246, 243, 236, 0.75);
+}
+
+/* スキルのカード。作品カードの差し色と違い、面を落として「一覧」として読ませる */
+.hpanel--skill {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+  justify-content: flex-start;
+  gap: 18px;
+}
+.hpanel--skill::after { display: none; }
+.hpanel--skill .hpanel__num { color: var(--text-dim); }
+.hpanel--skill p { color: var(--text-dim); }
+.hpanel__skills {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.hpanel__skills li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line);
+}
+.hpanel__skills li:last-child { border-bottom: 0; }
+.hpanel__skills img {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+}
+.hpanel__skill-name {
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.hpanel__skill-exp {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
 @media (max-width: 720px) {
   .hpanel { width: 78vw; min-height: calc(78vw * 1.25); padding: 24px; }
+  /* 行数の多いスキルカードは、高さを中身に合わせて伸ばす */
+  .hpanel--skill { min-height: 0; }
+  .hpanel__skills li { grid-template-columns: 20px minmax(0, 1fr) auto; gap: 8px; }
+  .hpanel__skills img { width: 20px; height: 20px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hscroll { height: auto; }
@@ -3051,6 +3146,326 @@ body.is-modal-open { overflow: hidden; }
   .work-modal__panel,
   .work-modal::backdrop { animation: none; opacity: 1; }
   .work-modal__close { transition: none; }
+}
+
+/* ============================================================
+   Card Ring — 円周に並べた写真を、ドラッグで回す
+   ------------------------------------------------------------
+   写真は円の接線を向いて立っている。本棚に並べた背表紙と同じ向きで、
+   手前に来た1枚だけが正面を向く。
+
+   JS が動かないときは、ここに書いた「横スクロールの一列」がそのまま残る。
+   .is-ready が付いたときだけ 3D のリングに切り替わる。
+   ============================================================ */
+.card-ring-section { overflow: hidden; }
+
+.card-ring {
+  --card-w: clamp(168px, 19vw, 236px);
+  /* 本の背表紙のような縦長。横長のスクリーンショットでも上端(ファーストビュー)が
+     残るよう、下の object-position で上寄せにしている。 */
+  --card-h: calc(var(--card-w) * 5 / 4);
+  margin-top: clamp(28px, 4.5vw, 52px);
+}
+
+/* ---------- JS が無いときの見え方(横一列) ---------- */
+/* 見出しを持つセクションの中に入れたとき。container の幅に収め、
+   はみ出したカードはここで切る(body の overflow に頼らない)。 */
+.card-ring--bare {
+  overflow: hidden;
+  margin: clamp(32px, 4.5vw, 56px) calc(clamp(10px, 2.5vw, 32px) * -1) clamp(44px, 6vw, 80px);
+  padding: 0 clamp(10px, 2.5vw, 32px);
+}
+
+/* 「ドラッグで回る」と気づくための一行。見出しのラベルと同じ調子にそろえる。 */
+.card-ring__hint {
+  font-family: var(--font-label);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  line-height: 1.8;
+  color: var(--text-dim);
+  text-align: center;
+  margin-bottom: clamp(16px, 2.5vw, 26px);
+}
+
+.card-ring__viewport {
+  position: relative;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 8px clamp(20px, 5vw, 64px) 20px;
+}
+
+.card-ring__stage {
+  display: flex;
+  gap: 18px;
+}
+
+.card-ring__card {
+  flex: 0 0 auto;
+  width: var(--card-w);
+  height: var(--card-h);
+  scroll-snap-align: center;
+}
+
+.card-ring__shelf { display: none; }
+
+/* ---------- JS が動いたときのリング ---------- */
+.card-ring.is-ready .card-ring__viewport {
+  overflow: visible;
+  padding: 0;
+  height: calc(var(--card-h) + clamp(28px, 4.5vw, 60px));
+  perspective: 1500px;
+  perspective-origin: 50% 46%;
+  cursor: grab;
+  /* 縦スクロールはページに渡し、横方向だけドラッグとして受け取る */
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.card-ring.is-ready .card-ring__viewport:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 10px;
+  border-radius: var(--radius);
+}
+
+.card-ring.is-ready.is-dragging .card-ring__viewport { cursor: grabbing; }
+
+.card-ring.is-ready .card-ring__stage {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.card-ring.is-ready .card-ring__card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--card-w);
+  height: var(--card-h);
+  margin: calc(var(--card-h) / -2) 0 0 calc(var(--card-w) / -2);
+  /* 円の向こう側に回った写真は、裏返って見えるので消す */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
+  /* 実際の回転量は JS が transform に直接書き込む */
+}
+
+/* 棚板のかわりの影。カードの足もとに置いて、浮いて見えないようにする。 */
+.card-ring.is-ready .card-ring__shelf {
+  display: block;
+  position: absolute;
+  left: 50%;
+  bottom: clamp(6px, 2vw, 22px);
+  width: min(820px, 88%);
+  height: clamp(40px, 6vw, 72px);
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at 50% 50%, rgba(255, 77, 148, 0.2), rgba(11, 10, 16, 0) 70%);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+/* ---------- カード1枚 ---------- */
+.card-ring__link {
+  position: relative;
+  display: block;
+  /* リンク自体もドラッグ対象にしない(JS 側の dragstart 抑止と合わせて二重に効かせる) */
+  -webkit-user-drag: none;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+}
+
+.card-ring__link img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Web サイトの写真は上のほうが顔なので、切るなら下から切る */
+  object-position: center top;
+  -webkit-user-drag: none;
+}
+
+/* 正面から外れるほど暗く、少し小さくする(--facing は JS が 0〜1 で流す) */
+.card-ring.is-ready .card-ring__link {
+  transform: scale(calc(0.88 + 0.12 * var(--facing, 1)));
+  filter: brightness(calc(0.38 + 0.62 * var(--facing, 1)));
+}
+
+.card-ring.is-ready .card-ring__card.is-active .card-ring__link {
+  border-color: var(--accent);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--accent-soft);
+}
+
+/* 写真の上を斜めに横切る光。手前の1枚だけ強く出す。 */
+.card-ring__gloss {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(112deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, 0) 62%, rgba(255, 255, 255, 0.1) 100%);
+  opacity: calc(0.25 + 0.75 * var(--facing, 1));
+}
+
+/* 背表紙のラベル */
+.card-ring__plate {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px 15px;
+  background: linear-gradient(0deg, rgba(11, 10, 16, 0.92) 0%, rgba(11, 10, 16, 0.72) 55%, rgba(11, 10, 16, 0) 100%);
+}
+
+.card-ring__plate small {
+  font-family: var(--font-label);
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.card-ring__plate strong {
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+/* ---------- 手前の1枚の説明と操作 ---------- */
+.card-ring__hud {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 3vw, 36px);
+  width: min(1100px, 90%);
+  margin: clamp(18px, 3vw, 34px) auto 0;
+}
+
+.card-ring__arrow {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.card-ring__arrow:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.card-ring__caption {
+  /* 伸ばしっぱなしにすると矢印が画面の左右端まで散るので、幅を抑えて中央に寄せる */
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 520px;
+  text-align: center;
+}
+
+.card-ring__caption-label {
+  font-family: var(--font-label);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.card-ring__caption-title {
+  font-family: var(--font-display);
+  font-size: clamp(17px, 2.4vw, 24px);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.card-ring__caption a {
+  display: inline-block;
+  margin-top: 6px;
+  font-family: var(--font-label);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+}
+
+/* JS が中身を入れるまでは空なので、場所だけ取って何も見せない */
+.card-ring:not(.is-ready) .card-ring__hud,
+.card-ring:not(.is-ready) .card-ring__dots { display: none; }
+
+/* ---------- 何枚目かの目印 ---------- */
+.card-ring__dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: clamp(14px, 2.4vw, 24px);
+}
+
+.card-ring__count {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--text-dim);
+  margin-right: 8px;
+}
+
+.card-ring__dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--line-strong);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.card-ring__dot:hover { background: var(--text-dim); }
+
+.card-ring__dot.is-on {
+  background: var(--accent);
+  transform: scale(1.4);
+}
+
+@media (max-width: 900px) {
+  .card-ring { --card-w: clamp(152px, 26vw, 200px); }
+}
+
+@media (max-width: 600px) {
+  .card-ring { --card-w: 140px; }
+  .card-ring.is-ready .card-ring__viewport { perspective: 1000px; }
+  .card-ring__arrow { width: 40px; height: 40px; }
+  .card-ring__plate { padding: 10px 12px 11px; }
+  .card-ring__plate strong { font-size: 13px; }
+
+  /* container の内側だと両脇のカードが切れるので、画面の端まで広げる */
+  .card-ring--bare {
+    margin-inline: calc(50% - 50vw);
+    padding-inline: 0;
+  }
+  .card-ring__hint { padding-inline: 20px; }
+}
+
+/* 背の低い横向きでは、カードが画面からはみ出さない高さに抑える */
+@media (orientation: landscape) and (max-height: 560px) {
+  .card-ring { --card-w: 132px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-ring__arrow,
+  .card-ring__dot { transition: none; }
 }
 
 /* ============================================================
