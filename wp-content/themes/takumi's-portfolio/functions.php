@@ -255,16 +255,6 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'type'        => 'textarea',
 	) );
 
-	$wp_customize->add_setting( 'takumi_top_skill_desc', array(
-		'default'           => 'フロントエンドからバックエンドまで。HTML/CSSでの制作経験を軸に、React・Spring Boot・ASP.NET Core まで、実際に動くものを作りながら幅を広げています。',
-		'sanitize_callback' => 'sanitize_textarea_field',
-	) );
-	$wp_customize->add_control( 'takumi_top_skill_desc', array(
-		'label'   => 'Skillセクションの説明文',
-		'section' => 'takumi_top_texts',
-		'type'    => 'textarea',
-	) );
-
 	$wp_customize->add_setting( 'takumi_home_work_limit', array(
 		'default'           => 0,
 		'sanitize_callback' => 'absint',
@@ -358,31 +348,6 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'takumi_hero_label' => array(
 			'takumi_headings', 'トップ: ヒーロー上部のラベル', 'Portfolio / Web Developer', 'text', '',
 		),
-		'takumi_skill_heading' => array(
-			'takumi_headings', 'トップ: Skill の見出し', "触れる技術を、\n増やしている途中です。", 'textarea',
-			'改行した位置で行が分かれます。',
-		),
-		'takumi_skill_label' => array(
-			'takumi_headings', 'トップ: Skillのラベル', 'Skills — at a glance', 'text', '',
-		),
-		'takumi_skill_group_main' => array(
-			'takumi_headings', 'トップ: スキルカード1の見出し', '得意', 'text', '',
-		),
-		'takumi_skill_group_main_text' => array(
-			'takumi_headings', 'トップ: スキルカード1の説明', '日常的に書いているもの。制作の土台になっています。', 'text', '',
-		),
-		'takumi_skill_group_exp' => array(
-			'takumi_headings', 'トップ: スキルカード2の見出し', '経験・学習中', 'text', '',
-		),
-		'takumi_skill_group_exp_text' => array(
-			'takumi_headings', 'トップ: スキルカード2の説明', '授業や個人開発で触れてきたものと、いま新しく学んでいるもの。', 'text', '',
-		),
-		'takumi_skill_group_tool' => array(
-			'takumi_headings', 'トップ: スキルカード3の見出し', 'ツール', 'text', '',
-		),
-		'takumi_skill_group_tool_text' => array(
-			'takumi_headings', 'トップ: スキルカード3の説明', '言語そのものではなく、開発を回すために使っている道具。', 'text', '',
-		),
 		'takumi_work_heading' => array(
 			'takumi_headings', 'Work の見出し', "実装の幅を、\n結果で見せる。", 'textarea',
 			'トップページの Work セクションと Work ページの両方で使われます。改行した位置で行が分かれます。',
@@ -427,9 +392,6 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'takumi_top_profile_btn' => array(
 			'takumi_top_texts', 'トップ: Profile のボタン文言', 'More About Me', 'text', '',
 		),
-		'takumi_top_skill_more' => array(
-			'takumi_top_texts', 'トップ: Skill 下のリンク文言', 'スキルの一覧を見る', 'text', '',
-		),
 		'takumi_builds_link_text' => array(
 			'takumi_top_texts', 'トップ: 個人開発カードのリンク文言', 'GitHub で見る', 'text', '',
 		),
@@ -462,12 +424,6 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		),
 		'takumi_top_profile_ja' => array(
 			'takumi_section_labels', 'トップ: 01 の日本語ラベル', '私について', 'text', '',
-		),
-		'takumi_top_skill_en' => array(
-			'takumi_section_labels', 'トップ: 02 の英字ラベル', 'Skill', 'text', '',
-		),
-		'takumi_top_skill_ja' => array(
-			'takumi_section_labels', 'トップ: 02 の日本語ラベル', 'できること', 'text', '',
 		),
 		'takumi_top_work_en' => array(
 			'takumi_section_labels', 'トップ: 03 の英字ラベル', 'Work', 'text', '',
@@ -857,16 +813,6 @@ const TAKUMI_WORK_FIELDS = array(
 	'metric'=> array( 'レコード指標(英字)', 'Work一覧の索引に表示。空欄なら担当から自動生成。例: 8-PERSON TEAM' ),
 );
 
-/* ---------- スキルメタボックス ---------- */
-const TAKUMI_SKILL_FIELDS = array(
-	'icon'       => array( 'アイコン(skillicons.dev のID)', '例: html' ),
-	'genre'      => array( 'ジャンル', 'トップのスキルカードの振り分けに使う。main / base / sub / learn / tool のいずれか。'
-		. '空欄なら習熟度から自動で振り分ける。' ),
-	'experience' => array( '経験', '例: 4 yrs / Learning' ),
-	'percent'    => array( '習熟度(0-100)', '例: 90' ),
-	'note'       => array( '補足', '例: Webサイト制作で使用' ),
-);
-
 /* ---------- 経歴メタボックス ---------- */
 const TAKUMI_CAREER_FIELDS = array(
 	'date'        => array( '日付', '例: 2021.04' ),
@@ -884,7 +830,6 @@ const TAKUMI_BUILD_FIELDS = array(
 
 add_action( 'add_meta_boxes', function () {
 	add_meta_box( 'takumi_work_meta', '実績情報', takumi_meta_box_renderer( TAKUMI_WORK_FIELDS, 'work' ), 'works', 'normal', 'high' );
-	add_meta_box( 'takumi_skill_meta', 'スキル情報', takumi_meta_box_renderer( TAKUMI_SKILL_FIELDS, 'skill' ), 'skill', 'normal', 'high' );
 	add_meta_box( 'takumi_career_meta', '経歴情報', takumi_meta_box_renderer( TAKUMI_CAREER_FIELDS, 'career' ), 'career', 'normal', 'high' );
 	add_meta_box( 'takumi_build_meta', '個人開発の情報', takumi_meta_box_renderer( TAKUMI_BUILD_FIELDS, 'build' ), 'build', 'normal', 'high' );
 } );
@@ -906,9 +851,6 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 
 add_action( 'save_post_works', function ( $post_id ) {
 	takumi_save_meta_fields( $post_id, TAKUMI_WORK_FIELDS, 'work' );
-} );
-add_action( 'save_post_skill', function ( $post_id ) {
-	takumi_save_meta_fields( $post_id, TAKUMI_SKILL_FIELDS, 'skill' );
 } );
 add_action( 'save_post_career', function ( $post_id ) {
 	takumi_save_meta_fields( $post_id, TAKUMI_CAREER_FIELDS, 'career' );
@@ -1874,57 +1816,6 @@ function takumi_get_home_works() {
 
 /* ---------- スキル・経歴の取得 ---------- */
 
-/**
- * スキル一覧を取得(管理画面「スキル」に投稿がなければ既定値を返す)
- * 各要素: array( アイコンID, 名前, 経験, 習熟度%, 補足 )
- */
-function takumi_get_skills_data() {
-	$posts = get_posts( array(
-		'post_type'      => 'skill',
-		'posts_per_page' => -1,
-		'orderby'        => 'menu_order',
-		'order'          => 'ASC',
-	) );
-
-	if ( ! $posts ) {
-		return array(
-			array( 'html', 'HTML', '4 yrs', 90, 'LP・WordPressテーマの制作で使用', 'base' ),
-			array( 'css', 'CSS', '4 yrs', 85, 'レスポンシブとアニメーション実装で使用', 'base' ),
-			array( 'js', 'JavaScript', '2 yrs', 70, 'UI実装とスクロール演出(GSAP)で使用', 'main' ),
-			array( 'ts', 'TypeScript', '1 yr', 65, 'crystallography / FUMI をTypeScriptで構築', 'learn' ),
-			array( 'react', 'React', '1 yr', 60, 'gourmet-Maps(React 19)・Apogee(React 18)で使用', 'main' ),
-			array( 'vite', 'Vite', '1 yr', 60, 'フロントエンドのビルド環境として常用', 'tool' ),
-			array( 'tailwind', 'Tailwind CSS', '1 yr', 55, 'アプリのUIスタイリングで使用', 'learn' ),
-			array( 'php', 'PHP', '2 yrs', 65, 'Laravel・WordPressテーマ開発で使用', 'main' ),
-			array( 'laravel', 'Laravel', '1 yr', 55, 'Code_Note・Laravel_ToDo を制作', 'main' ),
-			array( 'java', 'Java', '1 yr', 55, 'Apogee を Spring Boot 3 で構築', 'sub' ),
-			array( 'spring', 'Spring Boot', '1 yr', 50, '認証(Spring Security / OAuth2)まで実装', 'sub' ),
-			array( 'cs', 'C#', '1 yr', 45, 'gourmet-Maps を ASP.NET Core で制作', 'learn' ),
-			array( 'python', 'Python', '2 yrs', 60, '産学連携のDjango開発と基本構文の習得', 'sub' ),
-			array( 'django', 'Django', 'Learning', 35, '産学連携プロジェクトで制作経験あり', 'learn' ),
-			array( 'nodejs', 'Node.js', '1 yr', 55, 'Express 5 + TypeScript でREST APIを実装', 'sub' ),
-			array( 'mysql', 'MySQL', '1 yr', 55, 'Apogee・Code_Note のテーブル設計とJPA経由の操作', 'tool' ),
-			array( 'docker', 'Docker', '1 yr', 55, 'docker compose で開発環境を構築', 'tool' ),
-			array( 'vscode', 'VS Code', '4 yrs', 85, '普段のエディタ。拡張機能とタスク設定で開発を回している', 'tool' ),
-			array( 'git', 'Git', '2 yrs', 70, 'ブランチ運用を含めた日常的なバージョン管理', 'tool' ),
-			array( 'github', 'GitHub', '2 yrs', 70, 'チーム開発とGitHub Actionsでの自動化', 'tool' ),
-			array( 'wordpress', 'WordPress', '4 yrs', 90, 'オリジナルテーマの制作で使用', 'main' ),
-			array( 'threejs', 'Three.js', 'Learning', 30, '本サイトの3D演出で使用', 'learn' ),
-			array( 'swift', 'Swift', 'Learning', 25, 'iOSアプリ開発の学習で使用', 'learn' ),
-		);
-	}
-
-	return array_map( function ( $post ) {
-		return array(
-			get_post_meta( $post->ID, '_takumi_icon', true ),
-			get_the_title( $post ),
-			get_post_meta( $post->ID, '_takumi_experience', true ),
-			(int) get_post_meta( $post->ID, '_takumi_percent', true ),
-			get_post_meta( $post->ID, '_takumi_note', true ),
-			get_post_meta( $post->ID, '_takumi_genre', true ),
-		);
-	}, $posts );
-}
 
 /**
  * 経歴一覧を取得(管理画面「経歴」に投稿がなければ既定値を返す)
@@ -1969,57 +1860,6 @@ function takumi_skill_icon_url( $icon ) {
 		return get_template_directory_uri() . '/assets/img/skills/' . $icon . '.svg';
 	}
 	return 'https://skillicons.dev/icons?i=' . rawurlencode( $icon );
-}
-
-/**
- * トップページ Skill セクション用の上位アイコンを取得
- */
-/**
- * トップの横スクロールに出すスキルカードを組み立てる。
- * 「何の分野か」ではなく「どれくらい使えるか」で分ける。見る人が知りたいのはそちらなので。
- * ジャンル欄が空のスキルは習熟度から振り分ける(ツールだけは自動で判別できないので手入力)。
- */
-function takumi_get_skill_groups() {
-	$groups = array(
-		'main' => array(
-			'title' => get_theme_mod( 'takumi_skill_group_main', '得意' ),
-			'text'  => get_theme_mod( 'takumi_skill_group_main_text', '日常的に書いているもの。制作の土台になっています。' ),
-			'items' => array(),
-		),
-		'exp' => array(
-			'title' => get_theme_mod( 'takumi_skill_group_exp', '経験・学習中' ),
-			'text'  => get_theme_mod( 'takumi_skill_group_exp_text', '授業や個人開発で触れてきたものと、いま新しく学んでいるもの。' ),
-			'items' => array(),
-		),
-		'tool' => array(
-			'title' => get_theme_mod( 'takumi_skill_group_tool', 'ツール' ),
-			'text'  => get_theme_mod( 'takumi_skill_group_tool_text', '言語そのものではなく、開発を回すために使っている道具。' ),
-			'items' => array(),
-		),
-	);
-
-	// 入力側は5段階(main/base/sub/learn/tool)のままにして、見せる段だけ3つに畳む。
-	$fold = array(
-		'main'  => 'main',
-		'base'  => 'exp',
-		'sub'   => 'exp',
-		'learn' => 'exp',
-		'tool'  => 'tool',
-	);
-
-	foreach ( takumi_get_skills_data() as $skill ) {
-		$genre = isset( $skill[5] ) ? $skill[5] : '';
-		$group = isset( $fold[ $genre ] ) ? $fold[ $genre ] : ( ( (int) $skill[3] >= 65 ) ? 'main' : 'exp' );
-		$groups[ $group ]['items'][] = $skill;
-	}
-
-	// 中身が1つも無いジャンルはカードごと出さない。
-	return array_filter( $groups, fn( $group ) => (bool) $group['items'] );
-}
-
-function takumi_get_top_skill_icons( $limit = 6 ) {
-	$icons = array_filter( array_column( takumi_get_skills_data(), 0 ) );
-	return array_slice( $icons, 0, $limit );
 }
 
 
