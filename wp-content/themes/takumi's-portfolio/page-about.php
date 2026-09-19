@@ -9,8 +9,7 @@ $uri     = get_template_directory_uri();
 $name_ja = get_theme_mod( 'takumi_name_ja', '赤堀 匠海' );
 $name_en = get_theme_mod( 'takumi_name_en', 'Akahori Takumi' );
 $motto   = get_theme_mod( 'takumi_motto', 'Behind every smile lies effort' );
-$github  = get_theme_mod( 'takumi_github', 'https://github.com/Akasan-T' );
-$x_url   = get_theme_mod( 'takumi_x', 'https://x.com/hori_hori_ak' );
+$github  = get_theme_mod( 'takumi_github', 'https://github.com/74616b756d69' );
 $face    = get_theme_mod( 'takumi_face' ) ?: $uri . '/assets/img/My_face.jpeg';
 
 // スキル・経歴は管理画面の「スキル」「経歴」から編集(投稿がなければ既定値)
@@ -21,6 +20,14 @@ $timeline = takumi_get_career_data();
 <main>
 	<section class="page-hero">
 		<canvas class="stars-canvas"></canvas>
+
+		<?php // 右の余白を埋める浮遊ブロブ。トップ（front-page.php）と同じ並び。 ?>
+		<span class="blob blob--1" aria-hidden="true"></span>
+		<span class="blob blob--2" aria-hidden="true"></span>
+		<span class="blob blob--3" aria-hidden="true"></span>
+		<span class="blob blob--4" aria-hidden="true"></span>
+		<span class="blob blob--5" aria-hidden="true"></span>
+
 		<div class="container page-hero__inner">
 			<p class="page-hero__label"><span>02</span> Profile / Skill / Career</p>
 			<h1 class="page-hero__title">About</h1>
@@ -31,6 +38,7 @@ $timeline = takumi_get_career_data();
 
 	<!-- Profile -->
 	<section class="section" id="profile">
+		<?php takumi_shape_field( 'about-profile' ); ?>
 		<div class="container">
 			<div class="section-head" data-reveal>
 				<span class="section-head__num">01</span>
@@ -57,7 +65,6 @@ $timeline = takumi_get_career_data();
 					<?php takumi_render_profile_facts(); ?>
 					<div class="profile-sns">
 						<a href="<?php echo esc_url( $github ); ?>" target="_blank" rel="noopener" aria-label="GitHub"><img src="<?php echo esc_url( $uri ); ?>/assets/img/github-brands.svg" alt="GitHub"></a>
-						<a href="<?php echo esc_url( $x_url ); ?>" target="_blank" rel="noopener" aria-label="X"><img src="<?php echo esc_url( $uri ); ?>/assets/img/x-solid.svg" alt="X"></a>
 					</div>
 				</div>
 			</div>
@@ -66,6 +73,7 @@ $timeline = takumi_get_career_data();
 
 	<!-- Skill -->
 	<section class="section section--alt" id="skill">
+		<?php takumi_section_art( 'ring', array( 'x' => '93%', 'y' => '24%', 'size' => 'clamp(120px, 13vw, 200px)' ) ); ?>
 		<div class="container">
 			<div class="section-head" data-reveal>
 				<span class="section-head__num">02</span>
@@ -87,8 +95,11 @@ $timeline = takumi_get_career_data();
 		</div>
 	</section>
 
+	<?php takumi_flow_line(); ?>
+
 	<!-- Career -->
 	<section class="section" id="career">
+		<?php takumi_shape_field( 'about-career' ); ?>
 		<div class="container">
 			<div class="section-head" data-reveal>
 				<span class="section-head__num">03</span>
@@ -111,6 +122,8 @@ $timeline = takumi_get_career_data();
 
 	<!-- CTA -->
 	<section class="section section--alt">
+		<?php takumi_shape_field( 'about-cta' ); ?>
+		<?php takumi_section_art( 'star', array( 'x' => '9%', 'y' => '52%', 'size' => 'clamp(110px, 12vw, 180px)' ) ); ?>
 		<div class="container contact-box">
 			<p data-reveal>制作実績もぜひご覧ください。</p>
 			<div class="contact-links" data-reveal>

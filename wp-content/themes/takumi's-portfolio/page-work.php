@@ -11,6 +11,14 @@ $works = takumi_get_works();
 <main>
 	<section class="page-hero">
 		<canvas class="stars-canvas"></canvas>
+
+		<?php // さらに手前に、トップ・About と同じ浮遊ブロブを重ねる。 ?>
+		<span class="blob blob--1" aria-hidden="true"></span>
+		<span class="blob blob--2" aria-hidden="true"></span>
+		<span class="blob blob--3" aria-hidden="true"></span>
+		<span class="blob blob--4" aria-hidden="true"></span>
+		<span class="blob blob--5" aria-hidden="true"></span>
+
 		<div class="container page-hero__inner">
 			<p class="page-hero__label"><span>03</span> Selected Work / 2024—2025</p>
 			<h1 class="page-hero__title">Work</h1>
@@ -21,6 +29,8 @@ $works = takumi_get_works();
 
 	<!-- Field Records — 実績インデックス -->
 	<section class="works-section" id="records">
+		<?php takumi_shape_field( 'work-index' ); ?>
+		<?php takumi_section_art( 'diamond', array( 'x' => '94%', 'y' => '74%', 'size' => 'clamp(96px, 10vw, 158px)' ) ); ?>
 		<div class="container">
 			<div class="section-kicker" data-reveal>
 				<span><?php echo esc_html( $works ? sprintf( '01—%02d', count( $works ) ) : '01—08' ); ?></span>
@@ -43,7 +53,10 @@ $works = takumi_get_works();
 		</div>
 	</section>
 
+	<?php takumi_flow_line(); ?>
+
 	<section class="section" style="padding-top: 40px;">
+		<?php takumi_shape_field( 'work-detail' ); ?>
 		<div class="container">
 			<div class="section-head" data-reveal>
 				<span class="section-head__num">02</span>

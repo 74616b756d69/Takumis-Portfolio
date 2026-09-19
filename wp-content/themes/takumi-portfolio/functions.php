@@ -69,6 +69,22 @@ function takumi_enqueue_assets() {
 		filemtime( $dir . '/assets/css/marquee.css' )
 	);
 
+	// 図形レイヤー（template-parts/hero-shapes.php）。
+	wp_enqueue_style(
+		'takumi-hero-shapes',
+		$uri . '/assets/css/hero-shapes.css',
+		array( 'takumi-style' ),
+		filemtime( $dir . '/assets/css/hero-shapes.css' )
+	);
+
+	wp_enqueue_script(
+		'takumi-hero-shapes',
+		$uri . '/assets/js/hero-shapes.js',
+		array(),
+		filemtime( $dir . '/assets/js/hero-shapes.js' ),
+		true
+	);
+
 	wp_enqueue_script(
 		'takumi-work-records',
 		$uri . '/assets/js/work-records.js',

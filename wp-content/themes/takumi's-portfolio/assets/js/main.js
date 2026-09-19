@@ -122,6 +122,39 @@ window.addEventListener(
 );
 pagetop?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 
+/* ---------- Contact: フォーム行の開閉 ----------
+   Email / GitHub は外部へ飛ぶリンク、Form だけはその場で開く。
+   畳むのは JS が動いているときだけ。無効な環境では開いたまま使える。 */
+const disclosure = document.querySelector(".contact-disclosure");
+const disclosureToggle = disclosure && disclosure.querySelector(".contact-disclosure__toggle");
+const disclosurePanel = disclosure && disclosure.querySelector(".contact-disclosure__panel");
+
+if (disclosureToggle && disclosurePanel) {
+  disclosure.classList.add("is-collapsible");
+
+  const setDisclosure = (open) => {
+    disclosureToggle.setAttribute("aria-expanded", String(open));
+    // 閉じている間は中身をタブ移動の対象から外す
+    disclosurePanel.inert = !open;
+  };
+
+  setDisclosure(false);
+
+  disclosureToggle.addEventListener("click", () => {
+    const isOpen = disclosureToggle.getAttribute("aria-expanded") === "true";
+    setDisclosure(!isOpen);
+
+    if (!isOpen) {
+      // 開いたら最初の入力欄へ。ページのスクロール位置は動かさない。
+      const first = disclosurePanel.querySelector("input:not([type=hidden]), textarea");
+      if (first) first.focus({ preventScroll: true });
+    }
+  });
+
+  // 送信結果（CF7 のメッセージ）が出たときは、閉じていても開く
+  document.addEventListener("wpcf7submit", () => setDisclosure(true));
+}
+
 /* ---------- GSAP 演出(読み込まれている場合のみ) ---------- */
 if (window.gsap && window.ScrollTrigger) {
   gsap.registerPlugin(ScrollTrigger);
@@ -407,6 +440,30 @@ if (window.gsap && !window.matchMedia("(prefers-reduced-motion: reduce)").matche
       gsap.to(arrow, { rotate: 0, scale: 1, duration: 0.4, ease: "power2.out" });
       gsap.to(title, { x: 0, duration: 0.4, ease: "power2.out" });
       gsap.to(row, { paddingLeft: 0, duration: 0.4, ease: "power2.out" });
+    });
+  });
+
+  // Contact の連絡先行。記録行と同じ動きに揃える。
+  // ただし開閉トグルの「＋」だけは、開いた状態の 45 度回転を CSS が持っているので触らない。
+  document.querySelectorAll(".contact-channels__row").forEach((row) => {
+    const key = row.querySelector(".contact-channels__key");
+    const value = row.querySelector(".contact-channels__val");
+    const mark = row.querySelector(".contact-channels__arrow");
+    const spinnable = mark && !mark.classList.contains("contact-disclosure__mark") ? mark : null;
+
+    row.addEventListener("mouseenter", () => {
+      row.classList.add("is-hover");
+      gsap.to(key, { x: 6, duration: 0.35, ease: "power2.out" });
+      gsap.to(value, { x: 10, duration: 0.35, ease: "power2.out" });
+      gsap.to(row, { paddingLeft: 18, duration: 0.35, ease: "power2.out" });
+      if (spinnable) gsap.to(spinnable, { rotate: 45, scale: 1.1, duration: 0.4, ease: "back.out(2.5)" });
+    });
+    row.addEventListener("mouseleave", () => {
+      row.classList.remove("is-hover");
+      gsap.to(key, { x: 0, duration: 0.4, ease: "power2.out" });
+      gsap.to(value, { x: 0, duration: 0.4, ease: "power2.out" });
+      gsap.to(row, { paddingLeft: 0, duration: 0.4, ease: "power2.out" });
+      if (spinnable) gsap.to(spinnable, { rotate: 0, scale: 1, duration: 0.4, ease: "power2.out" });
     });
   });
 }

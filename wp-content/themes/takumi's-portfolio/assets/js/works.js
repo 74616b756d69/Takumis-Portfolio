@@ -16,7 +16,7 @@ const WORKS = [
     thumb: "img/YLMEMORIA/YL MEMORIA.png",
     images: ["img/YLMEMORIA/YL MEMORIA.png", "img/YLMEMORIA/Plumeria.png", "img/YLMEMORIA/list.png"],
     url: "",
-    github: "https://github.com/Akasan-T/YLMEMORIA",
+    github: "https://github.com/74616b756d69/YLMEMORIA",
     icons: ["html", "css", "js"],
   },
   {
@@ -32,7 +32,7 @@ const WORKS = [
     thumb: "img/wakasyatiya/若鯱家-top.png",
     images: ["img/wakasyatiya/若鯱家-top.png", "img/若鯱家会社概要.png"],
     url: "",
-    github: "https://github.com/Akasan-T/Wakasyatiya-TeamH",
+    github: "https://github.com/74616b756d69/Wakasyatiya-TeamH",
     icons: ["html", "css", "js"],
   },
   {
@@ -48,7 +48,7 @@ const WORKS = [
     thumb: "img/hikariwo/HiKaRiWo_LP.png",
     images: ["img/hikariwo/HiKaRiWo_LP.png"],
     url: "",
-    github: "https://github.com/Akasan-T/TECJUM-teamE_hikariwo",
+    github: "https://github.com/74616b756d69/TECJUM-teamE_hikariwo",
     icons: ["html", "css", "js", "python", "django", "docker"],
   },
   {
@@ -80,7 +80,7 @@ const WORKS = [
     thumb: "img/img/portfolio.png",
     images: ["img/img/portfolio.png"],
     url: "https://takumisportfolio.main.jp",
-    github: "https://github.com/Akasan-T/Takumis-portfolio",
+    github: "https://github.com/74616b756d69/Takumis-portfolio",
     icons: ["html", "css", "js", "threejs", "wordpress"],
   },
   {
@@ -112,7 +112,7 @@ const WORKS = [
     thumb: "img/TODO/todo-top.jpeg",
     images: ["img/TODO/todo-top.jpeg"],
     url: "",
-    github: "https://github.com/Akasan-T/Laravel_ToDo",
+    github: "https://github.com/74616b756d69/Laravel_ToDo",
     icons: ["php", "laravel", "js", "mysql"],
   },
   {

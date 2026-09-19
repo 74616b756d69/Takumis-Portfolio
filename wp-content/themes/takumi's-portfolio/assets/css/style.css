@@ -302,6 +302,16 @@ a { color: inherit; text-decoration: none; }
   color: var(--text-dim);
 }
 
+/* ---- 下層ページの右側を埋める装飾 ----
+   .page-hero > :not(.stars-canvas) が position:relative を配ってしまうので、
+   装飾だけは後ろから absolute に戻す（本文は今までどおり z-index:1 の前面）。 */
+.page-hero > .blob {
+  position: absolute;
+  z-index: 0;
+}
+
+/* About / Work のブロブは、トップと同じ .blob--1〜5 の定義をそのまま使う。 */
+
 /* ============================================================
    Layout / Sections
    ============================================================ */
@@ -363,6 +373,98 @@ a { color: inherit; text-decoration: none; }
   text-align: center;
 }
 .section-head--center .section-head__num { grid-row: auto; }
+
+/* ------------------------------------------------------------
+   セクション見出し（.lead）
+
+   .section-head は「番号 + 英単語 + 和訳」だけで、どのセクションも
+   同じ見え方になっていた。ラベルは小さく左に逃がし、代わりに
+   そのセクションが何を言いたいのかを日本語の一文で見出しにする。
+   ------------------------------------------------------------ */
+.lead {
+  display: grid;
+  gap: 18px;
+  margin-bottom: clamp(32px, 4.5vw, 56px);
+}
+@media (min-width: 900px) {
+  .lead {
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: clamp(24px, 4vw, 64px);
+    align-items: start;
+  }
+}
+.lead__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+@media (min-width: 900px) {
+  /* 見出し 1 行目のベースラインに合わせて少し下げる。 */
+  .lead__meta { padding-top: 0.75em; }
+}
+.lead__meta span {
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--line-strong);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.lead__meta i {
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+/* 見出しを置かず、ラベルだけで始めるセクション用。 */
+.lead__meta--solo {
+  margin-bottom: clamp(24px, 3.5vw, 44px);
+  padding-top: 0;
+}
+.lead__title {
+  font-family: var(--font-display);
+  font-size: clamp(25px, 3.8vw, 46px);
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+.lead__lede {
+  margin-top: 20px;
+  max-width: 46em;
+  font-size: 14.5px;
+  line-height: 2.1;
+  color: var(--text-dim);
+}
+
+/* セクション下部の導線。黄色いピルを毎回中央に置くと定型に見えるので、
+   右端の控えめなテキストリンクにする。 */
+.section-more {
+  margin-top: clamp(32px, 4vw, 52px);
+  text-align: right;
+}
+.section-more a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line-strong);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  transition: color 0.3s ease, border-color 0.3s ease, gap 0.3s ease;
+}
+.section-more a::after { content: "→"; }
+.section-more a:hover {
+  gap: 16px;
+  color: var(--text);
+  border-color: var(--text);
+}
+
+/* 余白のリズムを変える。全セクションが同じ高さで刻まれるのを避ける。 */
+.section--tight { padding: clamp(56px, 7vw, 92px) 0; }
+.section--loose { padding: clamp(104px, 16vw, 190px) 0; }
 
 
 /* Reveal animation (JS toggles .is-visible) */
@@ -874,6 +976,269 @@ a { color: inherit; text-decoration: none; }
 /* ============================================================
    Contact
    ============================================================ */
+/* 囲みカードは置かない。地の上に直接、連絡先の行とフォームを並べる。 */
+
+/* 連絡先。Work の記録行と同じく、1 行ずつ罫線で区切って大きく見せる。 */
+.contact-channels {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid var(--line);
+}
+.contact-channels li { border-bottom: 1px solid var(--line); }
+.contact-channels__row {
+  position: relative;
+  display: grid;
+  width: 100%;
+  background: none;
+  border: none;
+  font: inherit;
+  text-align: left;
+  grid-template-columns: 190px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(16px, 4vw, 64px);
+  padding: clamp(20px, 2.6vw, 30px) 16px;
+  color: var(--text);
+  overflow: hidden;
+  will-change: transform;
+}
+.contact-disclosure__toggle { cursor: pointer; }
+
+/* 3 色を順に割り当てる。Work の記録行と同じ考え方。 */
+.contact-channels li:nth-child(3n + 1) { --rec: var(--yellow); }
+.contact-channels li:nth-child(3n + 2) { --rec: var(--accent); }
+.contact-channels li:nth-child(3n + 3) { --rec: var(--violet); }
+
+/* ホバーで左から色が流れ込む */
+.contact-channels__row::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--rec);
+  transform: scaleX(0);
+  transform-origin: left center;
+  z-index: 0;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.contact-channels__row > * { position: relative; z-index: 1; }
+.contact-channels__row.is-hover::before,
+.contact-channels__row:hover::before,
+.contact-channels__row:focus-visible::before { transform: scaleX(1); }
+.contact-channels__row:focus-visible { outline: none; }
+
+/* 塗りつぶし中は文字とアイコンの枠線を反転 */
+.contact-channels__row.is-hover .contact-channels__key,
+.contact-channels__row.is-hover .contact-channels__val,
+.contact-channels__row.is-hover .contact-channels__arrow,
+.contact-channels__row:hover .contact-channels__key,
+.contact-channels__row:hover .contact-channels__val,
+.contact-channels__row:hover .contact-channels__arrow { color: var(--accent-ink); }
+.contact-channels__row.is-hover .contact-channels__arrow,
+.contact-channels__row:hover .contact-channels__arrow { border-color: var(--accent-ink); }
+.contact-channels__key {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rec);
+  transition: color 0.25s ease;
+}
+.contact-channels__val {
+  transition: color 0.25s ease;
+  font-family: var(--font-display);
+  font-size: clamp(17px, 2.4vw, 28px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+/* アイコンは Work の記録行（.record-arrow）と同じ丸ボタンに収める。
+   中身は takumi_arrow_icon() / takumi_plus_icon() の SVG。 */
+.contact-channels__arrow {
+  justify-self: end;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  color: var(--text-dim);
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+/* 開いたら 45 度回して「×」にする。回転は GSAP と取り合わないよう CSS 側に置く。 */
+.contact-disclosure__toggle[aria-expanded="true"] .contact-disclosure__mark { transform: rotate(45deg); }
+@media (max-width: 860px) {
+  .contact-channels__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 16px;
+  }
+  .contact-channels__key { grid-column: 1 / -1; }
+}
+
+/* 開閉パネル。高さが未知でも滑らかに開くよう、grid の 0fr → 1fr を補間する。
+   JS が動いていないときは is-collapsible が付かず、開いたまま表示される。 */
+.contact-disclosure__panel {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+.contact-channels .is-collapsible .contact-disclosure__panel {
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.contact-channels .is-collapsible .contact-disclosure__toggle[aria-expanded="true"] + .contact-disclosure__panel {
+  grid-template-rows: 1fr;
+}
+.contact-disclosure__inner { overflow: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  .contact-channels .is-collapsible .contact-disclosure__panel { transition: none; }
+}
+
+/* フォーム。囲まず、罫線と余白だけで区切る。
+   幅は読みやすい 620px に絞り、左右中央へ。入力欄そのものは左揃えのまま。 */
+.contact-form {
+  width: min(620px, 100%);
+  margin: 0 auto;
+  padding: clamp(32px, 4.5vw, 52px) 0 clamp(40px, 5vw, 60px);
+  text-align: left;
+}
+.contact-form__fallback {
+  padding-top: 28px;
+  font-size: 14.5px;
+  line-height: 2;
+  color: var(--text-dim);
+}
+/* CF7 の <label> は入力欄まで包んでいる。ラベル文字は先頭の text node なので、
+   印を ::after で出すと入力欄の「下」に落ちる。行の右上に絶対配置で置く。 */
+.contact-form label {
+  position: relative;
+  display: block;
+  margin-bottom: 28px;
+  padding-right: 52px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.contact-form label:has(.wpcf7-validates-as-required)::after,
+.contact-form label:has([aria-required="true"])::after {
+  content: "必須";
+  position: absolute;
+  top: -2px;
+  right: 0;
+  padding: 3px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+}
+
+/* CF7 は input を span.wpcf7-form-control-wrap で包む。インラインのままだと
+   下に行間ぶんの隙間が残るのでブロックにする。 */
+.contact-form .wpcf7-form-control-wrap {
+  display: block;
+  margin-top: 8px;
+}
+
+/* 入力欄は箱にせず、下線だけ。 */
+.contact-form .wpcf7-form-control {
+  display: block;
+  width: 100%;
+  padding: 12px 2px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line-strong);
+  border-radius: 0;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.contact-form .wpcf7-form-control::placeholder { color: #55525f; }
+.contact-form .wpcf7-form-control:focus {
+  outline: none;
+  border-bottom-color: var(--text);
+  /* 線を太くすると 1px ぶん行がずれるので、影で厚みを出す。 */
+  box-shadow: 0 1px 0 0 var(--text);
+}
+/* textarea は下線だけだと範囲が分からないので、面をうっすら起こす。 */
+.contact-form textarea.wpcf7-form-control {
+  min-height: 150px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.025);
+  resize: vertical;
+}
+/* Chrome の自動入力が白背景で塗りつぶすのを防ぐ。 */
+.contact-form .wpcf7-form-control:-webkit-autofill,
+.contact-form .wpcf7-form-control:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0 1000px var(--bg) inset;
+  caret-color: var(--text);
+}
+
+/* 送信ボタンと、CF7 が隣に出すスピナー。 */
+.contact-form .wpcf7-submit {
+  display: block;
+  width: auto;
+  margin: 20px auto 0;
+  padding: 16px 40px;
+  background: var(--text);
+  border: none;
+  border-radius: 999px;
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+.contact-form .wpcf7-submit:hover { background: var(--yellow); color: var(--accent-ink); }
+.contact-form .wpcf7-submit:disabled { opacity: 0.5; cursor: default; }
+.contact-form .wpcf7-spinner {
+  display: block;
+  margin: 16px auto 0;
+  background-color: var(--text-dim);
+  vertical-align: middle;
+}
+
+/* エラーと送信結果。CF7 は状態を form 側のクラスで持つ。 */
+.contact-form .wpcf7-not-valid-tip {
+  margin-top: 8px;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--accent);
+}
+.contact-form .wpcf7-form-control.wpcf7-not-valid { border-bottom-color: var(--accent); }
+.contact-form .wpcf7-response-output {
+  margin: 28px 0 0;
+  padding: 16px 18px;
+  border: 1px solid var(--line-strong);
+  border-left-width: 2px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.9;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--text-dim);
+}
+.contact-form form.sent .wpcf7-response-output {
+  border-left-color: var(--yellow);
+  color: var(--text);
+}
+.contact-form form.invalid .wpcf7-response-output,
+.contact-form form.unaccepted .wpcf7-response-output,
+.contact-form form.failed .wpcf7-response-output,
+.contact-form form.aborted .wpcf7-response-output {
+  border-left-color: var(--accent);
+}
+
+/* About ページ下部の CTA でも使い回している共通ブロック。 */
 .contact-box {
   text-align: center;
 }
@@ -887,71 +1252,6 @@ a { color: inherit; text-decoration: none; }
   gap: 16px;
   justify-content: center;
   flex-wrap: wrap;
-}
-
-/* お問い合わせフォーム(Contact Form 7) */
-.contact-form {
-  width: min(480px, 100%);
-  margin: 32px auto 0;
-  text-align: left;
-}
-.contact-form label {
-  display: block;
-  margin-bottom: 18px;
-  font-size: 13.5px;
-  color: var(--text-dim);
-  letter-spacing: 0.05em;
-}
-.contact-form .wpcf7-form-control {
-  display: block;
-  width: 100%;
-  margin-top: 8px;
-  padding: 12px 14px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-family: var(--font-sans);
-  font-size: 15px;
-}
-.contact-form textarea.wpcf7-form-control {
-  min-height: 120px;
-  resize: vertical;
-}
-.contact-form .wpcf7-form-control:focus {
-  outline: none;
-  border-color: var(--gold);
-}
-.contact-form .wpcf7-submit {
-  display: block;
-  width: auto;
-  margin: 4px auto 0;
-  padding: 14px 32px;
-  background: var(--yellow);
-  border: none;
-  border-radius: 999px;
-  color: var(--accent-ink);
-  font-family: var(--font-mono);
-  font-weight: 600;
-  font-size: 13px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.3s ease, color 0.3s ease;
-}
-.contact-form .wpcf7-submit:hover { background: var(--text); }
-.contact-form .wpcf7-not-valid-tip {
-  color: var(--accent);
-  font-size: 12.5px;
-  margin-top: 4px;
-}
-.contact-form .wpcf7-response-output {
-  margin-top: 16px;
-  padding: 12px 16px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  font-size: 14px;
-  color: var(--text-dim);
 }
 
 /* ============================================================
@@ -1239,7 +1539,8 @@ a { color: inherit; text-decoration: none; }
 }
 /* 本文は必ず図形より前面に */
 .section > .container,
-.section > .section-kicker {
+.section > .section-kicker,
+.works-section > .container {
   position: relative;
   z-index: 1;
 }
@@ -1611,6 +1912,30 @@ a { color: inherit; text-decoration: none; }
   color: transparent;
   -webkit-text-stroke: 2px var(--text);
 }
+/* ---- 下層ページのセクションアート（同じ scroll-*.html のイラスト） ----
+   Statement のように流すのではなく、セクションの隅に1つだけ沈めて置く。
+   中の SVG は CSS アニメーションでそのまま動き続ける。 */
+.section-art {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--size);
+  translate: -50% -50%;
+  z-index: 0;
+  opacity: 0.4;
+  pointer-events: none;
+}
+.section-art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;   /* 外側に散るスパークルを切らない */
+}
+/* 本文と重なる幅では出さない（図形ステッカーの is-sm-hidden と同じ考え方）。 */
+@media (max-width: 900px) {
+  .section-art { display: none; }
+}
+
 /* ---- Statement の装飾イラスト（demo/scroll-*.html 由来） ----
    ラッパー(.statement__shape)は GSAP が横送り・視差で動かす担当。
    その中の SVG は CSS アニメーションで常時ゆっくり動き続ける担当、と分ける。 */
@@ -2000,7 +2325,7 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   gap: clamp(16px, 2.6vw, 26px);
   width: 100%;
-  padding: clamp(22px, 2.8vw, 30px) 0;
+  padding: clamp(22px, 2.8vw, 30px) 16px;
   border-bottom: 1px solid var(--line);
   text-align: left;
   overflow: hidden;
@@ -2015,7 +2340,7 @@ a { color: inherit; text-decoration: none; }
 .work-record::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: 0 12px 0 0;
   background: var(--rec);
   transform: scaleX(0);
   transform-origin: left center;

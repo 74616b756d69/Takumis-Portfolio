@@ -27,7 +27,21 @@ while ( have_posts() ) :
 	?>
 
 	<article class="work-records-section">
-		<div class="record-visual">
+		<div class="record-visual shapes-host">
+
+			<?php // 記事の右上に図形を重ねる。読み上げ対象ではない装飾。 ?>
+			<?php
+			get_template_part(
+				'template-parts/hero-shapes',
+				null,
+				array(
+					'variant' => 'corner',
+					'mode'    => 'over',
+					'tone'    => 'dark',
+					'quiet'   => true,
+				)
+			);
+			?>
 
 			<?php if ( $cat ) : ?>
 				<span class="rv-cat"><?php echo esc_html( $cat ); ?></span>

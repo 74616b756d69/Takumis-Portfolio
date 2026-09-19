@@ -91,8 +91,7 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'takumi_name_en' => array( '名前(ローマ字)', 'Akahori Takumi' ),
 		'takumi_motto'   => array( 'モットー', 'Behind every smile lies effort' ),
 		'takumi_email'   => array( 'メールアドレス', 'akahori.t.24kdgn@gmail.com' ),
-		'takumi_github'  => array( 'GitHub URL', 'https://github.com/Akasan-T' ),
-		'takumi_x'       => array( 'X (Twitter) URL', 'https://x.com/hori_hori_ak' ),
+		'takumi_github'  => array( 'GitHub URL', 'https://github.com/74616b756d69' ),
 	);
 	foreach ( $fields as $key => $conf ) {
 		$wp_customize->add_setting( $key, array(
@@ -756,11 +755,39 @@ function takumi_shape_deco( $shape, $args = array() ) {
 }
 
 /**
+ * セクションの隅に置く大きめのイラスト（demo/scroll-*.html 由来）
+ *
+ * トップでは Statement の帯の中を流れている diamond / ring / star を、
+ * 下層ページでは「1セクションに1つだけ」背面へ沈めて使う。
+ * 形と動きは takumi_shape_svg() と style.css のものをそのまま使い、
+ * ここは置き場所（位置・大きさ）だけを持つ。
+ *
+ * @param string $name diamond|ring|star
+ * @param array  $args x, y  … セクション内の位置（% 文字列）
+ *                     size  … 幅（CSS の長さ。clamp() 可）
+ */
+function takumi_section_art( $name, $args = array() ) {
+	$args = wp_parse_args( $args, array(
+		'x'    => '92%',
+		'y'    => '50%',
+		'size' => 'clamp(110px, 14vw, 220px)',
+	) );
+
+	$style = sprintf( '--x:%s;--y:%s;--size:%s', $args['x'], $args['y'], $args['size'] );
+	?>
+	<span class="section-art section-art--<?php echo esc_attr( $name ); ?>"
+		style="<?php echo esc_attr( $style ); ?>" aria-hidden="true">
+		<?php takumi_shape_svg( $name ); ?>
+	</span>
+	<?php
+}
+
+/**
  * セクション背面に図形を散らすレイヤー
  * バリエーションごとに図形・位置・大きさを変え、同じ絵面の繰り返しにならないようにする。
  * 画面が狭いと本文に重なるので、内側寄りのものは is-sm-hidden で落とす。
  *
- * @param string $variant profile|skill|work|contact
+ * @param string $variant profile|skill|work|contact|about-*|work-*|footer
  */
 function takumi_shape_field( $variant ) {
 	$fields = array(
@@ -783,6 +810,33 @@ function takumi_shape_field( $variant ) {
 			array( 'triangle', array( 'x' => '5%',  'y' => '62%', 'size' => 'clamp(34px, 4.6vw, 66px)', 'depth' => 34, 'delay' => '-7.4s' ) ),
 			array( 'zigzag',   array( 'x' => '93%', 'y' => '28%', 'size' => 'clamp(42px, 5.6vw, 78px)', 'depth' => 48, 'delay' => '-2.2s' ) ),
 			array( 'square',   array( 'x' => '80%', 'y' => '86%', 'size' => 'clamp(26px, 3.4vw, 48px)', 'depth' => 20, 'delay' => '-4.8s', 'class' => 'is-sm-hidden' ) ),
+		),
+		// --- 下層ページ（About / Work）---
+		// トップと同じ絵面にならないよう、形と位置を変えてある。
+		// 数はトップより少なめにして、ページを送るたびにぽつぽつ出てくる程度に。
+		'about-profile' => array(
+			array( 'ring',     array( 'x' => '4%',  'y' => '24%', 'size' => 'clamp(30px, 4.2vw, 58px)', 'depth' => 42, 'delay' => '-1.2s' ) ),
+			array( 'triangle', array( 'x' => '93%', 'y' => '14%', 'size' => 'clamp(28px, 3.8vw, 54px)', 'depth' => 34, 'delay' => '-2.7s', 'class' => 'is-sm-hidden' ) ),
+			array( 'square',   array( 'x' => '96%', 'y' => '80%', 'size' => 'clamp(24px, 3.2vw, 46px)', 'depth' => 20, 'delay' => '-6.5s' ) ),
+		),
+		'about-career' => array(
+			array( 'wave',   array( 'x' => '8%',  'y' => '10%', 'size' => 'clamp(46px, 6vw, 92px)', 'depth' => 16, 'delay' => '-5.1s', 'class' => 'is-sm-hidden' ) ),
+			array( 'circle', array( 'x' => '95%', 'y' => '44%', 'size' => 'clamp(28px, 3.8vw, 54px)', 'depth' => 26, 'delay' => '-0.4s' ) ),
+			array( 'cross',  array( 'x' => '4%',  'y' => '84%', 'size' => 'clamp(22px, 2.8vw, 38px)', 'depth' => 30, 'delay' => '-3.9s' ) ),
+		),
+		'about-cta' => array(
+			array( 'zigzag', array( 'x' => '90%', 'y' => '22%', 'size' => 'clamp(40px, 5.2vw, 74px)', 'depth' => 48, 'delay' => '-4.3s' ) ),
+			array( 'circle', array( 'x' => '6%',  'y' => '72%', 'size' => 'clamp(26px, 3.4vw, 48px)', 'depth' => 26, 'delay' => '-2.8s', 'class' => 'is-sm-hidden' ) ),
+		),
+		'work-index' => array(
+			array( 'cross',  array( 'x' => '5%',  'y' => '18%', 'size' => 'clamp(22px, 2.8vw, 40px)', 'depth' => 30, 'delay' => '-6s' ) ),
+			array( 'ring',   array( 'x' => '94%', 'y' => '32%', 'size' => 'clamp(32px, 4.4vw, 62px)', 'depth' => 42, 'delay' => '-1.2s' ) ),
+			array( 'square', array( 'x' => '9%',  'y' => '86%', 'size' => 'clamp(26px, 3.4vw, 48px)', 'depth' => 20, 'delay' => '-6.5s', 'class' => 'is-sm-hidden' ) ),
+		),
+		'work-detail' => array(
+			array( 'triangle', array( 'x' => '95%', 'y' => '10%', 'size' => 'clamp(30px, 4vw, 58px)', 'depth' => 34, 'delay' => '-7.4s' ) ),
+			array( 'wave',     array( 'x' => '5%',  'y' => '52%', 'size' => 'clamp(44px, 5.6vw, 86px)', 'depth' => 16, 'delay' => '-5.1s', 'class' => 'is-sm-hidden' ) ),
+			array( 'circle',   array( 'x' => '91%', 'y' => '88%', 'size' => 'clamp(24px, 3.2vw, 44px)', 'depth' => 26, 'delay' => '-0.4s' ) ),
 		),
 		// フッターだけは「散らす」よりも「紛れさせる」のが目的。
 		// マスコット2体の周りに寄せて、クリーム色の丸い地を図形の一部に見せる。
@@ -938,6 +992,16 @@ function takumi_mascot_robot() {
  */
 function takumi_arrow_icon() {
 	echo '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>';
+}
+
+/**
+ * プラスアイコン（開閉トグル用）
+ *
+ * 矢印と同じ 24 グリッド・同じ線幅で描く。開いたときは CSS で 45 度回して
+ * そのまま「×」になる。
+ */
+function takumi_plus_icon() {
+	echo '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>';
 }
 
 /**

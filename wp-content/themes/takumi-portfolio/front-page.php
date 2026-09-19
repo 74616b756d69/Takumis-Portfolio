@@ -13,6 +13,17 @@ get_header();
 
 get_template_part( 'template-parts/marquee' );
 
+// セクションの区切り。暗い地の上なので線画は紙色に逃がす。
+get_template_part(
+	'template-parts/hero-shapes',
+	null,
+	array(
+		'variant' => 'band',
+		'tone'    => 'dark',
+		'quiet'   => true,
+	)
+);
+
 get_template_part(
 	'template-parts/work-records',
 	null,

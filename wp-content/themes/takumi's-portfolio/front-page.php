@@ -6,7 +6,7 @@ get_header();
 
 $uri    = get_template_directory_uri();
 $email  = get_theme_mod( 'takumi_email', 'akahori.t.24kdgn@gmail.com' );
-$github = get_theme_mod( 'takumi_github', 'https://github.com/Akasan-T' );
+$github = get_theme_mod( 'takumi_github', 'https://github.com/74616b756d69' );
 $face   = get_theme_mod( 'takumi_face' ) ?: $uri . '/assets/img/My_face.jpeg';
 $works  = takumi_get_works();
 ?>
@@ -70,14 +70,11 @@ $works  = takumi_get_works();
 	</section>
 
 	<!-- 01 Profile -->
-	<section class="section" id="profile">
+	<section class="section section--loose" id="profile">
 		<?php takumi_shape_field( 'profile' ); ?>
 		<div class="container">
-			<div class="section-head" data-reveal>
-				<span class="section-head__num">01</span>
-				<h2 class="section-head__en">Profile</h2>
-				<p class="section-head__ja">私について</p>
-			</div>
+			<?php // 見出しは置かない。すぐ下の名前がこのセクションの見出しになる。 ?>
+			<p class="lead__meta lead__meta--solo" data-reveal><span>01</span>Profile <i>私について</i></p>
 
 			<div class="profile-grid">
 				<div class="profile-photo" data-reveal>
@@ -100,7 +97,6 @@ $works  = takumi_get_works();
 						<a class="btn" href="<?php echo esc_url( takumi_page_url( 'about' ) ); ?>">More About Me</a>
 						<div class="profile-sns">
 							<a href="<?php echo esc_url( $github ); ?>" target="_blank" rel="noopener" aria-label="GitHub"><img src="<?php echo esc_url( $uri ); ?>/assets/img/github-brands.svg" alt="GitHub"></a>
-							<a href="<?php echo esc_url( get_theme_mod( 'takumi_x', 'https://x.com/hori_hori_ak' ) ); ?>" target="_blank" rel="noopener" aria-label="X"><img src="<?php echo esc_url( $uri ); ?>/assets/img/x-solid.svg" alt="X"></a>
 						</div>
 					</div>
 				</div>
@@ -109,13 +105,15 @@ $works  = takumi_get_works();
 	</section>
 
 	<!-- 02 Skill -->
-	<section class="section section--alt" id="skill">
+	<section class="section section--tight section--alt" id="skill">
 		<?php takumi_shape_field( 'skill' ); ?>
 		<div class="container">
-			<div class="section-head" data-reveal>
-				<span class="section-head__num">02</span>
-				<h2 class="section-head__en">Skill</h2>
-				<p class="section-head__ja">できること</p>
+			<div class="lead" data-reveal>
+				<p class="lead__meta"><span>02</span>Skill <i>できること</i></p>
+				<div class="lead__body">
+					<h2 class="lead__title">触れる技術を、<br>増やしている途中です。</h2>
+					<p class="lead__lede"><?php echo esc_html( get_theme_mod( 'takumi_top_skill_desc', 'フロントエンドからバックエンドまで。HTML/CSSでの制作経験を軸に、Laravel・Django などのフレームワークにも挑戦中です。' ) ); ?></p>
+				</div>
 			</div>
 		</div>
 
@@ -152,10 +150,9 @@ $works  = takumi_get_works();
 		</div>
 
 		<div class="container">
-			<div class="home-skills__body" data-reveal style="margin-top: 40px;">
-				<p><?php echo esc_html( get_theme_mod( 'takumi_top_skill_desc', 'フロントエンドからバックエンドまで。HTML/CSSでの制作経験を軸に、Laravel・Django などのフレームワークにも挑戦中です。' ) ); ?></p>
-				<a class="btn btn--gold" href="<?php echo esc_url( takumi_page_url( 'about' ) ); ?>#skill">View All Skills</a>
-			</div>
+			<p class="section-more" data-reveal>
+				<a href="<?php echo esc_url( takumi_page_url( 'about' ) ); ?>#skill">スキルの一覧を見る</a>
+			</p>
 		</div>
 	</section>
 
@@ -203,15 +200,12 @@ $works  = takumi_get_works();
 	<section class="section" id="work">
 		<?php takumi_shape_field( 'work' ); ?>
 		<div class="container">
-			<div class="section-head" data-reveal>
-				<span class="section-head__num">03</span>
-				<h2 class="section-head__en">Work</h2>
-				<p class="section-head__ja">制作実績</p>
-			</div>
-
-			<div class="works-heading" data-reveal>
-				<h2>実装の幅を、<br>結果で見せる。</h2>
-				<p><?php echo esc_html( get_theme_mod( 'takumi_top_work_desc', '個人制作から産学連携・実案件まで。チームリーダーとして指揮したプロジェクトも紹介しています。' ) ); ?></p>
+			<div class="lead" data-reveal>
+				<p class="lead__meta"><span>03</span>Work <i>制作実績</i></p>
+				<div class="lead__body">
+					<h2 class="lead__title">実装の幅を、<br>結果で見せる。</h2>
+					<p class="lead__lede"><?php echo esc_html( get_theme_mod( 'takumi_top_work_desc', '個人制作から産学連携・実案件まで。チームリーダーとして指揮したプロジェクトも紹介しています。' ) ); ?></p>
+				</div>
 			</div>
 
 			<?php if ( $works ) : ?>
@@ -238,36 +232,83 @@ $works  = takumi_get_works();
 				</div>
 			<?php endif; ?>
 
-			<div class="btn-row" data-reveal>
-				<a class="btn" href="<?php echo esc_url( takumi_page_url( 'work' ) ); ?>">View All Works</a>
-			</div>
+			<p class="section-more" data-reveal>
+				<a href="<?php echo esc_url( takumi_page_url( 'work' ) ); ?>">実績の一覧を見る</a>
+			</p>
 		</div>
 	</section>
 
 	<!-- 04 Contact -->
-	<section class="section section--alt" id="contact">
+	<section class="section section--loose" id="contact">
 		<?php takumi_shape_field( 'contact' ); ?>
 		<div class="container">
-			<div class="section-head" data-reveal>
-				<span class="section-head__num">04</span>
-				<h2 class="section-head__en">Contact</h2>
-				<p class="section-head__ja">お問い合わせ</p>
-			</div>
-
-			<div class="contact-box" data-reveal>
-				<p><?php echo wp_kses_post( get_theme_mod( 'takumi_top_contact_text', '最後までご覧いただきありがとうございました。<br>制作のご依頼・ご相談など、お気軽にご連絡ください。' ) ); ?></p>
-
-				<?php if ( shortcode_exists( 'contact-form-7' ) ) : ?>
-					<div class="contact-form">
-						<?php echo do_shortcode( '[contact-form-7 id="3b0857e" title="Contact form 1"]' ); ?>
-					</div>
-				<?php endif; ?>
-
-				<div class="contact-links">
-					<a class="btn" href="mailto:<?php echo esc_attr( $email ); ?>">Email</a>
-					<a class="btn btn--gold" href="<?php echo esc_url( $github ); ?>" target="_blank" rel="noopener">GitHub</a>
+			<div class="lead" data-reveal>
+				<p class="lead__meta"><span>04</span>Contact <i>お問い合わせ</i></p>
+				<div class="lead__body">
+					<h2 class="lead__title">話を聞くところから、<br>はじめさせてください。</h2>
+					<p class="lead__lede"><?php echo wp_kses_post( get_theme_mod( 'takumi_top_contact_text', '最後までご覧いただきありがとうございました。制作のご依頼・ご相談など、お気軽にご連絡ください。' ) ); ?></p>
 				</div>
 			</div>
+
+			<?php
+			// 連絡先。表示用のラベルは URL の末尾から拾う（@ハンドルとして見せる）。
+			$channels = array(
+				array(
+					'key'   => 'Email',
+					'label' => $email,
+					'href'  => 'mailto:' . $email,
+					'ext'   => false,
+				),
+				array(
+					'key'   => 'GitHub',
+					'label' => '@' . basename( untrailingslashit( $github ) ),
+					'href'  => $github,
+					'ext'   => true,
+				),
+			);
+			?>
+
+			<?php // 連絡先は Work の記録行と同じ「1 行ずつ罫線で区切る」形に揃える。 ?>
+			<ul class="contact-channels" data-reveal>
+
+				<?php foreach ( $channels as $channel ) : ?>
+					<li>
+						<a class="contact-channels__row" href="<?php echo esc_url( $channel['href'] ); ?>"<?php echo $channel['ext'] ? ' target="_blank" rel="noopener"' : ''; ?>>
+							<span class="contact-channels__key"><?php echo esc_html( $channel['key'] ); ?></span>
+							<span class="contact-channels__val"><?php echo esc_html( $channel['label'] ); ?></span>
+							<span class="contact-channels__arrow" aria-hidden="true"><?php takumi_arrow_icon(); ?></span>
+						</a>
+					</li>
+				<?php endforeach; ?>
+
+				<?php
+				// フォームだけは外部に飛ばさず、その場で開く。
+				// JS が無い環境では開いたまま表示される（下の is-collapsible を JS が付ける）。
+				?>
+				<li class="contact-disclosure">
+					<?php if ( shortcode_exists( 'contact-form-7' ) ) : ?>
+						<button type="button" class="contact-channels__row contact-disclosure__toggle"
+							aria-expanded="false" aria-controls="contact-form-panel">
+							<span class="contact-channels__key">Form</span>
+							<span class="contact-channels__val">フォームから送る</span>
+							<span class="contact-channels__arrow contact-disclosure__mark" aria-hidden="true"><?php takumi_plus_icon(); ?></span>
+						</button>
+
+						<div class="contact-disclosure__panel" id="contact-form-panel">
+							<div class="contact-disclosure__inner">
+								<div class="contact-form">
+									<?php echo do_shortcode( '[contact-form-7 id="3b0857e" title="Contact form 1"]' ); ?>
+								</div>
+							</div>
+						</div>
+					<?php else : ?>
+						<?php // CF7 が無効なとき。開く中身が無いので、行は出さずに一言だけ。 ?>
+						<p class="contact-form__fallback">フォームは準備中です。上のアドレスへ直接お送りください。</p>
+					<?php endif; ?>
+				</li>
+
+			</ul>
+
 		</div>
 	</section>
 
