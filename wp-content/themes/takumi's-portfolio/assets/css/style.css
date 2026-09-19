@@ -27,6 +27,16 @@
   --accent: #ff4d94;     /* ピンク */
   --accent-soft: rgba(255, 77, 148, 0.16);
   --accent-ink: #0b0a10; /* 差し色ベタの上に置く文字色 */
+  /* 横スクロールのカードの地。クリームにブランド4色を40%混ぜた色。
+     どれも濃色文字とのコントラストが11:1以上あり、明度差も狭いので、
+     隣り合って並べても目が飛ばない。混合比を上げるほど色は濃くなるが、
+     同時に明度差が開いてチカチカが戻るため、ここが上限に近い。 */
+  --panel: #f6f3ec;
+  --panel-1: #f1f8ac;    /* 黄 */
+  --panel-2: #c6ebde;    /* ミント */
+  --panel-3: #ccbdf4;    /* 紫 */
+  --panel-4: #fab1c9;    /* 桃 */
+  --panel-5: #f6f3ec;    /* クリーム */
   --yellow: #eaff4d;
   --violet: #8c6bff;
   --gold: var(--yellow); /* 既存スタイル互換のエイリアス */
@@ -755,14 +765,22 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  gap: 8px;
 }
 .skill-card__head h3 {
   font-family: var(--font-display);
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.01em;
+  /* 「Tailwind CSS」「Spring Boot」を2行に折り返さない */
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .skill-card__head span {
+  flex-shrink: 0;
+  white-space: nowrap;
   font-family: var(--font-mono);
   font-size: 10.5px;
   letter-spacing: 0.06em;
@@ -2437,40 +2455,15 @@ a { color: inherit; text-decoration: none; }
   .shape-svg * { animation: none !important; }
 }
 
-/* 横スクロールのショーケース */
-.hscroll {
-  position: relative;
-  height: 100vh;
-  height: 100svh; /* 同上。ピン留めの高さが途中で変わらないようにする */
-  overflow: hidden;
-}
-.hscroll__inner {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 26px;
-}
-.hscroll__head {
+/* Skill グループ — 横スクロールをやめ、3枚を並べて静的に見せる */
+.skill-groups__head {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
-  padding-inline: max(calc((100vw - min(1440px, 90vw)) / 2), 20px);
+  margin-bottom: clamp(20px, 3vw, 32px);
 }
-.hscroll__headings {
-  display: grid;
-  gap: 6px;
-}
-.hscroll__count {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  white-space: nowrap;
-}
-.hscroll__label {
+.skill-groups__label {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -2480,31 +2473,50 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase;
   color: var(--text-dim);
 }
-.hscroll__label::before {
+.skill-groups__label::before {
   content: "";
   width: 26px;
   height: 2px;
   background: var(--violet);
 }
-.hscroll__track {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  width: max-content;
-  padding-inline: max(calc((100vw - min(1440px, 90vw)) / 2), 20px);
-  will-change: transform;
+.skill-groups__count {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
 }
+.skill-groups {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(20px, 3vw, 32px);
+}
+.skill-groups .hpanel {
+  width: 100%;
+  min-height: 0;
+  transition: transform 0.35s ease;
+}
+/* 横スクロール時代の「斜めに構える」見た目を、静止したグリッドでも残す */
+.skill-groups .hpanel:nth-child(3n + 1) { transform: rotate(-3deg); }
+.skill-groups .hpanel:nth-child(3n + 2) { transform: rotate(2.5deg); }
+.skill-groups .hpanel:nth-child(3n + 3) { transform: rotate(-2deg); }
+.skill-groups .hpanel:hover { transform: rotate(0deg) translateY(-6px); }
+@media (max-width: 900px) {
+  .skill-groups { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skill-groups .hpanel { transition: none; }
+}
+
 .hpanel {
   position: relative;
-  width: min(62vw, 440px);
-  /* 高さは 4:5 を目安にしつつ、文章が増えても切れないよう min-height で確保する */
-  min-height: calc(min(62vw, 440px) * 1.25);
+  background: var(--panel);
   border-radius: 28px;
   padding: 32px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  flex-shrink: 0;
   overflow: hidden;
   color: var(--accent-ink);
 }
@@ -2534,105 +2546,18 @@ a { color: inherit; text-decoration: none; }
   color: rgba(11, 10, 16, 0.7);
   max-width: 32ch;
 }
-.hpanel__meta {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(11, 10, 16, 0.18);
-  font-family: var(--font-mono);
-  font-size: 0.76rem;
-  line-height: 1.7;
-  letter-spacing: 0.01em;
-  color: rgba(11, 10, 16, 0.62);
-  max-width: 34ch;
-}
-.hpanel__icons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
-}
-.hpanel__link {
-  align-self: flex-start;
-  margin-top: 20px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 16px;
-  border: 1px solid rgba(11, 10, 16, 0.3);
-  border-radius: 999px;
-  font-family: var(--font-mono);
-  font-size: 0.76rem;
-  letter-spacing: 0.04em;
-  color: var(--accent-ink);
-  text-decoration: none;
-  transition: background 0.25s ease, border-color 0.25s ease;
-}
-.hpanel__link::after {
-  content: "\2197";
-  font-size: 0.9em;
-}
-.hpanel__link:hover,
-.hpanel__link:focus-visible {
-  background: rgba(11, 10, 16, 0.1);
-  border-color: rgba(11, 10, 16, 0.55);
-}
-.hpanel__icons img {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  background: rgba(11, 10, 16, 0.08);
-}
-.hpanel--c1 { background: var(--yellow); }
-.hpanel--c2 { background: var(--accent); }
-.hpanel--c3 { background: var(--violet); }
-.hpanel--c4 { background: #7de0c8; }
-.hpanel--c5 { background: var(--text); }
+/* カードの地。takumi_panel_tone() が往復する順で振るので、隣との差は常に1段ぶん。 */
+.hpanel--t1 { background: var(--panel-1); }
+.hpanel--t2 { background: var(--panel-2); }
+.hpanel--t3 { background: var(--panel-3); }
+.hpanel--t4 { background: var(--panel-4); }
+.hpanel--t5 { background: var(--panel-5); }
 
-/* スクショ入りのカード。画像が無ければこの指定は一切効かず、差し色ベタのままになる */
-.hpanel__shot {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.hpanel--shot { color: var(--text); }
-.hpanel--shot::after {
-  /* 既存の光沢グラデを、文字を読ませるための暗いスクリムに差し替える */
-  background: linear-gradient(180deg, rgba(11, 10, 16, 0.2) 0%, rgba(11, 10, 16, 0.72) 48%, rgba(11, 10, 16, 0.94) 100%);
-}
-.hpanel--shot > *:not(.hpanel__shot) {
-  position: relative;
-  z-index: 1;
-}
-.hpanel--shot .hpanel__num { color: rgba(246, 243, 236, 0.65); }
-.hpanel--shot p { color: rgba(246, 243, 236, 0.78); }
-.hpanel--shot .hpanel__meta {
-  border-top-color: rgba(246, 243, 236, 0.22);
-  color: rgba(246, 243, 236, 0.66);
-}
-.hpanel--shot .hpanel__icons img { background: rgba(246, 243, 236, 0.14); }
-.hpanel--shot .hpanel__link {
-  border-color: rgba(246, 243, 236, 0.4);
-  color: var(--text);
-}
-.hpanel--shot .hpanel__link:hover,
-.hpanel--shot .hpanel__link:focus-visible {
-  background: rgba(246, 243, 236, 0.16);
-  border-color: rgba(246, 243, 236, 0.75);
-}
-
-/* スキルのカード。作品カードの差し色と違い、面を落として「一覧」として読ませる */
+/* スキルのカード。地は他と共通。一覧として読ませるため、行間と区切りだけ調整する */
 .hpanel--skill {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  color: var(--text);
   justify-content: flex-start;
   gap: 18px;
 }
-.hpanel--skill::after { display: none; }
-.hpanel--skill .hpanel__num { color: var(--text-dim); }
-.hpanel--skill p { color: var(--text-dim); }
 .hpanel__skills {
   list-style: none;
   margin: 18px 0 0;
@@ -2646,19 +2571,25 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   gap: 10px;
   padding: 5px 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid rgba(11, 10, 16, 0.16);
 }
 .hpanel__skills li:last-child { border-bottom: 0; }
 .hpanel__skills img {
   width: 24px;
   height: 24px;
   border-radius: 6px;
+  /* 透過アイコンがクリームの地に溶けないよう、白い座布団を敷く */
+  background: rgba(255, 255, 255, 0.78);
 }
 .hpanel__skill-name {
   font-size: 0.88rem;
   line-height: 1.4;
-  color: var(--text);
-  overflow-wrap: anywhere;
+  color: var(--accent-ink);
+  /* 「Tailwind CSS」のような2語の名前を折り返さない。入り切らない時だけ末尾を省略する */
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .hpanel__skill-exp {
   font-family: var(--font-mono);
@@ -2669,15 +2600,9 @@ a { color: inherit; text-decoration: none; }
   white-space: nowrap;
 }
 @media (max-width: 720px) {
-  .hpanel { width: 78vw; min-height: calc(78vw * 1.25); padding: 24px; }
-  /* 行数の多いスキルカードは、高さを中身に合わせて伸ばす */
-  .hpanel--skill { min-height: 0; }
+  .hpanel { padding: 24px; }
   .hpanel__skills li { grid-template-columns: 20px minmax(0, 1fr) auto; gap: 8px; }
   .hpanel__skills img { width: 20px; height: 20px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hscroll { height: auto; }
-  .hscroll__track { width: 100%; overflow-x: auto; }
 }
 
 /* Skill(抜粋) */

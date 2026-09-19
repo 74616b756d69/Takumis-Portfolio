@@ -98,71 +98,34 @@ $works  = takumi_get_home_works(); // 掲載する実績は管理画面「制作
 			</div>
 		</div>
 
-		<?php
-		// 横スクロールのパネル＝個人開発。1枚につき1リポジトリ。
-		// 中身は管理画面の「個人開発」で編集する（未登録なら既定の5件）。
-		// 学校/チームの制作は 03 Work、技術の一覧は About に載せる。
-		$builds = takumi_get_builds_data();
-		?>
-		<div class="hscroll" id="hscroll">
-			<div class="hscroll__inner">
-				<div class="hscroll__head">
-					<div class="hscroll__headings">
-						<p class="hscroll__label"><?php echo esc_html( get_theme_mod( 'takumi_builds_label', 'Skills & builds — scroll sideways' ) ); ?></p>
-					</div>
-					<p class="hscroll__count"><?php echo esc_html( sprintf( '%02d', count( $builds ) ) ); ?> projects</p>
-				</div>
-				<div class="hscroll__track" id="hscroll-track">
-					<?php // 前半は「どれくらい使えるか」、後半は「実際に作ったもの」。同じカードの形で続けて見せる。 ?>
-					<?php $group_index = 0; ?>
-					<?php foreach ( takumi_get_skill_groups() as $group ) : ?>
-						<?php ++$group_index; ?>
-						<div class="hpanel hpanel--skill">
-							<span class="hpanel__num">Skill / <?php echo esc_html( sprintf( '%02d', $group_index ) ); ?></span>
-							<div class="hpanel__body">
-								<h3><?php echo esc_html( $group['title'] ); ?></h3>
-								<p><?php echo esc_html( $group['text'] ); ?></p>
-								<ul class="hpanel__skills">
-									<?php foreach ( $group['items'] as $skill ) : ?>
-										<li>
-											<img src="<?php echo esc_url( takumi_skill_icon_url( $skill[0] ) ); ?>" alt="" loading="lazy">
-											<span class="hpanel__skill-name"><?php echo esc_html( $skill[1] ); ?></span>
-											<span class="hpanel__skill-exp"><?php echo esc_html( $skill[2] ); ?></span>
-										</li>
-									<?php endforeach; ?>
-								</ul>
-							</div>
-						</div>
-					<?php endforeach; ?>
-
-					<?php foreach ( $builds as $i => $build ) : ?>
-						<?php // 背景色は5色の繰り返し。スキルカードを前に足しても色がずれないよう、番号から直接決める。 ?>
-						<?php $shot = ! empty( $build['image'] ) ? $build['image'] : ''; ?>
-						<div class="hpanel hpanel--build hpanel--c<?php echo esc_attr( $i % 5 + 1 ); ?><?php echo $shot ? ' hpanel--shot' : ''; ?>">
-							<?php if ( $shot ) : ?>
-								<img class="hpanel__shot" src="<?php echo esc_url( $shot ); ?>" alt="<?php echo esc_attr( $build['cat'] ); ?> の画面" loading="lazy">
-							<?php endif; ?>
-							<span class="hpanel__num"><?php echo esc_html( sprintf( '%02d', $i + 1 ) ); ?> / <?php echo esc_html( $build['cat'] ); ?></span>
-							<div class="hpanel__body">
-								<h3><?php echo takumi_heading_html( $build['title'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 行ごとにエスケープ済み ?></h3>
-								<p><?php echo esc_html( $build['text'] ); ?></p>
-								<p class="hpanel__meta"><?php echo esc_html( $build['meta'] ); ?></p>
-								<div class="hpanel__icons">
-									<?php foreach ( $build['icons'] as $icon ) : ?>
-										<img src="<?php echo esc_url( takumi_skill_icon_url( $icon ) ); ?>" alt="<?php echo esc_attr( $icon ); ?>" loading="lazy">
-									<?php endforeach; ?>
-								</div>
-							</div>
-							<a class="hpanel__link" href="<?php echo esc_url( $build['url'] ); ?>" target="_blank" rel="noopener">
-								<?php echo esc_html( get_theme_mod( 'takumi_builds_link_text', 'GitHub で見る' ) ); ?><span class="visually-hidden">(<?php echo esc_html( $build['cat'] ); ?>・新しいタブで開きます)</span>
-							</a>
-						</div>
-					<?php endforeach; ?>
-				</div>
-			</div>
-		</div>
-
 		<div class="container">
+			<div class="skill-groups__head" data-reveal>
+				<p class="skill-groups__label"><?php echo esc_html( get_theme_mod( 'takumi_skill_label', 'Skills — at a glance' ) ); ?></p>
+				<p class="skill-groups__count"><?php echo esc_html( sprintf( '%02d', count( takumi_get_skills_data() ) ) ); ?> skills</p>
+			</div>
+			<div class="skill-groups">
+				<?php $group_index = 0; ?>
+				<?php foreach ( takumi_get_skill_groups() as $group ) : ?>
+					<?php ++$group_index; ?>
+					<div class="hpanel hpanel--skill <?php echo esc_attr( takumi_panel_tone( $group_index - 1 ) ); ?>" data-reveal>
+						<span class="hpanel__num">Skill / <?php echo esc_html( sprintf( '%02d', $group_index ) ); ?></span>
+						<div class="hpanel__body">
+							<h3><?php echo esc_html( $group['title'] ); ?></h3>
+							<p><?php echo esc_html( $group['text'] ); ?></p>
+							<ul class="hpanel__skills">
+								<?php foreach ( $group['items'] as $skill ) : ?>
+									<li>
+										<img src="<?php echo esc_url( takumi_skill_icon_url( $skill[0] ) ); ?>" alt="" loading="lazy">
+										<span class="hpanel__skill-name"><?php echo esc_html( $skill[1] ); ?></span>
+										<span class="hpanel__skill-exp"><?php echo esc_html( $skill[2] ); ?></span>
+									</li>
+								<?php endforeach; ?>
+							</ul>
+						</div>
+					</div>
+				<?php endforeach; ?>
+			</div>
+
 			<p class="section-more" data-reveal>
 				<a href="<?php echo esc_url( takumi_page_url( 'about' ) ); ?>#skill"><?php echo esc_html( get_theme_mod( 'takumi_top_skill_more', 'スキルの一覧を見る' ) ); ?></a>
 			</p>

@@ -250,45 +250,6 @@ if (window.gsap && window.ScrollTrigger) {
       }
     });
 
-    // スキルのパネルを横スクロールさせる(縦スクロールに連動してピン留め)
-    const hTrack = document.getElementById("hscroll-track");
-    if (hTrack) {
-      const distance = hTrack.scrollWidth - window.innerWidth + 64;
-      if (distance > 0) {
-        gsap.to(hTrack, {
-          x: -distance,
-          ease: "none",
-          scrollTrigger: {
-            trigger: "#hscroll",
-            start: "top top",
-            end: "+=" + (distance + window.innerHeight * 0.6),
-            scrub: 1,
-            pin: true,
-            invalidateOnRefresh: true,
-          },
-        });
-
-        // 横に流れるだけにならないよう、パネルをわずかに起こす
-        gsap.utils.toArray(".hpanel").forEach((panel, i) => {
-          gsap.fromTo(
-            panel,
-            { rotate: i % 2 === 0 ? -6 : 6, scale: 0.92 },
-            {
-              rotate: 0,
-              scale: 1,
-              ease: "none",
-              scrollTrigger: {
-                trigger: "#hscroll",
-                start: "top top",
-                end: "+=" + hTrack.scrollWidth,
-                scrub: true,
-              },
-            }
-          );
-        });
-      }
-    }
-
     // Statement: ピン留めして巨大テキストを横へ送る
     const stTrack = document.getElementById("statement-track");
     if (stTrack) {
