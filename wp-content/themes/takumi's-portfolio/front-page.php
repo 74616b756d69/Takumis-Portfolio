@@ -159,6 +159,8 @@ $works  = takumi_get_home_works(); // 掲載する実績は管理画面「制作
 		</div>
 	</section>
 
+	<?php takumi_flow_line(); ?>
+
 	<!-- 04 Contact -->
 	<section class="section section--loose" id="contact">
 		<?php takumi_shape_field( 'contact' ); ?>

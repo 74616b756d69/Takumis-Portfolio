@@ -2176,6 +2176,17 @@ a { color: inherit; text-decoration: none; }
 /* 下側は上下反転させて、上の線と鏡写しにする */
 .flow-line--flip { transform: scaleY(-1); }
 
+/* 前後のセクション余白に食い込ませて、区切り線まわりの間隔を詰める */
+.flow-line--tight {
+  margin-top: calc(clamp(80px, 12vw, 140px) * -0.45);
+  margin-bottom: calc(clamp(80px, 12vw, 140px) * -0.45);
+  position: relative;
+  z-index: 1;
+}
+@media (max-width: 600px) {
+  .flow-line--tight { margin-top: -20px; margin-bottom: -20px; }
+}
+
 /* グラデーションの停止色（stop 属性では var() が効かないため CSS で指定） */
 .flow-line .s-g1 { stop-color: var(--g1); }
 .flow-line .s-g2 { stop-color: var(--g2); }
