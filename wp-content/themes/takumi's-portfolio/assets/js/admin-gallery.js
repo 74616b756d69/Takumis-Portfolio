@@ -37,9 +37,21 @@ document.addEventListener("DOMContentLoaded", function () {
         })
       );
       item.remove();
+      dropFromSelection(id);
     });
 
+    // wp.media フレームは使い回すので、選択状態も一緒に持ち越される。
+    // 削除した画像を選択から外しておかないと、開き直して「選択」した時に復活する。
     var frame = null;
+    var dropFromSelection = function (id) {
+      if (!frame) return;
+      var state = frame.state();
+      var selection = state && state.get("selection");
+      if (!selection) return;
+      var attachment = selection.get(Number(id));
+      if (attachment) selection.remove(attachment);
+    };
+
     addBtn.addEventListener("click", function (e) {
       e.preventDefault();
       if (!frame) {

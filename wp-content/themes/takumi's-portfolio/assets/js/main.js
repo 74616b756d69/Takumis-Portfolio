@@ -419,6 +419,8 @@ if (window.gsap && !window.matchMedia("(prefers-reduced-motion: reduce)").matche
 
   // Contact の連絡先行。記録行と同じ動きに揃える。
   // ただし開閉トグルの「＋」だけは、開いた状態の 45 度回転を CSS が持っているので触らない。
+  // ホバーで左 padding を広げるので、戻す先は CSS が持つ基準値（0 ではない）。
+  const ROW_PADDING_LEFT = 16;
   document.querySelectorAll(".contact-channels__row").forEach((row) => {
     const key = row.querySelector(".contact-channels__key");
     const value = row.querySelector(".contact-channels__val");
@@ -429,14 +431,14 @@ if (window.gsap && !window.matchMedia("(prefers-reduced-motion: reduce)").matche
       row.classList.add("is-hover");
       gsap.to(key, { x: 6, duration: 0.35, ease: "power2.out" });
       gsap.to(value, { x: 10, duration: 0.35, ease: "power2.out" });
-      gsap.to(row, { paddingLeft: 18, duration: 0.35, ease: "power2.out" });
+      gsap.to(row, { paddingLeft: ROW_PADDING_LEFT + 2, duration: 0.35, ease: "power2.out" });
       if (spinnable) gsap.to(spinnable, { rotate: 45, scale: 1.1, duration: 0.4, ease: "back.out(2.5)" });
     });
     row.addEventListener("mouseleave", () => {
       row.classList.remove("is-hover");
       gsap.to(key, { x: 0, duration: 0.4, ease: "power2.out" });
       gsap.to(value, { x: 0, duration: 0.4, ease: "power2.out" });
-      gsap.to(row, { paddingLeft: 0, duration: 0.4, ease: "power2.out" });
+      gsap.to(row, { paddingLeft: ROW_PADDING_LEFT, duration: 0.4, ease: "power2.out" });
       if (spinnable) gsap.to(spinnable, { rotate: 0, scale: 1, duration: 0.4, ease: "power2.out" });
     });
   });
