@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TAKUMI_VERSION', '3.15.0' );
+define( 'TAKUMI_VERSION', '3.16.0' );
 
 /* ============================================================
    テーマサポート
@@ -683,52 +683,70 @@ add_action( 'init', function () {
 function takumi_meta_box_renderer( $fields, $prefix ) {
 	return function ( $post ) use ( $fields, $prefix ) {
 		wp_nonce_field( "takumi_{$prefix}_meta", "takumi_{$prefix}_meta_nonce" );
+		echo '<div class="takumi-form">';
+
 		foreach ( $fields as $key => $conf ) {
-			$value = get_post_meta( $post->ID, '_takumi_' . $key, true );
 			$type  = isset( $conf[2] ) ? $conf[2] : 'text';
+			$label = $conf[0];
+			$desc  = $conf[1];
 
-			// チェックボックスはラベルを右に置きたいので、他の型とは組み方を分ける。
-			if ( 'checkbox' === $type ) {
-				printf(
-					'<p><label for="takumi_%1$s"><input type="checkbox" id="takumi_%1$s" name="takumi_%1$s" value="1"%2$s> <strong>%3$s</strong></label><br><small>%4$s</small></p>',
-					esc_attr( $key ),
-					checked( $value, '1', false ),
-					esc_html( $conf[0] ),
-					esc_html( $conf[1] )
-				);
+			// 入力欄を持たない、区切りの見出しだけの行。
+			if ( 'section' === $type ) {
+				printf( '<h3 class="takumi-form__head">%s</h3>', esc_html( $label ) );
+				if ( '' !== $desc ) {
+					printf( '<p class="takumi-form__lead">%s</p>', esc_html( $desc ) );
+				}
 				continue;
 			}
 
-			// 画像は wp.media のギャラリー選択UI。値は添付ファイルIDのカンマ区切り。
-			if ( 'gallery' === $type ) {
-				takumi_render_gallery_field( $key, $value, $conf[0], $conf[1] );
-				continue;
+			$value = get_post_meta( $post->ID, '_takumi_' . $key, true );
+			$id    = 'takumi_' . esc_attr( $key );
+			$name  = 'takumi_' . esc_attr( $key );
+
+			// チェックボックスはラベルを入力の右に置きたいので、左の列を空ける。
+			$inline_label = 'checkbox' === $type;
+
+			echo '<div class="takumi-form__row' . ( $inline_label ? ' takumi-form__row--check' : '' ) . '">';
+			echo '<div class="takumi-form__label">';
+			if ( ! $inline_label ) {
+				printf( '<label for="%s">%s</label>', $id, esc_html( $label ) );
+			}
+			echo '</div><div class="takumi-form__field">';
+
+			switch ( $type ) {
+				case 'checkbox':
+					printf(
+						'<label class="takumi-form__check"><input type="checkbox" id="%1$s" name="%2$s" value="1"%3$s> <strong>%4$s</strong></label>',
+						$id,
+						$name,
+						checked( $value, '1', false ),
+						esc_html( $label )
+					);
+					break;
+
+				case 'gallery':
+					takumi_render_gallery_field( $key, $value );
+					break;
+
+				case 'image':
+					takumi_render_image_field( $name, (int) $value );
+					break;
+
+				case 'textarea':
+					printf( '<textarea id="%1$s" name="%2$s" rows="4">%3$s</textarea>', $id, $name, esc_textarea( $value ) );
+					break;
+
+				default:
+					printf( '<input type="text" id="%1$s" name="%2$s" value="%3$s">', $id, $name, esc_attr( $value ) );
 			}
 
-			// 1枚だけの画像欄。値は添付ファイルID。
-			if ( 'image' === $type ) {
-				printf(
-					'<p><label><strong>%1$s</strong><br><small>%2$s</small></label></p>',
-					esc_html( $conf[0] ),
-					esc_html( $conf[1] )
-				);
-				takumi_render_image_field( 'takumi_' . $key, (int) $value );
-				continue;
+			if ( '' !== $desc ) {
+				printf( '<p class="takumi-form__desc">%s</p>', esc_html( $desc ) );
 			}
-
-			printf(
-				'<p><label for="takumi_%1$s"><strong>%2$s</strong><br><small>%3$s</small></label><br>',
-				esc_attr( $key ),
-				esc_html( $conf[0] ),
-				esc_html( $conf[1] )
-			);
-			if ( 'textarea' === $type ) {
-				printf( '<textarea id="takumi_%1$s" name="takumi_%1$s" rows="4" style="width:100%%">%2$s</textarea>', esc_attr( $key ), esc_textarea( $value ) );
-			} else {
-				printf( '<input type="text" id="takumi_%1$s" name="takumi_%1$s" value="%2$s" style="width:100%%">', esc_attr( $key ), esc_attr( $value ) );
-			}
-			echo '</p>';
+			echo '</div></div>';
 		}
+
+		echo '</div>';
 	};
 }
 
@@ -736,10 +754,9 @@ function takumi_meta_box_renderer( $fields, $prefix ) {
  * ギャラリー欄(wp.media で選んだ画像)を描画する。
  * 値は添付ファイルIDのカンマ区切り文字列。並び順=選んだ順で、1枚目がメイン画像になる。
  */
-function takumi_render_gallery_field( $key, $value, $label, $desc ) {
+function takumi_render_gallery_field( $key, $value ) {
 	$ids = array_filter( array_map( 'absint', explode( ',', (string) $value ) ) );
 	?>
-	<p><label><strong><?php echo esc_html( $label ); ?></strong><br><small><?php echo esc_html( $desc ); ?></small></label></p>
 	<div class="takumi-gallery" data-field="<?php echo esc_attr( $key ); ?>">
 		<input type="hidden" id="takumi_<?php echo esc_attr( $key ); ?>" name="takumi_<?php echo esc_attr( $key ); ?>" value="<?php echo esc_attr( implode( ',', $ids ) ); ?>">
 		<div class="takumi-gallery__list">
@@ -814,6 +831,11 @@ function takumi_save_meta_fields( $post_id, $fields, $prefix ) {
 	foreach ( $fields as $key => $conf ) {
 		$type = isset( $conf[2] ) ? $conf[2] : 'text';
 
+		// 見出しだけの行は保存するものが無い。
+		if ( 'section' === $type ) {
+			continue;
+		}
+
 		// 未チェックのチェックボックスは POST に含まれないため、
 		// 「来ていない = 外された」とみなして保存する。
 		if ( 'checkbox' === $type ) {
@@ -843,43 +865,64 @@ function takumi_save_meta_fields( $post_id, $fields, $prefix ) {
 }
 
 /* ---------- 制作実績メタボックス ---------- */
+/*
+ * 並びがそのまま入力欄の並びになる。
+ * array( ラベル, 補足説明, 型 )。型を省くと1行のテキスト欄。
+ * 型 'section' の行は入力欄を持たず、フォームの区切り見出しになる。
+ */
 const TAKUMI_WORK_FIELDS = array(
+	'sec_basic' => array( '基本', 'まずここだけ埋めれば公開できます。', 'section' ),
 	'home'  => array( 'トップページに掲載する', 'トップページの Work セクションに出す実績を選びます。'
 		. '1件もチェックが無いときは、Workページと同じ並びで自動的に表示されます。'
 		. '並び順と表示件数の上限は「外観 > カスタマイズ > トップページ文言設定」から。', 'checkbox' ),
 	'meta'  => array( 'サブタイトル', '例: 個人制作・2025' ),
 	'year'  => array( '制作年', 'Work一覧の Year 絞り込みに使う。新しい年を入れると選択肢が自動で増える。例: 2025' ),
-	'gallery' => array( '画像を追加', '「画像を追加」からメディアライブラリで選択できます(複数選択可)。'
-		. '1枚目がモーダルのメイン画像、残りはサムネイルになります。空欄ならアイキャッチ + 本文中の画像を自動で使います。', 'gallery' ),
-	'category' => array( '区分(カンマ区切り)', 'Work一覧の絞り込みに使う。既定は personal / company / team / school。'
-		. '区分の追加や表示名の変更は「外観 > カスタマイズ > Work: 絞り込み設定」から。' ),
-	'type'  => array( '種別(カンマ区切り)', 'front / back / design' ),
-	'tech'  => array( '技術(カンマ区切り)', '例: html/css,js,php' ),
-	'period'=> array( '制作期間', '詳細の「期間」欄。空欄なら行ごと出ない。例: 2024.09 – 2024.11' ),
-	'team'  => array( '体制', '詳細の「体制」欄。空欄なら行ごと出ない。例: 4人チーム(リーダー)' ),
-	'role'  => array( '担当', '例: デザイン・コーディング全て' ),
 	'status'=> array( '公開状態', '詳細の先頭にバッジで出る。空欄でリンクも無ければ「非公開」。例: 制作中 / 公開中 / 非公開' ),
-	'challenge' => array( '課題', '詳細の 01。何が問題だったか。空欄ならブロックごと出ない。', 'textarea' ),
-	'approach'  => array( 'やったこと', '詳細の 02。どう解いたか。', 'textarea' ),
-	'result'    => array( '結果・学び', '詳細の 03。どうなったか・何を得たか。', 'textarea' ),
+
+	'sec_image' => array( '画像', '', 'section' ),
+	'gallery' => array( '画像を追加', '「画像を追加」からメディアライブラリで選択できます(複数選択可)。'
+		. '1枚目がモーダルのメイン画像、残りはサムネイルになります。空欄なら右のメイン画像 + 本文中の画像を自動で使います。', 'gallery' ),
+
+	'sec_filter' => array( '分類(Work一覧の絞り込みに使う)', 'カンマ区切りで複数入れられます。', 'section' ),
+	'category' => array( '区分', 'Work一覧の絞り込みに使う。既定は personal / company / team / school。'
+		. '区分の追加や表示名の変更は「外観 > カスタマイズ > Work: 絞り込み設定」から。' ),
+	'type'  => array( '種別', 'front / back / design' ),
+	'tech'  => array( '技術', '例: html/css,js,php' ),
+
+	'sec_facts' => array( '制作の情報', '空欄にした項目は、詳細でも行ごと出ません。', 'section' ),
+	'period'=> array( '制作期間', '例: 2024.09 – 2024.11' ),
+	'team'  => array( '体制', '例: 4人チーム(リーダー)' ),
+	'role'  => array( '担当', '例: デザイン・コーディング全て' ),
+
+	'sec_story' => array( '詳細', '詳細パネルに 01 / 02 / 03 の順で並びます。空欄ならブロックごと出ません。', 'section' ),
+	'challenge' => array( '01 課題', '何が問題だったか。', 'textarea' ),
+	'approach'  => array( '02 やったこと', 'どう解いたか。', 'textarea' ),
+	'result'    => array( '03 結果・学び', 'どうなったか・何を得たか。', 'textarea' ),
+
+	'sec_links' => array( 'リンク', '', 'section' ),
 	'url'   => array( '公開URL', '空欄可' ),
 	'github'=> array( 'GitHub URL', '空欄可' ),
 	'note'  => array( 'リンクが無いときの補足', '公開URLもGitHubも無いときに詳細の末尾へ出す。例: 掲載のみ承認いただいた案件のため、詳細は面談時にご紹介します。', 'textarea' ),
-	'icons' => array( 'スキルアイコン(カンマ区切り)', 'skillicons.dev のID。例: html,css,js' ),
-	'label' => array( 'レコード見出し(英字)', 'Work一覧の索引に表示。空欄なら技術から自動生成。例: TEAM DEVELOPMENT' ),
-	'metric'=> array( 'レコード指標(英字)', 'Work一覧の索引に表示。空欄なら担当から自動生成。例: 8-PERSON TEAM' ),
+
+	'sec_index' => array( 'Work一覧の索引での見え方', '空欄にすると、他の項目から自動で組み立てます。', 'section' ),
+	'icons' => array( 'スキルアイコン', 'skillicons.dev のIDをカンマ区切りで。例: html,css,js' ),
+	'label' => array( 'レコード見出し(英字)', '空欄なら技術から自動生成。例: TEAM DEVELOPMENT' ),
+	'metric'=> array( 'レコード指標(英字)', '空欄なら担当から自動生成。例: 8-PERSON TEAM' ),
 );
 
 /* ---------- スキルメタボックス ---------- */
 const TAKUMI_SKILL_FIELDS = array(
-	'icon'       => array( 'アイコン(skillicons.dev のID)', '例: html' ),
+	'sec_icon' => array( 'アイコン', 'どちらか片方でかまいません。', 'section' ),
+	'icon'       => array( 'skillicons.dev のID', '例: html / react / php' ),
 	'icon_image' => array( 'アイコン画像(アップロード)', '自分で用意した画像を使いたいときに。'
 		. 'ここに画像を入れると、上の skillicons.dev のIDより優先して表示されます。'
 		. '正方形・透過PNG / SVG が向いています。', 'image' ),
+
+	'sec_exp' => array( '経験・習熟度', '', 'section' ),
 	'genre'      => array( 'ジャンル', 'main / base / sub / learn / tool のいずれか。空欄でも可。' ),
 	'since'      => array( '使い始めた年月', '例: 2021.04 / 2021-04 / 2021。入れておくと経験年数(4 yrs など)が毎年ひとりでに増える。' ),
 	'experience' => array( '経験(手入力)', '例: 4 yrs / Learning。「使い始めた年月」が空のとき、および1年未満のあいだ、この文字がそのまま出る。' ),
-	'percent'    => array( '習熟度(0-100)', '例: 90' ),
+	'percent'    => array( '習熟度(0-100)', 'Aboutページのバーの長さになります。例: 90' ),
 	'note'       => array( '補足', '例: Webサイト制作で使用' ),
 );
 
@@ -891,10 +934,13 @@ const TAKUMI_CAREER_FIELDS = array(
 
 /* ---------- 個人開発メタボックス ---------- */
 const TAKUMI_BUILD_FIELDS = array(
+	'sec_text' => array( 'カードの文章', 'タイトル欄には「APOGEE」のような作品名を入れてください。', 'section' ),
 	'headline' => array( '見出し', '例: 宇宙の打ち上げを、日々の予定に並べる / 改行した位置で行が分かれます', 'textarea' ),
 	'text'     => array( '説明文', '2〜3行程度の紹介文', 'textarea' ),
+
+	'sec_tech' => array( '技術・リンク', '', 'section' ),
 	'meta'     => array( '技術・体制のメモ', '例: 設計・API・UI すべて一人で / Spring Boot 3 + React 18 + MySQL' ),
-	'icons'    => array( 'スキルアイコン(カンマ区切り)', 'skillicons.dev のID。例: java,spring,react,mysql,docker' ),
+	'icons'    => array( 'スキルアイコン', 'skillicons.dev のIDをカンマ区切りで。例: java,spring,react,mysql,docker' ),
 	'url'      => array( 'リンクURL', '例: https://github.com/74616b756d69/Apogee' ),
 );
 
@@ -903,6 +949,30 @@ const TAKUMI_CONTENT_POST_TYPES = array( 'works', 'skill', 'career', 'build' );
 
 /** アイキャッチを「メイン画像」として大きく出す投稿タイプ。 */
 const TAKUMI_FEATURED_POST_TYPES = array( 'works', 'build' );
+
+/**
+ * 中身を入れる画面はブロックエディタを使わない。
+ *
+ * これらの投稿タイプで入力するのは決まった項目なので、白紙のキャンバスより
+ * 上から順に埋めるフォームのほうが早い。制作実績の本文も、いま入っているのは
+ * ブロックではなく素のHTMLなので、そのまま従来の編集画面で扱える。
+ */
+add_filter( 'use_block_editor_for_post_type', function ( $use, $post_type ) {
+	return in_array( $post_type, TAKUMI_CONTENT_POST_TYPES, true ) ? false : $use;
+}, 10, 2 );
+
+/**
+ * タイトル欄に、何を書く場所なのかを出す。
+ */
+add_filter( 'enter_title_here', function ( $text, $post ) {
+	$placeholders = array(
+		'works'  => '作品名(例: YL MEMORIA)',
+		'skill'  => 'スキル名(例: React)',
+		'career' => '出来事(例: KADOKAWAドワンゴ情報工科学院 入学)',
+		'build'  => '作品名(例: APOGEE)',
+	);
+	return isset( $placeholders[ $post->post_type ] ) ? $placeholders[ $post->post_type ] : $text;
+}, 10, 2 );
 
 /**
  * 既定のアイキャッチ欄は小さくて、新規追加のときに見落としやすい。
@@ -952,6 +1022,7 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 	$uri = get_template_directory_uri();
 	wp_enqueue_style( 'takumi-admin-gallery', $uri . '/assets/css/admin-gallery.css', array(), TAKUMI_VERSION );
 	wp_enqueue_style( 'takumi-admin-image', $uri . '/assets/css/admin-image.css', array(), TAKUMI_VERSION );
+	wp_enqueue_style( 'takumi-admin-form', $uri . '/assets/css/admin-form.css', array(), TAKUMI_VERSION );
 	wp_enqueue_script( 'takumi-admin-gallery', $uri . '/assets/js/admin-gallery.js', array(), TAKUMI_VERSION, true );
 	wp_enqueue_script( 'takumi-admin-image', $uri . '/assets/js/admin-image.js', array(), TAKUMI_VERSION, true );
 } );

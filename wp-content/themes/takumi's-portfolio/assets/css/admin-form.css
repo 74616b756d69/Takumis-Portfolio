@@ -1,0 +1,84 @@
+/* ============================================================
+   メタボックスの入力欄をフォームとして組む。
+   広い画面では「ラベル | 入力欄」の2列、狭い画面では縦1列。
+   ============================================================ */
+.takumi-form {
+  margin: -6px -12px -12px;
+  padding: 0 12px 4px;
+}
+
+/* --- 区切りの見出し --- */
+.takumi-form__head {
+  margin: 24px -12px 0;
+  padding: 10px 12px;
+  border-top: 1px solid #f0f0f1;
+  background: #f6f7f7;
+  color: #1d2327;
+  font-size: 13px;
+  font-weight: 600;
+}
+.takumi-form__head:first-child {
+  margin-top: 0;
+  border-top: none;
+}
+.takumi-form__lead {
+  margin: 8px 0 0;
+  color: #646970;
+  font-size: 12px;
+}
+
+/* --- 1項目 --- */
+.takumi-form__row {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 4px 20px;
+  align-items: start;
+  padding: 14px 0;
+  border-bottom: 1px solid #f0f0f1;
+}
+.takumi-form__row:last-child { border-bottom: none; }
+
+.takumi-form__label {
+  padding-top: 5px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.takumi-form__label label { cursor: pointer; }
+
+.takumi-form__field input[type="text"],
+.takumi-form__field textarea {
+  width: 100%;
+  max-width: 100%;
+}
+.takumi-form__field textarea {
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.takumi-form__desc {
+  margin: 6px 0 0;
+  color: #646970;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* --- チェックボックスの行は左の列を空けて、文言を入力の右に置く --- */
+.takumi-form__row--check .takumi-form__label { padding: 0; }
+.takumi-form__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+/* --- 画像まわりは幅を持て余すので、欄の中で左に寄せる --- */
+.takumi-form__field .takumi-image { max-width: 320px; }
+
+/* --- 狭い画面 / サイドバー配置では1列に落とす --- */
+@media screen and (max-width: 960px) {
+  .takumi-form__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  .takumi-form__label { padding-top: 0; }
+}
