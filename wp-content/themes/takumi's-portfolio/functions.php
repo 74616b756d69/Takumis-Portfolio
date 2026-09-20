@@ -2068,7 +2068,8 @@ function takumi_get_career_data() {
  */
 function takumi_skill_icon_url( $icon ) {
 	$local_path = get_template_directory() . '/assets/img/skills/' . $icon . '.svg';
-	if ( file_exists( $local_path ) ) {
+	// 中身が空のファイルは「無い」とみなす。あると判定すると何も描画されない画像を出してしまう。
+	if ( file_exists( $local_path ) && filesize( $local_path ) > 0 ) {
 		return get_template_directory_uri() . '/assets/img/skills/' . $icon . '.svg';
 	}
 	return 'https://skillicons.dev/icons?i=' . rawurlencode( $icon );
