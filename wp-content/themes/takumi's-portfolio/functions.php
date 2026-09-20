@@ -255,16 +255,6 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'type'        => 'textarea',
 	) );
 
-	$wp_customize->add_setting( 'takumi_top_skill_desc', array(
-		'default'           => 'フロントエンドからバックエンドまで。HTML/CSSでの制作経験を軸に、React・Spring Boot・ASP.NET Core まで、実際に動くものを作りながら幅を広げています。',
-		'sanitize_callback' => 'sanitize_textarea_field',
-	) );
-	$wp_customize->add_control( 'takumi_top_skill_desc', array(
-		'label'   => 'Skillセクションの説明文',
-		'section' => 'takumi_top_texts',
-		'type'    => 'textarea',
-	) );
-
 	$wp_customize->add_setting( 'takumi_home_work_limit', array(
 		'default'           => 0,
 		'sanitize_callback' => 'absint',
@@ -358,13 +348,6 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'takumi_hero_label' => array(
 			'takumi_headings', 'トップ: ヒーロー上部のラベル', 'Portfolio / Web Developer', 'text', '',
 		),
-		'takumi_skill_heading' => array(
-			'takumi_headings', 'トップ: Skill の見出し', "触れる技術を、\n増やしている途中です。", 'textarea',
-			'改行した位置で行が分かれます。',
-		),
-		'takumi_skill_label' => array(
-			'takumi_headings', 'トップ: Skillのラベル', 'Skills — at a glance', 'text', '',
-		),
 		'takumi_work_heading' => array(
 			'takumi_headings', 'Work の見出し', "実装の幅を、\n結果で見せる。", 'textarea',
 			'トップページの Work セクションと Work ページの両方で使われます。改行した位置で行が分かれます。',
@@ -409,9 +392,6 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'takumi_top_profile_btn' => array(
 			'takumi_top_texts', 'トップ: Profile のボタン文言', 'More About Me', 'text', '',
 		),
-		'takumi_top_skill_more' => array(
-			'takumi_top_texts', 'トップ: Skill 下のリンク文言', 'スキルの一覧を見る', 'text', '',
-		),
 		'takumi_builds_link_text' => array(
 			'takumi_top_texts', 'トップ: 個人開発カードのリンク文言', 'GitHub で見る', 'text', '',
 		),
@@ -444,12 +424,6 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		),
 		'takumi_top_profile_ja' => array(
 			'takumi_section_labels', 'トップ: 01 の日本語ラベル', '私について', 'text', '',
-		),
-		'takumi_top_skill_en' => array(
-			'takumi_section_labels', 'トップ: 02 の英字ラベル', 'Skill', 'text', '',
-		),
-		'takumi_top_skill_ja' => array(
-			'takumi_section_labels', 'トップ: 02 の日本語ラベル', 'できること', 'text', '',
 		),
 		'takumi_top_work_en' => array(
 			'takumi_section_labels', 'トップ: 03 の英字ラベル', 'Work', 'text', '',
@@ -1858,7 +1832,7 @@ function takumi_get_home_works() {
 /**
  * スキル一覧を取得(管理画面「スキル」に投稿がなければ既定値を返す)
  * 各要素: array( アイコンID, 名前, 経験, 習熟度%, 補足, ジャンル )
- * トップページの Skill セクションと About ページの両方で使う。
+ * トップの Skill セクションは廃止したが、About ページでは今も使っている。
  */
 function takumi_get_skills_data() {
 	$posts = get_posts( array(
@@ -1908,6 +1882,7 @@ function takumi_get_skills_data() {
 	}, $posts );
 }
 
+
 /**
  * 経歴一覧を取得(管理画面「経歴」に投稿がなければ既定値を返す)
  * 各要素: array( 日付, タイトル, 説明 )
@@ -1952,6 +1927,7 @@ function takumi_skill_icon_url( $icon ) {
 	}
 	return 'https://skillicons.dev/icons?i=' . rawurlencode( $icon );
 }
+
 
 /* ============================================================
    管理画面から編集できる文言・データの取り出し

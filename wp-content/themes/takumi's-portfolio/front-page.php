@@ -85,43 +85,6 @@ $works  = takumi_get_home_works(); // 掲載する実績は管理画面「制作
 		</div>
 	</section>
 
-	<!-- 02 Skill -->
-	<section class="section section--tight section--alt" id="skill">
-		<?php takumi_shape_field( 'skill' ); ?>
-		<div class="container">
-			<div class="lead" data-reveal>
-				<p class="lead__meta"><span>02</span><?php echo esc_html( get_theme_mod( 'takumi_top_skill_en', 'Skill' ) ); ?> <i><?php echo esc_html( get_theme_mod( 'takumi_top_skill_ja', 'できること' ) ); ?></i></p>
-				<div class="lead__body">
-					<h2 class="lead__title"><?php echo takumi_heading_html( get_theme_mod( 'takumi_skill_heading', "触れる技術を、\n増やしている途中です。" ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 行ごとにエスケープ済み ?></h2>
-					<p class="lead__lede"><?php echo esc_html( get_theme_mod( 'takumi_top_skill_desc', 'フロントエンドからバックエンドまで。HTML/CSSでの制作経験を軸に、React・Spring Boot・ASP.NET Core まで、実際に動くものを作りながら幅を広げています。' ) ); ?></p>
-				</div>
-			</div>
-		</div>
-
-		<div class="container">
-			<div class="skill-groups__head" data-reveal>
-				<p class="skill-groups__label"><?php echo esc_html( get_theme_mod( 'takumi_skill_label', 'Skills — at a glance' ) ); ?></p>
-				<p class="skill-groups__count"><?php echo esc_html( sprintf( '%02d', count( takumi_get_skills_data() ) ) ); ?> skills</p>
-			</div>
-			<?php // ジャンル分けはやめ、管理画面「スキル」の並び順のまま1枚に流し込む。 ?>
-			<div class="hpanel hpanel--skill hpanel--t1" data-reveal>
-				<ul class="hpanel__skills hpanel__skills--all">
-					<?php foreach ( takumi_get_skills_data() as $skill ) : ?>
-						<li>
-							<img src="<?php echo esc_url( takumi_skill_icon_url( $skill[0] ) ); ?>" alt="" loading="lazy">
-							<span class="hpanel__skill-name"><?php echo esc_html( $skill[1] ); ?></span>
-							<span class="hpanel__skill-exp"><?php echo esc_html( $skill[2] ); ?></span>
-						</li>
-					<?php endforeach; ?>
-				</ul>
-			</div>
-
-			<p class="section-more" data-reveal>
-				<a href="<?php echo esc_url( takumi_page_url( 'about' ) ); ?>#skill"><?php echo esc_html( get_theme_mod( 'takumi_top_skill_more', 'スキルの一覧を見る' ) ); ?></a>
-			</p>
-		</div>
-	</section>
-
 	<!-- Statement — スクロールでピン留めし、巨大テキストが横に流れる -->
 	<?php
 	// 横に流れる大きな文字。内容は管理画面「セクション見出し設定」で編集する。
