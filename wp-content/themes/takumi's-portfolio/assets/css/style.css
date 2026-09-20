@@ -2463,7 +2463,7 @@ a { color: inherit; text-decoration: none; }
   .shape-svg * { animation: none !important; }
 }
 
-/* Skill グループ — 横スクロールをやめ、3枚を並べて静的に見せる */
+/* Skill — ジャンル分けをやめ、1枚のパネルに全件を段組みで並べる */
 .skill-groups__head {
   display: flex;
   align-items: flex-end;
@@ -2494,27 +2494,6 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase;
   color: var(--text-dim);
   white-space: nowrap;
-}
-.skill-groups {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(20px, 3vw, 32px);
-}
-.skill-groups .hpanel {
-  width: 100%;
-  min-height: 0;
-  transition: transform 0.35s ease;
-}
-/* 横スクロール時代の「斜めに構える」見た目を、静止したグリッドでも残す */
-.skill-groups .hpanel:nth-child(3n + 1) { transform: rotate(-3deg); }
-.skill-groups .hpanel:nth-child(3n + 2) { transform: rotate(2.5deg); }
-.skill-groups .hpanel:nth-child(3n + 3) { transform: rotate(-2deg); }
-.skill-groups .hpanel:hover { transform: rotate(0deg) translateY(-6px); }
-@media (max-width: 900px) {
-  .skill-groups { grid-template-columns: 1fr; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .skill-groups .hpanel { transition: none; }
 }
 
 .hpanel {
@@ -2582,6 +2561,18 @@ a { color: inherit; text-decoration: none; }
   border-bottom: 1px solid rgba(11, 10, 16, 0.16);
 }
 .hpanel__skills li:last-child { border-bottom: 0; }
+/* 全件を1枚に入れるので、幅に応じて段を増やして縦に伸びすぎないようにする */
+.hpanel__skills--all {
+  margin-top: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: clamp(24px, 3vw, 44px);
+}
+@media (max-width: 900px) {
+  .hpanel__skills--all { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .hpanel__skills--all { grid-template-columns: 1fr; }
+}
 .hpanel__skills img {
   width: 24px;
   height: 24px;
