@@ -7,7 +7,10 @@
 <html <?php language_attributes(); ?>>
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+	<?php // iOS Safari はステータスバー/ダイナミックアイランド周辺の色をページ上端から
+	      // 自動で拾う。指定しないとコンテンツの色が滲み出るので、背景色(--bg)で固定する。 ?>
+	<meta name="theme-color" content="#0b0a10">
 	<link rel="icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/img/icon/logo_img.png">
 	<?php
 	$takumi_seo_desc  = get_theme_mod( 'takumi_seo_description', '赤堀匠海(Akahori Takumi)のポートフォリオサイト。Web制作のスキル・経歴・制作実績を紹介しています。' );
@@ -16,7 +19,7 @@
 	?>
 	<meta name="description" content="<?php echo esc_attr( $takumi_seo_desc ); ?>">
 	<meta property="og:type" content="website">
-	<meta property="og:site_name" content="<?php bloginfo( 'name' ); ?>">
+	<meta property="og:site_name" content="<?php echo esc_attr( takumi_logo_text() ); ?>">
 	<meta property="og:title" content="<?php echo esc_attr( wp_get_document_title() ); ?>">
 	<meta property="og:description" content="<?php echo esc_attr( $takumi_seo_desc ); ?>">
 	<meta property="og:url" content="<?php echo esc_url( $takumi_seo_url ); ?>">
@@ -29,17 +32,17 @@
 
 <!-- Loader -->
 <div class="loader">
-	<p class="loader__mark"><?php bloginfo( 'name' ); ?></p>
+	<p class="loader__mark"><?php echo esc_html( takumi_logo_text() ); ?></p>
 	<div class="loader__bar"></div>
 </div>
 
 <!-- Header -->
 <header class="site-header">
-	<a class="site-header__logo" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php bloginfo( 'name' ); ?></a>
-	<button class="nav-toggle" aria-label="メニューを開く">
+	<a class="site-header__logo" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( takumi_logo_text() ); ?></a>
+	<button class="nav-toggle" aria-label="メニューを開く" aria-expanded="false" aria-controls="global-nav">
 		<span></span><span></span><span></span>
 	</button>
-	<nav class="global-nav">
+	<nav class="global-nav" id="global-nav">
 		<?php
 		if ( has_nav_menu( 'global' ) ) {
 			wp_nav_menu( array(

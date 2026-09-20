@@ -2,6 +2,52 @@
    共通スクリプト — ローダー / ナビ / スクロール演出
    ============================================================ */
 
+/* ---------- 散らした図形のパララックス ----------
+   マウス位置を -1〜1 に正規化して CSS 変数に流すだけ。
+   実際の移動量は各図形の --depth と CSS 側の transform が決める。
+   このブロックを消しても、浮遊と回転は CSS 側で動き続ける。 */
+(function () {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const fields = document.querySelectorAll(".shape-field");
+  if (!fields.length) return;
+
+  let frame = null;
+  let pointer = { x: 0, y: 0 };
+
+  function update() {
+    frame = null;
+    fields.forEach((field) => {
+      const r = field.getBoundingClientRect();
+      // 画面外のセクションは計算しない
+      if (!r.width || r.bottom < 0 || r.top > window.innerHeight) return;
+      const x = (pointer.x - (r.left + r.width / 2)) / (r.width / 2);
+      const y = (pointer.y - (r.top + r.height / 2)) / (r.height / 2);
+      field.style.setProperty("--mx", Math.max(-1, Math.min(1, x)).toFixed(3));
+      field.style.setProperty("--my", Math.max(-1, Math.min(1, y)).toFixed(3));
+    });
+  }
+
+  window.addEventListener(
+    "pointermove",
+    (e) => {
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
+      if (!frame) frame = requestAnimationFrame(update); // 1フレームにつき1回だけ更新
+    },
+    { passive: true }
+  );
+
+  function reset() {
+    fields.forEach((field) => {
+      field.style.setProperty("--mx", 0);
+      field.style.setProperty("--my", 0);
+    });
+  }
+  window.addEventListener("pointerleave", reset);
+  window.addEventListener("blur", reset);
+})();
+
 /* ---------- ローダー ---------- */
 window.addEventListener("load", () => {
   const loader = document.querySelector(".loader");
@@ -25,18 +71,28 @@ onScrollHeader();
 /* ---------- ハンバーガーメニュー ---------- */
 const navToggle = document.querySelector(".nav-toggle");
 const globalNav = document.querySelector(".global-nav");
-navToggle?.addEventListener("click", () => {
-  const open = navToggle.classList.toggle("is-open");
+// 開閉の副作用は1か所に集める。body のクラスは、開いている間だけ
+// ヘッダーの背景とぼかしを外すために CSS から参照している。
+function setNavOpen(open) {
+  navToggle?.classList.toggle("is-open", open);
   globalNav?.classList.toggle("is-open", open);
+  document.body.classList.toggle("is-nav-open", open);
   document.body.style.overflow = open ? "hidden" : "";
+  navToggle?.setAttribute("aria-expanded", String(open));
+  navToggle?.setAttribute("aria-label", open ? "メニューを閉じる" : "メニューを開く");
+}
+
+navToggle?.addEventListener("click", () => setNavOpen(!navToggle.classList.contains("is-open")));
+globalNav?.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => setNavOpen(false)));
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && navToggle?.classList.contains("is-open")) setNavOpen(false);
 });
-globalNav?.querySelectorAll("a").forEach((a) =>
-  a.addEventListener("click", () => {
-    navToggle?.classList.remove("is-open");
-    globalNav.classList.remove("is-open");
-    document.body.style.overflow = "";
-  })
-);
+
+// デスクトップ幅へ戻したときに、開いたままの状態を持ち越さない
+matchMedia("(max-width: 900px)").addEventListener("change", (e) => {
+  if (!e.matches) setNavOpen(false);
+});
 
 /* ---------- スクロールリビール ---------- */
 const revealObserver = new IntersectionObserver(
@@ -75,6 +131,39 @@ window.addEventListener(
   { passive: true }
 );
 pagetop?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+/* ---------- Contact: フォーム行の開閉 ----------
+   Email / GitHub は外部へ飛ぶリンク、Form だけはその場で開く。
+   畳むのは JS が動いているときだけ。無効な環境では開いたまま使える。 */
+const disclosure = document.querySelector(".contact-disclosure");
+const disclosureToggle = disclosure && disclosure.querySelector(".contact-disclosure__toggle");
+const disclosurePanel = disclosure && disclosure.querySelector(".contact-disclosure__panel");
+
+if (disclosureToggle && disclosurePanel) {
+  disclosure.classList.add("is-collapsible");
+
+  const setDisclosure = (open) => {
+    disclosureToggle.setAttribute("aria-expanded", String(open));
+    // 閉じている間は中身をタブ移動の対象から外す
+    disclosurePanel.inert = !open;
+  };
+
+  setDisclosure(false);
+
+  disclosureToggle.addEventListener("click", () => {
+    const isOpen = disclosureToggle.getAttribute("aria-expanded") === "true";
+    setDisclosure(!isOpen);
+
+    if (!isOpen) {
+      // 開いたら最初の入力欄へ。ページのスクロール位置は動かさない。
+      const first = disclosurePanel.querySelector("input:not([type=hidden]), textarea");
+      if (first) first.focus({ preventScroll: true });
+    }
+  });
+
+  // 送信結果（CF7 のメッセージ）が出たときは、閉じていても開く
+  document.addEventListener("wpcf7submit", () => setDisclosure(true));
+}
 
 /* ---------- GSAP 演出(読み込まれている場合のみ) ---------- */
 if (window.gsap && window.ScrollTrigger) {
@@ -130,9 +219,8 @@ if (window.gsap && window.ScrollTrigger) {
         }, "-=0.35")
         .from(".home-hero__name", { opacity: 0, y: 26, duration: 0.7, ease: "power2.out" }, "-=0.3")
         .from(".home-hero__lead", { opacity: 0, y: 26, duration: 0.6, ease: "power2.out" }, "-=0.45")
-        .from(".home-stats__item", { opacity: 0, y: 26, scale: 0.9, duration: 0.6, stagger: 0.08, ease: "back.out(2)" }, "-=0.4")
-        .from(".home-index a", { opacity: 0, y: 26, scale: 0.94, duration: 0.55, stagger: 0.07, ease: "back.out(2)" }, "-=0.35")
-        .from(".blob", { opacity: 0, scale: 0.1, rotate: 180, duration: 1.1, stagger: 0.1, ease: "back.out(2.4)" }, "-=1.4")
+        // 実績サマリーを外した分、blob の入りは元のタイミングに合わせて詰めてある
+        .from(".blob", { opacity: 0, scale: 0.1, rotate: 180, duration: 1.1, stagger: 0.1, ease: "back.out(2.4)" }, "-=1.04")
         .from(".home-hero__inner > .page-hero__label", { opacity: 0, x: -30, duration: 0.5 }, "-=1.5");
 
       // 差し色の行だけ、ゆっくり揺らし続ける
@@ -162,45 +250,6 @@ if (window.gsap && window.ScrollTrigger) {
       }
     });
 
-    // スキルのパネルを横スクロールさせる(縦スクロールに連動してピン留め)
-    const hTrack = document.getElementById("hscroll-track");
-    if (hTrack) {
-      const distance = hTrack.scrollWidth - window.innerWidth + 64;
-      if (distance > 0) {
-        gsap.to(hTrack, {
-          x: -distance,
-          ease: "none",
-          scrollTrigger: {
-            trigger: "#hscroll",
-            start: "top top",
-            end: "+=" + (distance + window.innerHeight * 0.6),
-            scrub: 1,
-            pin: true,
-            invalidateOnRefresh: true,
-          },
-        });
-
-        // 横に流れるだけにならないよう、パネルをわずかに起こす
-        gsap.utils.toArray(".hpanel").forEach((panel, i) => {
-          gsap.fromTo(
-            panel,
-            { rotate: i % 2 === 0 ? -6 : 6, scale: 0.92 },
-            {
-              rotate: 0,
-              scale: 1,
-              ease: "none",
-              scrollTrigger: {
-                trigger: "#hscroll",
-                start: "top top",
-                end: "+=" + hTrack.scrollWidth,
-                scrub: true,
-              },
-            }
-          );
-        });
-      }
-    }
-
     // Statement: ピン留めして巨大テキストを横へ送る
     const stTrack = document.getElementById("statement-track");
     if (stTrack) {
@@ -219,18 +268,30 @@ if (window.gsap && window.ScrollTrigger) {
           },
         });
 
-        // 図形は横送りに合わせて回しておく
+        // 図形は横送りに合わせて回しつつ、上下にもずらして視差をつける。
+        // SVG の中身は CSS で常時ゆれ続けているので、ここでは外側のラッパーだけを動かし、
+        // 回転量も控えめにしてイラストの向きが読めなくならないようにする。
         gsap.utils.toArray(".statement__shape").forEach((shape, i) => {
-          gsap.to(shape, {
-            rotate: i % 2 === 0 ? 220 : -200,
-            ease: "none",
-            scrollTrigger: {
-              trigger: "#statement",
-              start: "top top",
-              end: "+=" + distance,
-              scrub: true,
-            },
-          });
+          // リングは円なので大きく回して良いが、ダイヤと星は形が崩れて見えるので浅く回す
+          const isRing = shape.classList.contains("statement__shape--ring");
+          const dir = i % 2 === 0 ? 1 : -1;
+
+          gsap.fromTo(
+            shape,
+            { rotate: (isRing ? -60 : -18) * dir, scale: 0.86, y: 30 * dir },
+            {
+              rotate: (isRing ? 120 : 24) * dir,
+              scale: 1.06,
+              y: -30 * dir,
+              ease: "none",
+              scrollTrigger: {
+                trigger: "#statement",
+                start: "top top",
+                end: "+=" + distance,
+                scrub: true,
+              },
+            }
+          );
         });
 
         // 語ごとに縦のズレをつけて、平坦に流れないようにする
@@ -253,8 +314,8 @@ if (window.gsap && window.ScrollTrigger) {
       }
     }
 
-    // レコード行を3Dで起こしながら出す
-    const records = gsap.utils.toArray(".work-record");
+    // レコード行を3Dで起こしながら出す（罫線ごと動かすので行の外枠を掴む）
+    const records = gsap.utils.toArray(".work-record-item");
     records.forEach((row, i) =>
       gsap.set(row, {
         opacity: 0,
@@ -276,12 +337,14 @@ if (window.gsap && window.ScrollTrigger) {
             duration: 0.85,
             stagger: 0.12,
             ease: "back.out(1.8)",
+            // 残った transform はフィルタの FLIP と競合するので消す
+            clearProps: "transform",
           }),
       });
     }
 
     // カード類はふわっと
-    const cards = gsap.utils.toArray(".skill-card, .home-index a");
+    const cards = gsap.utils.toArray(".skill-card");
     if (cards.length) {
       ScrollTrigger.batch(cards, {
         start: "top 90%",
@@ -336,20 +399,47 @@ if (window.gsap && !window.matchMedia("(prefers-reduced-motion: reduce)").matche
     const index = row.querySelector(".record-index");
     const arrow = row.querySelector(".record-arrow");
     const title = row.querySelector(".record-title strong");
+    // 開閉マークだけは、開いた状態の 45 度回転を CSS が持っているので GSAP で触らない
+    const spinnable = arrow && !arrow.classList.contains("record-arrow--mark") ? arrow : null;
 
     row.addEventListener("mouseenter", () => {
       row.classList.add("is-hover");
       gsap.to(index, { rotate: -18, scale: 1.15, duration: 0.35, ease: "back.out(2.5)" });
-      gsap.to(arrow, { rotate: 45, scale: 1.1, duration: 0.4, ease: "back.out(2.5)" });
+      if (spinnable) gsap.to(spinnable, { rotate: 45, scale: 1.1, duration: 0.4, ease: "back.out(2.5)" });
+      // 行の padding は動かさない。番号を塗りの左端に揃えたままにするため
       gsap.to(title, { x: 10, duration: 0.35, ease: "power2.out" });
-      gsap.to(row, { paddingLeft: 18, duration: 0.35, ease: "power2.out" });
     });
     row.addEventListener("mouseleave", () => {
       row.classList.remove("is-hover");
       gsap.to(index, { rotate: 0, scale: 1, duration: 0.4, ease: "power2.out" });
-      gsap.to(arrow, { rotate: 0, scale: 1, duration: 0.4, ease: "power2.out" });
+      if (spinnable) gsap.to(spinnable, { rotate: 0, scale: 1, duration: 0.4, ease: "power2.out" });
       gsap.to(title, { x: 0, duration: 0.4, ease: "power2.out" });
-      gsap.to(row, { paddingLeft: 0, duration: 0.4, ease: "power2.out" });
+    });
+  });
+
+  // Contact の連絡先行。記録行と同じ動きに揃える。
+  // ただし開閉トグルの「＋」だけは、開いた状態の 45 度回転を CSS が持っているので触らない。
+  // ホバーで左 padding を広げるので、戻す先は CSS が持つ基準値（0 ではない）。
+  const ROW_PADDING_LEFT = 16;
+  document.querySelectorAll(".contact-channels__row").forEach((row) => {
+    const key = row.querySelector(".contact-channels__key");
+    const value = row.querySelector(".contact-channels__val");
+    const mark = row.querySelector(".contact-channels__arrow");
+    const spinnable = mark && !mark.classList.contains("contact-disclosure__mark") ? mark : null;
+
+    row.addEventListener("mouseenter", () => {
+      row.classList.add("is-hover");
+      gsap.to(key, { x: 6, duration: 0.35, ease: "power2.out" });
+      gsap.to(value, { x: 10, duration: 0.35, ease: "power2.out" });
+      gsap.to(row, { paddingLeft: ROW_PADDING_LEFT + 2, duration: 0.35, ease: "power2.out" });
+      if (spinnable) gsap.to(spinnable, { rotate: 45, scale: 1.1, duration: 0.4, ease: "back.out(2.5)" });
+    });
+    row.addEventListener("mouseleave", () => {
+      row.classList.remove("is-hover");
+      gsap.to(key, { x: 0, duration: 0.4, ease: "power2.out" });
+      gsap.to(value, { x: 0, duration: 0.4, ease: "power2.out" });
+      gsap.to(row, { paddingLeft: ROW_PADDING_LEFT, duration: 0.4, ease: "power2.out" });
+      if (spinnable) gsap.to(spinnable, { rotate: 0, scale: 1, duration: 0.4, ease: "power2.out" });
     });
   });
 }

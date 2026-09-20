@@ -1,0 +1,38 @@
+/* 実績情報「画像を追加」欄の管理画面スタイル */
+.takumi-gallery__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.takumi-gallery__item {
+  position: relative;
+  display: block;
+  width: 80px;
+  height: 80px;
+  border: 1px solid #dcdcde;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.takumi-gallery__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.takumi-gallery__remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  line-height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+.takumi-gallery__remove:hover { background: #d63638; }
