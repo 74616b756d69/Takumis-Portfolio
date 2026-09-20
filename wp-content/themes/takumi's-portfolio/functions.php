@@ -817,7 +817,8 @@ const TAKUMI_WORK_FIELDS = array(
 const TAKUMI_SKILL_FIELDS = array(
 	'icon'       => array( 'アイコン(skillicons.dev のID)', '例: html' ),
 	'genre'      => array( 'ジャンル', 'main / base / sub / learn / tool のいずれか。空欄でも可。' ),
-	'experience' => array( '経験', '例: 4 yrs / Learning' ),
+	'since'      => array( '使い始めた年月', '例: 2021.04 / 2021-04 / 2021。入れておくと経験年数(4 yrs など)が毎年ひとりでに増える。' ),
+	'experience' => array( '経験(手入力)', '例: 4 yrs / Learning。「使い始めた年月」が空のとき、および1年未満のあいだ、この文字がそのまま出る。' ),
 	'percent'    => array( '習熟度(0-100)', '例: 90' ),
 	'note'       => array( '補足', '例: Webサイト制作で使用' ),
 );
@@ -870,6 +871,115 @@ add_action( 'save_post_career', function ( $post_id ) {
 } );
 add_action( 'save_post_build', function ( $post_id ) {
 	takumi_save_meta_fields( $post_id, TAKUMI_BUILD_FIELDS, 'build' );
+} );
+
+/* ---------- スキル一覧(管理側)の並び替え ---------- */
+
+/**
+ * ドラッグで並び替えられる投稿タイプ。
+ * ここに追加すれば、その一覧でも同じ並び替えが効く。
+ */
+const TAKUMI_SORTABLE_POST_TYPES = array( 'skill' );
+
+/**
+ * 管理画面の一覧を menu_order 順に出す。
+ * 並び替えた結果をそのまま見られるように、ページ分割もしない。
+ */
+add_action( 'pre_get_posts', function ( $query ) {
+	if ( ! is_admin() || ! $query->is_main_query() ) {
+		return;
+	}
+	if ( ! in_array( (string) $query->get( 'post_type' ), TAKUMI_SORTABLE_POST_TYPES, true ) ) {
+		return;
+	}
+	// 列見出しでの並び替え中は、そちらを優先する
+	if ( isset( $_GET['orderby'] ) ) {
+		return;
+	}
+	$query->set( 'orderby', 'menu_order' );
+	$query->set( 'order', 'ASC' );
+	$query->set( 'posts_per_page', -1 );
+} );
+
+/**
+ * 一覧の先頭に「並び」列(ドラッグ用のハンドルと通し番号)を足す。
+ */
+add_action( 'admin_init', function () {
+	foreach ( TAKUMI_SORTABLE_POST_TYPES as $post_type ) {
+		add_filter( "manage_{$post_type}_posts_columns", function ( $columns ) {
+			$new = array();
+			foreach ( $columns as $key => $label ) {
+				if ( 'title' === $key ) {
+					$new['takumi_order'] = '並び';
+				}
+				$new[ $key ] = $label;
+			}
+			return $new;
+		} );
+
+		add_action( "manage_{$post_type}_posts_custom_column", function ( $column ) {
+			static $number = 0;
+			if ( 'takumi_order' !== $column ) {
+				return;
+			}
+			$number++;
+			printf(
+				'<span class="takumi-drag" title="%s">⋮⋮</span><br><span class="takumi-order-number">%d</span>',
+				esc_attr( 'ドラッグで並び替え' ),
+				$number
+			);
+		} );
+	}
+} );
+
+add_action( 'admin_enqueue_scripts', function ( $hook ) {
+	if ( 'edit.php' !== $hook ) {
+		return;
+	}
+	$screen = get_current_screen();
+	if ( ! $screen || ! in_array( $screen->post_type, TAKUMI_SORTABLE_POST_TYPES, true ) ) {
+		return;
+	}
+	$uri = get_template_directory_uri();
+	wp_enqueue_style( 'takumi-admin-sortable', $uri . '/assets/css/admin-sortable.css', array(), TAKUMI_VERSION );
+	wp_enqueue_script( 'takumi-admin-sortable', $uri . '/assets/js/admin-sortable.js', array(), TAKUMI_VERSION, true );
+	wp_localize_script( 'takumi-admin-sortable', 'takumiSortable', array(
+		'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
+		'nonce'       => wp_create_nonce( 'takumi_save_order' ),
+		'postType'    => $screen->post_type,
+		'savingText'  => '並び順を保存しています…',
+		'savedText'   => '並び順を保存しました。',
+		'errorText'   => '並び順を保存できませんでした。画面を再読み込みしてやり直してください。',
+	) );
+} );
+
+/**
+ * 画面の並びを menu_order として保存する。
+ */
+add_action( 'wp_ajax_takumi_save_order', function () {
+	check_ajax_referer( 'takumi_save_order', 'nonce' );
+
+	$post_type = isset( $_POST['post_type'] ) ? sanitize_key( wp_unslash( $_POST['post_type'] ) ) : '';
+	if ( ! in_array( $post_type, TAKUMI_SORTABLE_POST_TYPES, true ) ) {
+		wp_send_json_error( 'unknown post type', 400 );
+	}
+
+	$ids = isset( $_POST['ids'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ids'] ) ) : array();
+	if ( ! $ids ) {
+		wp_send_json_error( 'no ids', 400 );
+	}
+
+	foreach ( $ids as $index => $id ) {
+		if ( ! $id || get_post_type( $id ) !== $post_type || ! current_user_can( 'edit_post', $id ) ) {
+			continue;
+		}
+		wp_update_post( array(
+			'ID'         => $id,
+			'menu_order' => $index + 1,
+		) );
+	}
+
+	wp_send_json_success();
 } );
 
 /* ---------- 制作実績の一覧画面(管理側) ---------- */
@@ -1830,6 +1940,39 @@ function takumi_get_home_works() {
 /* ---------- スキル・経歴の取得 ---------- */
 
 /**
+ * 「使い始めた年月」から経験の表示("4 yrs" など)を組み立てる。
+ *
+ * 年月を入れておけば時間が経つだけで数字が増えるので、毎年書き直さなくて済む。
+ * 刻むのは年だけ。未入力・読めない書式・未来の日付・1年未満のときは、
+ * 手入力の文字($fallback)へ戻す。
+ *
+ * @param string $since    2021.04 / 2021-04 / 2021/4 / 2021 のいずれか。
+ * @param string $fallback 年月が使えないときに出す文字。
+ * @return string
+ */
+function takumi_experience_label( $since, $fallback = '' ) {
+	$since = trim( (string) $since );
+	if ( '' === $since || ! preg_match( '/^(\d{4})(?:[.\-\/年](\d{1,2}))?/u', $since, $m ) ) {
+		return $fallback;
+	}
+
+	$year  = (int) $m[1];
+	$month = isset( $m[2] ) ? max( 1, min( 12, (int) $m[2] ) ) : 1;
+
+	// サイトのタイムゾーンで「今」を見る(UTC だと月初・年初がずれることがある)
+	$now    = current_time( 'timestamp' );
+	$months = ( (int) wp_date( 'Y', $now ) - $year ) * 12 + ( (int) wp_date( 'n', $now ) - $month );
+
+	// 年が変わったところだけ数字を上げる。1年に満たないうちは手入力の文字(Learning など)のまま。
+	if ( $months < 12 ) {
+		return $fallback;
+	}
+
+	$years = intdiv( $months, 12 );
+	return $years . ( 1 === $years ? ' yr' : ' yrs' );
+}
+
+/**
  * スキル一覧を取得(管理画面「スキル」に投稿がなければ既定値を返す)
  * 各要素: array( アイコンID, 名前, 経験, 習熟度%, 補足, ジャンル )
  * トップの Skill セクションは廃止したが、About ページでは今も使っている。
@@ -1874,7 +2017,10 @@ function takumi_get_skills_data() {
 		return array(
 			get_post_meta( $post->ID, '_takumi_icon', true ),
 			get_the_title( $post ),
-			get_post_meta( $post->ID, '_takumi_experience', true ),
+			takumi_experience_label(
+				get_post_meta( $post->ID, '_takumi_since', true ),
+				get_post_meta( $post->ID, '_takumi_experience', true )
+			),
 			(int) get_post_meta( $post->ID, '_takumi_percent', true ),
 			get_post_meta( $post->ID, '_takumi_note', true ),
 			get_post_meta( $post->ID, '_takumi_genre', true ),
