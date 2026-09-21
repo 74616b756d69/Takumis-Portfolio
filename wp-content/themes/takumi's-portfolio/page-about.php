@@ -71,6 +71,8 @@ $timeline = takumi_get_career_data();
 		</div>
 	</section>
 
+	<?php takumi_flow_line( 'flow-line--flip flow-line--tight' ); ?>
+
 	<!-- Skill -->
 	<section class="section section--alt" id="skill">
 		<?php takumi_section_art( 'ring', array( 'x' => '93%', 'y' => '24%', 'size' => 'clamp(120px, 13vw, 200px)' ) ); ?>
