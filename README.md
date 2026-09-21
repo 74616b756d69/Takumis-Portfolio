@@ -1,14 +1,14 @@
 # Takumi's Portfolio
 
-赤堀匠海(Akahori Takumi)のポートフォリオサイトです。WordPressのカスタムテーマとして構築されており、Three.jsによる3Dスクロール演出とGSAPのアニメーションを組み合わせています。
+赤堀匠海(Akahori Takumi)のポートフォリオサイトです。WordPressのカスタムテーマとして構築されており、Three.jsによる星空背景とGSAP(ScrollTrigger)のスクロールアニメーションを組み合わせています。
 
 - 本番URL: https://takumisportfolio.main.jp
 - ローカル開発環境: [Local by Flywheel](https://localwp.com/)
 
 ## 特徴
 
-- **登山モード**(フロントページ `/`): スクロールに応じてThree.jsの3D富士山を登っていく体験型トップページ。麓(Profile)から山頂(Contact)まで進むと夜が明ける演出付き。
-- **スキル吹き出し**: 登山シーン中、スキルステーション付近にアイコン入りの吹き出しがスクロール連動でフェード表示される。
+- **星空背景**: `canvas.stars-canvas` を持つセクションにThree.jsのパーティクル星空を描画([three-stars.js](wp-content/themes/takumi's-portfolio/assets/js/three-stars.js))。
+- **スクロール演出**: GSAP ScrollTriggerによる`data-reveal`のフェードイン、Statementセクションの横スクロールなど。
 - **和モダン × Tech Dark Theme**: ダークトーンに金・アイスブルーのアクセントを効かせた配色([style.css](wp-content/themes/takumi's-portfolio/assets/css/style.css)の`:root`変数で管理)。
 - **お問い合わせフォーム**: Contact Form 7を利用。
 
@@ -18,16 +18,15 @@
 wp-content/themes/takumi's-portfolio/
 ├── functions.php          # テーマ機能・カスタム投稿タイプ・カスタマイザー設定
 ├── header.php / footer.php
-├── front-page.php         # 登山モード(トップページ)
+├── front-page.php         # トップページ
 ├── page-about.php         # Aboutページ(プロフィール・スキル・経歴)
 ├── page-work.php          # Workページ(制作実績一覧・フィルタ)
-├── page-climb.php         # 登山モードの単体ページ版(非公開)
 ├── assets/
 │   ├── css/style.css
 │   ├── js/
-│   │   ├── three-climb.js   # 登山モードの3D演出
-│   │   ├── three-stars.js   # 星空パーティクル背景
+│   │   ├── three-stars.js   # 星空パーティクル背景(Three.js)
 │   │   ├── works.js         # 作品データ・フィルタ・カード描画
+│   │   ├── card-ring.js     # 円周カードのドラッグ回転
 │   │   └── main.js
 │   └── img/
 │       └── skills/          # スキルアイコンSVG(skillicons.devからのローカルキャッシュ)
@@ -39,7 +38,7 @@ wp-content/themes/takumi's-portfolio/
 
 | 投稿タイプ | 管理画面 | 用途 |
 | --- | --- | --- |
-| スキル (`skill`) | 「スキル」 | Aboutページのスキル一覧・登山モードの吹き出し |
+| スキル (`skill`) | 「スキル」 | Aboutページのスキル一覧 |
 | 経歴 (`career`) | 「経歴」 | Aboutページの経歴タイムライン |
 | 制作実績 (`works`) | 「制作実績」 | Workページ・トップページのWorkセクション |
 

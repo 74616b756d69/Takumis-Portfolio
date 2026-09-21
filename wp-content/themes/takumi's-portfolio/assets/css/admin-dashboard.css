@@ -1,0 +1,86 @@
+/* ダッシュボード「サイトの状況」ウィジェット */
+.takumi-dash__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.takumi-dash__card {
+  padding: 12px;
+  border: 1px solid #dcdcde;
+  border-radius: 6px;
+  background: #fff;
+}
+.takumi-dash__name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  color: #50575e;
+  font-size: 12px;
+  font-weight: 600;
+}
+.takumi-dash__name .dashicons {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  color: #2271b1;
+}
+.takumi-dash__count {
+  margin: 0 0 10px;
+  line-height: 1.2;
+}
+.takumi-dash__count a {
+  text-decoration: none;
+  color: #1d2327;
+}
+.takumi-dash__count strong {
+  font-size: 26px;
+  font-weight: 600;
+}
+.takumi-dash__draft {
+  margin-left: 8px;
+  color: #b26900;
+  font-size: 12px;
+}
+.takumi-dash__add { margin: 0; }
+
+.takumi-dash__alerts {
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+.takumi-dash__alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 6px;
+  padding: 8px 10px;
+  border-left: 3px solid #dcdcde;
+  border-radius: 0 4px 4px 0;
+  background: #f6f7f7;
+  font-size: 13px;
+}
+.takumi-dash__alert.is-warn {
+  border-left-color: #d63638;
+  background: #fcf0f1;
+}
+.takumi-dash__alert.is-info {
+  border-left-color: #2271b1;
+  background: #f0f6fc;
+}
+.takumi-dash__ok {
+  margin: 0 0 14px;
+  color: #50575e;
+  font-size: 13px;
+}
+.takumi-dash__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f1;
+  font-size: 13px;
+}
